@@ -1,1 +1,1 @@
-{"parent":"minecraft:block/cube_bottom_top","textures":{"side":"siliconic:item/deepslate_silver_ore","top":"siliconic:item/deepslate_silver_ore_top","bottom":"siliconic:item/deepslate_silver_ore_top"}}
+{"parent":"minecraft:block/cube_bottom_top","textures":{"side":"siliconic:block/deepslate_silver_ore","top":"siliconic:block/deepslate_silver_ore_top","bottom":"siliconic:block/deepslate_silver_ore_top"}}

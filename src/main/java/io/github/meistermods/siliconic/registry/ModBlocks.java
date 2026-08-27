@@ -10,8 +10,14 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class ModBlocks {
-  public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, Siliconic.MOD_ID);
-  public static final RegistryObject<Block> PROTOTYPE_WAFER = BLOCKS.register("prototype_wafer",
-      () -> new PrototypeWaferBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(1.5f)));
+  public static final DeferredRegister<Block> BLOCKS =
+      DeferredRegister.create(ForgeRegistries.BLOCKS, Siliconic.MOD_ID);
+  public static final RegistryObject<Block> PROTOTYPE_WAFER =
+      BLOCKS.register(
+          "prototype_wafer",
+          () ->
+              new PrototypeWaferBlock(
+                  BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(1.5f)));
+
   private ModBlocks() {}
 }

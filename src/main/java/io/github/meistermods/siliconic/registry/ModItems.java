@@ -8,11 +8,18 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class ModItems {
-  public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, Siliconic.MOD_ID);
-  public static final RegistryObject<Item> CRUDE_SILICON = ITEMS.register("crude_silicon", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> PURE_SILICON = ITEMS.register("pure_silicon", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> SILICON_WAFER = ITEMS.register("silicon_wafer", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> PROTOTYPE_WAFER = ITEMS.register("prototype_wafer",
-      () -> new BlockItem(ModBlocks.PROTOTYPE_WAFER.get(), new Item.Properties()));
+  public static final DeferredRegister<Item> ITEMS =
+      DeferredRegister.create(ForgeRegistries.ITEMS, Siliconic.MOD_ID);
+  public static final RegistryObject<Item> CRUDE_SILICON =
+      ITEMS.register("crude_silicon", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> PURE_SILICON =
+      ITEMS.register("pure_silicon", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> SILICON_WAFER =
+      ITEMS.register("silicon_wafer", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> PROTOTYPE_WAFER =
+      ITEMS.register(
+          "prototype_wafer",
+          () -> new BlockItem(ModBlocks.PROTOTYPE_WAFER.get(), new Item.Properties()));
+
   private ModItems() {}
 }

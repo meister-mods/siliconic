@@ -1,10 +1,10 @@
 package io.github.meistermods.siliconic;
 
+import io.github.meistermods.siliconic.network.ModNetwork;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
 import io.github.meistermods.siliconic.registry.ModItems;
 import io.github.meistermods.siliconic.registry.ModMenus;
-import io.github.meistermods.siliconic.network.ModNetwork;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 

@@ -8,8 +8,15 @@ import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
 
 public final class ModBlockEntities {
-  public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, Siliconic.MOD_ID);
-  public static final RegistryObject<BlockEntityType<PrototypeWaferBlockEntity>> PROTOTYPE_WAFER = BLOCK_ENTITIES.register(
-      "prototype_wafer", () -> BlockEntityType.Builder.of(PrototypeWaferBlockEntity::new, ModBlocks.PROTOTYPE_WAFER.get()).build(null));
+  public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
+      DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, Siliconic.MOD_ID);
+  public static final RegistryObject<BlockEntityType<PrototypeWaferBlockEntity>> PROTOTYPE_WAFER =
+      BLOCK_ENTITIES.register(
+          "prototype_wafer",
+          () ->
+              BlockEntityType.Builder.of(
+                      PrototypeWaferBlockEntity::new, ModBlocks.PROTOTYPE_WAFER.get())
+                  .build(null));
+
   private ModBlockEntities() {}
 }

@@ -1,0 +1,7 @@
+{
+  "type":"minecraft:blasting",
+  "ingredient":{"item":"siliconic:crude_silicon"},
+  "result":"siliconic:pure_silicon",
+  "experience":0.4,
+  "cookingtime":100
+}

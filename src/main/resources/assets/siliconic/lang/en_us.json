@@ -1,0 +1,8 @@
+{
+  "block.siliconic.prototype_wafer": "Prototype Wafer",
+  "item.siliconic.crude_silicon": "Crude Silicon",
+  "item.siliconic.pure_silicon": "High-purity Silicon",
+  "item.siliconic.silicon_wafer": "Silicon Wafer",
+  "container.siliconic.wafer": "8×8 Wafer Router",
+  "screen.siliconic.wafer.hint": "Click cells to place or remove copper traces"
+}

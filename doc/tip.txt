@@ -4,6 +4,7 @@
 .\gradlew.bat runClient
 
 https://github.com/google/google-java-format/releases/tag/v1.35.0
+
 $files = Get-ChildItem .\src\main\java -Recurse -Filter *.java |
     Select-Object -ExpandProperty FullName
 

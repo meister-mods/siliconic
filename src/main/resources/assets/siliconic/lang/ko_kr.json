@@ -47,6 +47,6 @@
   "direction.siliconic.north": "북쪽",
   "direction.siliconic.east": "동쪽",
   "direction.siliconic.south": "남쪽",
-  "direction.siliconic.west": "서쪽"
-  ,"message.siliconic.generator_status": "발전기: %s / %s FE · 연소 %s틱 · 연료 %s개"
+  "direction.siliconic.west": "서쪽",
+  "message.siliconic.generator_status": "발전기: %s / %s FE · 연소 %s틱 · 연료 %s개"
 }

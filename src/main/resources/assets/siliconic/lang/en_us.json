@@ -47,6 +47,6 @@
   "direction.siliconic.north": "North",
   "direction.siliconic.east": "East",
   "direction.siliconic.south": "South",
-  "direction.siliconic.west": "West"
-  ,"message.siliconic.generator_status": "Generator: %s / %s FE · burn %s ticks · fuel %s"
+  "direction.siliconic.west": "West",
+  "message.siliconic.generator_status": "Generator: %s / %s FE · burn %s ticks · fuel %s"
 }

@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings({"null"})
 public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvider {
   public static final int SIZE = 8;
   private final boolean[] traces = new boolean[SIZE * SIZE];
@@ -25,10 +26,18 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private final int[] outputs = new int[4];
 
   public enum PinMode {
-    DISABLED("disabled"), INPUT("input"), OUTPUT("output");
+    DISABLED("disabled"),
+    INPUT("input"),
+    OUTPUT("output");
     public final String translationKey;
-    PinMode(String translationKey) { this.translationKey = translationKey; }
-    public PinMode next() { return values()[(ordinal() + 1) % values().length]; }
+
+    PinMode(String translationKey) {
+      this.translationKey = translationKey;
+    }
+
+    public PinMode next() {
+      return values()[(ordinal() + 1) % values().length];
+    }
   }
 
   public PrototypeWaferBlockEntity(BlockPos pos, BlockState state) {
@@ -39,7 +48,9 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     return index >= 0 && index < traces.length && traces[index];
   }
 
-  public PinMode getPinMode(int pin) { return pin >= 0 && pin < 4 ? pinModes[pin] : PinMode.DISABLED; }
+  public PinMode getPinMode(int pin) {
+    return pin >= 0 && pin < 4 ? pinModes[pin] : PinMode.DISABLED;
+  }
 
   public void toggleTrace(int index) {
     if (index < 0 || index >= traces.length) return;
@@ -52,22 +63,30 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public void cyclePinMode(int pin) {
     if (pin < 0 || pin >= 4) return;
     pinModes[pin] = pinModes[pin].next();
-    setChanged(); refreshSignals(); sync();
+    setChanged();
+    refreshSignals();
+    sync();
   }
 
   public void refreshSignals() {
     if (level == null || level.isClientSide) return;
     int[] oldOutputs = outputs.clone();
     Direction[] directions = directions();
-    for (int i = 0; i < 4; i++) inputs[i] = pinModes[i] == PinMode.INPUT
-        ? level.getSignal(worldPosition.relative(directions[i]), directions[i].getOpposite()) : 0;
+    for (int i = 0; i < 4; i++)
+      inputs[i] =
+          pinModes[i] == PinMode.INPUT
+              ? level.getSignal(worldPosition.relative(directions[i]), directions[i].getOpposite())
+              : 0;
     for (int target = 0; target < 4; target++) {
       int value = 0;
-      if (pinModes[target] == PinMode.OUTPUT) for (int source = 0; source < 4; source++)
-        if (pinModes[source] == PinMode.INPUT && connected(pinCell(source), pinCell(target))) value = Math.max(value, inputs[source]);
+      if (pinModes[target] == PinMode.OUTPUT)
+        for (int source = 0; source < 4; source++)
+          if (pinModes[source] == PinMode.INPUT && connected(pinCell(source), pinCell(target)))
+            value = Math.max(value, inputs[source]);
       outputs[target] = value;
     }
-    if (!Arrays.equals(oldOutputs, outputs)) level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
+    if (!Arrays.equals(oldOutputs, outputs))
+      level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
     setChanged();
     sync();
   }
@@ -82,7 +101,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (!hasTrace(cell)) return 0;
     int value = 0;
     for (int pin = 0; pin < 4; pin++)
-      if (pinModes[pin] == PinMode.INPUT && connected(pinCell(pin), cell)) value = Math.max(value, inputs[pin]);
+      if (pinModes[pin] == PinMode.INPUT && connected(pinCell(pin), cell))
+        value = Math.max(value, inputs[pin]);
     return value;
   }
 
@@ -120,8 +140,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     };
   }
 
-  private Direction[] directions() { return new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST}; }
-  private void sync() { if (level != null && !level.isClientSide) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2); }
+  private Direction[] directions() {
+    return new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
+  }
+
+  private void sync() {
+    if (level != null && !level.isClientSide)
+      level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
+  }
 
   @Override
   protected void saveAdditional(CompoundTag tag) {
@@ -140,15 +166,33 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     long bits = tag.getLong("Traces");
     for (int i = 0; i < traces.length; i++) traces[i] = (bits & (1L << i)) != 0;
     int[] modes = tag.getIntArray("PinModes");
-    if (modes.length == 4) for (int i = 0; i < 4; i++) pinModes[i] = PinMode.values()[Math.max(0, Math.min(modes[i], PinMode.values().length - 1))];
+    if (modes.length == 4)
+      for (int i = 0; i < 4; i++)
+        pinModes[i] =
+            PinMode.values()[Math.max(0, Math.min(modes[i], PinMode.values().length - 1))];
     copyFour(tag.getIntArray("Inputs"), inputs);
     copyFour(tag.getIntArray("Outputs"), outputs);
   }
 
-  private void copyFour(int[] source, int[] target) { if (source.length == 4) System.arraycopy(source, 0, target, 0, 4); }
-  @Override public CompoundTag getUpdateTag() { return saveWithoutMetadata(); }
-  @Nullable @Override public ClientboundBlockEntityDataPacket getUpdatePacket() { return ClientboundBlockEntityDataPacket.create(this); }
-  @Override public void onDataPacket(Connection connection, ClientboundBlockEntityDataPacket packet) { if (packet.getTag() != null) load(packet.getTag()); }
+  private void copyFour(int[] source, int[] target) {
+    if (source.length == 4) System.arraycopy(source, 0, target, 0, 4);
+  }
+
+  @Override
+  public CompoundTag getUpdateTag() {
+    return saveWithoutMetadata();
+  }
+
+  @Nullable
+  @Override
+  public ClientboundBlockEntityDataPacket getUpdatePacket() {
+    return ClientboundBlockEntityDataPacket.create(this);
+  }
+
+  @Override
+  public void onDataPacket(Connection connection, ClientboundBlockEntityDataPacket packet) {
+    if (packet.getTag() != null) load(packet.getTag());
+  }
 
   @Override
   public Component getDisplayName() {

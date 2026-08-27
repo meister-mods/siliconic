@@ -6,12 +6,13 @@ import io.github.meistermods.siliconic.network.ModNetwork;
 import io.github.meistermods.siliconic.network.ToggleTracePacket;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import io.github.meistermods.siliconic.wafer.WaferMenu;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import java.util.List;
 
+@SuppressWarnings({"null"})
 public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
   private static final int CELL = 20;
   private static final int GRID = PrototypeWaferBlockEntity.SIZE * CELL;
@@ -39,7 +40,8 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       for (int x = 0; x < 8; x++) {
         int index = y * 8 + x;
         int signal = menu.wafer().getCellSignal(index);
-        int color = !menu.wafer().hasTrace(index) ? 0xff283338 : signal > 0 ? 0xffffb13b : 0xffb86228;
+        int color =
+            !menu.wafer().hasTrace(index) ? 0xff283338 : signal > 0 ? 0xffffb13b : 0xffb86228;
         graphics.fill(
             gridX + x * CELL + 1,
             gridY + y * CELL + 1,
@@ -48,8 +50,10 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
             color);
       }
     graphics.fill(gridX + 3 * CELL + 4, gridY - 8, gridX + 4 * CELL - 4, gridY, pinColor(0));
-    graphics.fill(gridX + GRID, gridY + 4 * CELL + 4, gridX + GRID + 8, gridY + 5 * CELL - 4, pinColor(1));
-    graphics.fill(gridX + 4 * CELL + 4, gridY + GRID, gridX + 5 * CELL - 4, gridY + GRID + 8, pinColor(2));
+    graphics.fill(
+        gridX + GRID, gridY + 4 * CELL + 4, gridX + GRID + 8, gridY + 5 * CELL - 4, pinColor(1));
+    graphics.fill(
+        gridX + 4 * CELL + 4, gridY + GRID, gridX + 5 * CELL - 4, gridY + GRID + 8, pinColor(2));
     graphics.fill(gridX - 8, gridY + 3 * CELL + 4, gridX, gridY + 4 * CELL - 4, pinColor(3));
   }
 
@@ -74,10 +78,18 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
     super.render(graphics, mouseX, mouseY, partialTick);
     if (insideGrid(mouseX, mouseY)) {
       int x = (mouseX - gridX) / CELL, y = (mouseY - gridY) / CELL, cell = y * 8 + x;
-      graphics.renderComponentTooltip(font, List.of(
-          Component.translatable("screen.siliconic.wafer.probe", x, y),
-          Component.translatable(menu.wafer().hasTrace(cell) ? "screen.siliconic.wafer.trace" : "screen.siliconic.wafer.empty"),
-          Component.translatable("screen.siliconic.wafer.signal", menu.wafer().getCellSignal(cell))), mouseX, mouseY);
+      graphics.renderComponentTooltip(
+          font,
+          List.of(
+              Component.translatable("screen.siliconic.wafer.probe", x, y),
+              Component.translatable(
+                  menu.wafer().hasTrace(cell)
+                      ? "screen.siliconic.wafer.trace"
+                      : "screen.siliconic.wafer.empty"),
+              Component.translatable(
+                  "screen.siliconic.wafer.signal", menu.wafer().getCellSignal(cell))),
+          mouseX,
+          mouseY);
     }
   }
 
@@ -101,14 +113,33 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
     return super.mouseClicked(mouseX, mouseY, button);
   }
 
-  private boolean insideGrid(int x, int y) { return x >= gridX && x < gridX + GRID && y >= gridY && y < gridY + GRID; }
+  private boolean insideGrid(int x, int y) {
+    return x >= gridX && x < gridX + GRID && y >= gridY && y < gridY + GRID;
+  }
+
   private int hoveredPin(double x, double y) {
-    if (x >= gridX + 3*CELL && x < gridX + 4*CELL && y >= gridY-14 && y < gridY) return 0;
-    if (x >= gridX+GRID && x < gridX+GRID+14 && y >= gridY+4*CELL && y < gridY+5*CELL) return 1;
-    if (x >= gridX+4*CELL && x < gridX+5*CELL && y >= gridY+GRID && y < gridY+GRID+14) return 2;
-    if (x >= gridX-14 && x < gridX && y >= gridY+3*CELL && y < gridY+4*CELL) return 3;
+    if (x >= gridX + 3 * CELL && x < gridX + 4 * CELL && y >= gridY - 14 && y < gridY) return 0;
+    if (x >= gridX + GRID && x < gridX + GRID + 14 && y >= gridY + 4 * CELL && y < gridY + 5 * CELL)
+      return 1;
+    if (x >= gridX + 4 * CELL && x < gridX + 5 * CELL && y >= gridY + GRID && y < gridY + GRID + 14)
+      return 2;
+    if (x >= gridX - 14 && x < gridX && y >= gridY + 3 * CELL && y < gridY + 4 * CELL) return 3;
     return -1;
   }
-  private int pinColor(int pin) { return switch (menu.wafer().getPinMode(pin)) { case INPUT -> 0xff63c5ff; case OUTPUT -> 0xffffa94d; case DISABLED -> 0xff70777d; }; }
-  private String pinLabel(int pin) { return switch (menu.wafer().getPinMode(pin)) { case INPUT -> "IN"; case OUTPUT -> "OUT"; case DISABLED -> "OFF"; }; }
+
+  private int pinColor(int pin) {
+    return switch (menu.wafer().getPinMode(pin)) {
+      case INPUT -> 0xff63c5ff;
+      case OUTPUT -> 0xffffa94d;
+      case DISABLED -> 0xff70777d;
+    };
+  }
+
+  private String pinLabel(int pin) {
+    return switch (menu.wafer().getPinMode(pin)) {
+      case INPUT -> "IN";
+      case OUTPUT -> "OUT";
+      case DISABLED -> "OFF";
+    };
+  }
 }

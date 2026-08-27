@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
+@SuppressWarnings({"null"})
 public record ToggleTracePacket(BlockPos pos, int cell) {
   static void encode(ToggleTracePacket packet, FriendlyByteBuf buf) {
     buf.writeBlockPos(packet.pos);

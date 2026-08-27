@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 
+@SuppressWarnings({"null"})
 public class WaferMenu extends AbstractContainerMenu {
   private final PrototypeWaferBlockEntity wafer;
 

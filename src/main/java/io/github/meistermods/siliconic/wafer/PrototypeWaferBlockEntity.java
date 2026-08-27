@@ -1,12 +1,9 @@
 package io.github.meistermods.siliconic.wafer;
 
-import java.util.Arrays;
-import java.util.BitSet;
-
-import org.jetbrains.annotations.Nullable;
-
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModItems;
+import java.util.Arrays;
+import java.util.BitSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -31,6 +28,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvider {
@@ -109,6 +107,21 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     }
   }
 
+  public enum ConductorMode {
+    PLUS,
+    VERTICAL,
+    HORIZONTAL,
+    CROSSOVER,
+    CORNER_NE,
+    CORNER_ES,
+    CORNER_SW,
+    CORNER_WN;
+
+    public ConductorMode next() {
+      return values()[(ordinal() + 1) % values().length];
+    }
+  }
+
   private record Simulation(int[] signals, int[] outputs) {}
 
   private record Pulse(int strength, CellType material, int remaining) {
@@ -142,6 +155,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public int getRotation(int cell) {
     byte[] rotations = rotations(design(), getGridSize());
     return valid(cell) ? Byte.toUnsignedInt(rotations[cell]) & 3 : 0;
+  }
+
+  public ConductorMode getConductorMode(int cell) {
+    byte[] modes = conductorModes(design(), getGridSize());
+    return valid(cell)
+        ? ConductorMode.values()[
+            Math.min(Byte.toUnsignedInt(modes[cell]), ConductorMode.values().length - 1)]
+        : ConductorMode.PLUS;
   }
 
   public boolean hasTrace(int cell) {
@@ -232,7 +253,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (!valid(cell)) return;
     CellType old = getCellType(cell);
     if (rotate) {
-      if (old.isGate() || old == CellType.CHIP) {
+      if (old.isConductor()) {
+        byte[] modes = conductorModes(design(), getGridSize());
+        modes[cell] = (byte) getConductorMode(cell).next().ordinal();
+        design().putByteArray("ConductorModes", modes);
+        changedAndSync();
+      } else if (old.isGate() || old == CellType.CHIP) {
         byte[] value = rotations(design(), getGridSize());
         value[cell] = (byte) ((value[cell] + 1) & 3);
         design().putByteArray("Rotations", value);
@@ -268,10 +294,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private void setCell(int cell, CellType type) {
     int size = getGridSize();
     byte[] cells = cells(design(), size), rots = rotations(design(), size);
+    byte[] conductorModes = conductorModes(design(), size);
     cells[cell] = (byte) type.ordinal();
     rots[cell] = 0;
+    conductorModes[cell] = 0;
     design().putByteArray("Cells", cells);
     design().putByteArray("Rotations", rots);
+    design().putByteArray("ConductorModes", conductorModes);
     changedAndSync();
   }
 
@@ -355,7 +384,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   private Simulation simulate(CompoundTag design, int size, int[] externalInputs, int depth) {
     int count = size * size;
-    int[] values = new int[count], remaining = new int[count];
+    int[] values = new int[count];
+    int[][] wireStrength = new int[count][4], wireRemaining = new int[count][4];
     int[][] chipOutputs = new int[count][4];
     for (int pass = 0; pass < count + 8; pass++) {
       int[][] nextChips = new int[count][4];
@@ -372,35 +402,64 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
                 int world = (local + rotation) & 3;
                 childInputs[local] =
                     readFrom(
-                        design, size, values, remaining, chipOutputs, externalInputs, cell, world);
+                        design,
+                        size,
+                        values,
+                        wireStrength,
+                        wireRemaining,
+                        chipOutputs,
+                        externalInputs,
+                        cell,
+                        world);
               }
             Simulation nested = simulate(child, sizeOf(chip), childInputs, depth + 1);
             for (int local = 0; local < 4; local++)
               if (pinMode(child, local) == PinMode.OUTPUT)
                 nextChips[cell][(local + rotation) & 3] = nested.outputs[local];
           }
-      int[] next = new int[count], nextRemaining = new int[count];
+      int[] next = new int[count];
+      int[][] nextWire = new int[count][4], nextWireRemaining = new int[count][4];
       for (int cell = 0; cell < count; cell++) {
         CellType type = cellType(design, size, cell);
         if (type.isConductor()) {
-          Pulse pulse =
-              bestConductorInput(
-                  design, size, values, remaining, nextChips, externalInputs, cell, type);
-          next[cell] = pulse.strength;
-          nextRemaining[cell] = pulse.remaining;
+          routeConductor(
+              design,
+              size,
+              values,
+              wireStrength,
+              wireRemaining,
+              nextChips,
+              externalInputs,
+              cell,
+              type,
+              nextWire,
+              nextWireRemaining);
+          for (int side = 0; side < 4; side++)
+            next[cell] = Math.max(next[cell], nextWire[cell][side]);
         } else if (type.isGate())
           next[cell] =
-              gateOutput(design, size, values, remaining, nextChips, externalInputs, cell, type);
+              gateOutput(
+                  design,
+                  size,
+                  values,
+                  wireStrength,
+                  wireRemaining,
+                  nextChips,
+                  externalInputs,
+                  cell,
+                  type);
         else if (type == CellType.CHIP)
           for (int side = 0; side < 4; side++)
             next[cell] = Math.max(next[cell], nextChips[cell][side]);
       }
       boolean stable =
           Arrays.equals(values, next)
-              && Arrays.equals(remaining, nextRemaining)
+              && Arrays.deepEquals(wireStrength, nextWire)
+              && Arrays.deepEquals(wireRemaining, nextWireRemaining)
               && Arrays.deepEquals(chipOutputs, nextChips);
       values = next;
-      remaining = nextRemaining;
+      wireStrength = nextWire;
+      wireRemaining = nextWireRemaining;
       chipOutputs = nextChips;
       if (stable) break;
     }
@@ -408,33 +467,63 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     for (int pin = 0; pin < 4; pin++)
       if (pinMode(design, pin) == PinMode.OUTPUT)
         resultOutputs[pin] =
-            emitted(design, size, values, remaining, chipOutputs, pinCell(size, pin), pin).strength;
+            emitted(
+                    design,
+                    size,
+                    values,
+                    wireStrength,
+                    wireRemaining,
+                    chipOutputs,
+                    pinCell(size, pin),
+                    pin)
+                .strength;
     return new Simulation(values, resultOutputs);
   }
 
-  private Pulse bestConductorInput(
+  private void routeConductor(
       CompoundTag d,
       int size,
       int[] values,
-      int[] remaining,
+      int[][] wireStrength,
+      int[][] wireRemaining,
       int[][] chips,
       int[] ext,
       int cell,
-      CellType target) {
-    Pulse best =
-        pinInput(d, size, ext, cell) > 0
-            ? new Pulse(pinInput(d, size, ext, cell), target, target.range() - 1)
-            : Pulse.NONE;
-    for (int side = 0; side < 4; side++) {
-      int n = neighbor(size, cell, side);
-      if (n < 0) continue;
-      Pulse incoming = emitted(d, size, values, remaining, chips, n, (side + 2) & 3);
-      Pulse candidate = enterConductor(incoming, target);
-      if (candidate.strength > best.strength
-          || (candidate.strength == best.strength && candidate.remaining > best.remaining))
-        best = candidate;
+      CellType target,
+      int[][] nextStrength,
+      int[][] nextRemaining) {
+    for (int[] group : conductorGroups(conductorMode(d, size, cell))) {
+      Pulse best = Pulse.NONE;
+      for (int side : group) {
+        int direct = pinInputFrom(d, size, ext, cell, side);
+        if (direct > best.strength) best = new Pulse(direct, target, target.range() - 1);
+        int n = neighbor(size, cell, side);
+        if (n < 0) continue;
+        Pulse incoming =
+            emitted(d, size, values, wireStrength, wireRemaining, chips, n, (side + 2) & 3);
+        Pulse candidate = enterConductor(incoming, target);
+        if (candidate.strength > best.strength
+            || (candidate.strength == best.strength && candidate.remaining > best.remaining))
+          best = candidate;
+      }
+      for (int side : group) {
+        nextStrength[cell][side] = best.strength;
+        nextRemaining[cell][side] = best.remaining;
+      }
     }
-    return best;
+  }
+
+  private int[][] conductorGroups(ConductorMode mode) {
+    return switch (mode) {
+      case PLUS -> new int[][] {{0, 1, 2, 3}};
+      case VERTICAL -> new int[][] {{0, 2}};
+      case HORIZONTAL -> new int[][] {{1, 3}};
+      case CROSSOVER -> new int[][] {{0, 2}, {1, 3}};
+      case CORNER_NE -> new int[][] {{0, 1}};
+      case CORNER_ES -> new int[][] {{1, 2}};
+      case CORNER_SW -> new int[][] {{2, 3}};
+      case CORNER_WN -> new int[][] {{3, 0}};
+    };
   }
 
   private Pulse enterConductor(Pulse incoming, CellType target) {
@@ -451,18 +540,21 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       CompoundTag d,
       int size,
       int[] values,
-      int[] remaining,
+      int[][] wireStrength,
+      int[][] wireRemaining,
       int[][] chips,
       int[] ext,
       int cell,
       CellType type) {
     int facing = rotation(d, size, cell), a, b;
     if (type == CellType.NOT) {
-      a = readFrom(d, size, values, remaining, chips, ext, cell, (facing + 2) & 3);
+      a =
+          readFrom(
+              d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 2) & 3);
       return a == 0 ? 15 : 0;
     }
-    a = readFrom(d, size, values, remaining, chips, ext, cell, (facing + 3) & 3);
-    b = readFrom(d, size, values, remaining, chips, ext, cell, (facing + 1) & 3);
+    a = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 3) & 3);
+    b = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 1) & 3);
     return switch (type) {
       case AND -> a > 0 && b > 0 ? 15 : 0;
       case OR -> a > 0 || b > 0 ? 15 : 0;
@@ -475,7 +567,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       CompoundTag d,
       int size,
       int[] values,
-      int[] remaining,
+      int[][] wireStrength,
+      int[][] wireRemaining,
       int[][] chips,
       int[] ext,
       int cell,
@@ -483,26 +576,37 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     int n = neighbor(size, cell, side);
     return Math.max(
         pinInputFrom(d, size, ext, cell, side),
-        n < 0 ? 0 : emitted(d, size, values, remaining, chips, n, (side + 2) & 3).strength);
+        n < 0
+            ? 0
+            : emitted(d, size, values, wireStrength, wireRemaining, chips, n, (side + 2) & 3)
+                .strength);
   }
 
   private Pulse emitted(
-      CompoundTag d, int size, int[] values, int[] remaining, int[][] chips, int cell, int side) {
+      CompoundTag d,
+      int size,
+      int[] values,
+      int[][] wireStrength,
+      int[][] wireRemaining,
+      int[][] chips,
+      int cell,
+      int side) {
     CellType type = cellType(d, size, cell);
-    if (type.isConductor()) return new Pulse(values[cell], type, remaining[cell]);
+    if (type.isConductor())
+      return new Pulse(wireStrength[cell][side], type, wireRemaining[cell][side]);
     if (type.isGate() && rotation(d, size, cell) == side)
       return new Pulse(values[cell], CellType.EMPTY, 0);
     if (type == CellType.CHIP) return new Pulse(chips[cell][side], CellType.EMPTY, 0);
     return Pulse.NONE;
   }
 
-  private int pinInput(CompoundTag d, int size, int[] ext, int cell) {
-    int value = 0;
-    for (int pin = 0; pin < 4; pin++)
-      if (pinCell(size, pin) == cell && pinMode(d, pin) == PinMode.INPUT)
-        value = Math.max(value, ext[pin]);
-    return value;
-  }
+  // private int pinInput(CompoundTag d, int size, int[] ext, int cell) {
+  //   int value = 0;
+  //   for (int pin = 0; pin < 4; pin++)
+  //     if (pinCell(size, pin) == cell && pinMode(d, pin) == PinMode.INPUT)
+  //       value = Math.max(value, ext[pin]);
+  //   return value;
+  // }
 
   private int pinInputFrom(CompoundTag d, int size, int[] ext, int cell, int side) {
     return side >= 0 && side < 4 && pinCell(size, side) == cell && pinMode(d, side) == PinMode.INPUT
@@ -581,6 +685,17 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private byte[] rotations(CompoundTag d, int size) {
     byte[] value = d.getByteArray("Rotations");
     return value.length == size * size ? value : new byte[size * size];
+  }
+
+  private byte[] conductorModes(CompoundTag d, int size) {
+    byte[] value = d.getByteArray("ConductorModes");
+    return value.length == size * size ? value : new byte[size * size];
+  }
+
+  private ConductorMode conductorMode(CompoundTag d, int size, int cell) {
+    byte[] modes = conductorModes(d, size);
+    return ConductorMode.values()[
+        Math.min(Byte.toUnsignedInt(modes[cell]), ConductorMode.values().length - 1)];
   }
 
   private int rotation(CompoundTag d, int size, int cell) {

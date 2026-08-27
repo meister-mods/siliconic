@@ -5,6 +5,7 @@ import io.github.meistermods.siliconic.network.CellInteractionPacket;
 import io.github.meistermods.siliconic.network.CyclePinModePacket;
 import io.github.meistermods.siliconic.network.ModNetwork;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
+import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.ConductorMode;
 import io.github.meistermods.siliconic.wafer.WaferMenu;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,14 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
             };
         int x1 = gridX + x * CELL, y1 = gridY + y * CELL;
         g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
-        if (type.isGate() || type == CellType.CHIP) {
+        if (type.isConductor()) {
+          g.drawCenteredString(
+              font,
+              conductorSymbol(menu.wafer().getConductorMode(cell)),
+              x1 + CELL / 2,
+              y1 + 3,
+              0xff202020);
+        } else if (type.isGate() || type == CellType.CHIP) {
           g.drawCenteredString(font, gateSymbol(type), x1 + CELL / 2, y1 + 3, 0xffffffff);
           g.drawString(font, arrow(menu.wafer().getRotation(cell)), x1, y1, 0xff202020, false);
         }
@@ -160,6 +168,13 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       lines.add(Component.translatable("cell.siliconic." + type.name().toLowerCase()));
       if (type.isConductor())
         lines.add(Component.translatable("screen.siliconic.wafer.range", type.range()));
+      if (type.isConductor())
+        lines.add(
+            Component.translatable(
+                "screen.siliconic.wafer.conductor_mode",
+                Component.translatable(
+                    "conductor_mode.siliconic."
+                        + menu.wafer().getConductorMode(cell).name().toLowerCase())));
       if (type.isGate() || type == CellType.CHIP)
         lines.add(
             Component.translatable(
@@ -235,6 +250,19 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       case XOR -> "≠";
       case CHIP -> "C";
       default -> "";
+    };
+  }
+
+  private String conductorSymbol(ConductorMode mode) {
+    return switch (mode) {
+      case PLUS -> "+";
+      case VERTICAL -> "│";
+      case HORIZONTAL -> "─";
+      case CROSSOVER -> "╬";
+      case CORNER_NE -> "└";
+      case CORNER_ES -> "┌";
+      case CORNER_SW -> "┐";
+      case CORNER_WN -> "┘";
     };
   }
 

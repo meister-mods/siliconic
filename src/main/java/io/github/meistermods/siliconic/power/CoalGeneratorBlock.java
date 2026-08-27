@@ -1,7 +1,5 @@
 package io.github.meistermods.siliconic.power;
 
-import org.jetbrains.annotations.Nullable;
-
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -22,6 +20,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.ForgeHooks;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
 public class CoalGeneratorBlock extends BaseEntityBlock {

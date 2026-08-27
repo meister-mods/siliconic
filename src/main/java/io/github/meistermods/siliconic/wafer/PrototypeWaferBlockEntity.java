@@ -1,16 +1,22 @@
 package io.github.meistermods.siliconic.wafer;
 
-import io.github.meistermods.siliconic.registry.ModBlockEntities;
-import io.github.meistermods.siliconic.registry.ModItems;
 import java.util.Arrays;
 import java.util.BitSet;
+
+import org.jetbrains.annotations.Nullable;
+
+import io.github.meistermods.siliconic.registry.ModBlockEntities;
+import io.github.meistermods.siliconic.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -25,12 +31,16 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvider {
   public static final int LEVEL_1_SIZE = 9, LEVEL_2_SIZE = 13;
   private static final String DESIGN_TAG = "SiliconicDesign";
+  private static final TagKey<Item> REDSTONE_DUSTS = materialTag("dusts/redstone");
+  private static final TagKey<Item> COPPER_NUGGETS = materialTag("nuggets/copper");
+  private static final TagKey<Item> LEAD_NUGGETS = materialTag("nuggets/lead");
+  private static final TagKey<Item> SILVER_NUGGETS = materialTag("nuggets/silver");
+  private static final TagKey<Item> GOLD_NUGGETS = materialTag("nuggets/gold");
   private ItemStack wafer = ItemStack.EMPTY;
   private final int[] inputs = new int[4], outputs = new int[4];
   private int[] signals = new int[0];
@@ -266,17 +276,21 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private CellType typeFor(ItemStack stack) {
-    if (stack.is(Items.REDSTONE)) return CellType.REDSTONE;
-    if (stack.is(ModItems.COPPER_FRAGMENT.get())) return CellType.COPPER;
-    if (stack.is(ModItems.LEAD_NUGGET.get())) return CellType.LEAD;
-    if (stack.is(ModItems.SILVER_NUGGET.get())) return CellType.SILVER;
-    if (stack.is(Items.GOLD_NUGGET)) return CellType.GOLD;
+    if (stack.is(REDSTONE_DUSTS)) return CellType.REDSTONE;
+    if (stack.is(COPPER_NUGGETS)) return CellType.COPPER;
+    if (stack.is(LEAD_NUGGETS)) return CellType.LEAD;
+    if (stack.is(SILVER_NUGGETS)) return CellType.SILVER;
+    if (stack.is(GOLD_NUGGETS)) return CellType.GOLD;
     if (stack.is(ModItems.NOT_GATE.get())) return CellType.NOT;
     if (stack.is(ModItems.AND_GATE.get())) return CellType.AND;
     if (stack.is(ModItems.OR_GATE.get())) return CellType.OR;
     if (stack.is(ModItems.XOR_GATE.get())) return CellType.XOR;
     if (isWafer(stack)) return CellType.CHIP;
     return CellType.EMPTY;
+  }
+
+  private static TagKey<Item> materialTag(String path) {
+    return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("forge", path));
   }
 
   private Item itemFor(CellType type) {

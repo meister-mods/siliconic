@@ -1,7 +1,5 @@
 package io.github.meistermods.siliconic.power;
 
-import org.jetbrains.annotations.Nullable;
-
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -16,6 +14,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class CoalGeneratorBlockEntity extends BlockEntity {
@@ -85,6 +84,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, CoalGeneratorBlockEntity generator) {
     boolean wasLit = state.getValue(CoalGeneratorBlock.LIT);
+    generator.pushEnergy(level, pos);
     if (generator.burnTime <= 0
         && !generator.fuel.isEmpty()
         && generator.energy.getEnergyStored() < generator.energy.getMaxEnergyStored()) {
@@ -95,12 +95,12 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
         if (generator.fuel.isEmpty()) generator.fuel = ItemStack.EMPTY;
       }
     }
-    if (generator.burnTime > 0) {
+    if (generator.burnTime > 0
+        && generator.energy.getEnergyStored() < generator.energy.getMaxEnergyStored()) {
       generator.burnTime--;
       generator.energy.addInternal(GENERATION_PER_TICK);
       generator.setChanged();
     }
-    generator.pushEnergy(level, pos);
     boolean lit = generator.burnTime > 0;
     if (lit != wasLit) level.setBlock(pos, state.setValue(CoalGeneratorBlock.LIT, lit), 3);
   }

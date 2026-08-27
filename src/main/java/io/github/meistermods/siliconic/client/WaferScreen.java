@@ -246,10 +246,10 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
   private String gateSymbol(CellType type) {
     return switch (type) {
       case NOT -> "!";
-      case AND -> "&";
-      case OR -> "≥";
-      case XOR -> "≠";
-      case BUFFER -> "B";
+      case AND -> "⋅";
+      case OR -> "+";
+      case XOR -> "⊕";
+      case BUFFER -> ">>";
       case CHIP -> "C";
       default -> "";
     };

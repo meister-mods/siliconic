@@ -43,6 +43,8 @@ public final class ModItems {
       ITEMS.register("or_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> XOR_GATE =
       ITEMS.register("xor_gate", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> BUFFER_GATE =
+      ITEMS.register("buffer_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> WAFER_STATION =
       ITEMS.register(
           "wafer_station",

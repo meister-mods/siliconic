@@ -85,10 +85,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     REDSTONE,
     LEAD,
     SILVER,
-    GOLD;
+    GOLD,
+    BUFFER;
 
     public boolean isGate() {
-      return ordinal() >= NOT.ordinal() && ordinal() <= XOR.ordinal();
+      return (ordinal() >= NOT.ordinal() && ordinal() <= XOR.ordinal()) || this == BUFFER;
     }
 
     public boolean isConductor() {
@@ -314,6 +315,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (stack.is(ModItems.AND_GATE.get())) return CellType.AND;
     if (stack.is(ModItems.OR_GATE.get())) return CellType.OR;
     if (stack.is(ModItems.XOR_GATE.get())) return CellType.XOR;
+    if (stack.is(ModItems.BUFFER_GATE.get())) return CellType.BUFFER;
     if (isWafer(stack)) return CellType.CHIP;
     return CellType.EMPTY;
   }
@@ -333,6 +335,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       case AND -> ModItems.AND_GATE.get();
       case OR -> ModItems.OR_GATE.get();
       case XOR -> ModItems.XOR_GATE.get();
+      case BUFFER -> ModItems.BUFFER_GATE.get();
       default -> ModItems.COPPER_FRAGMENT.get();
     };
   }
@@ -547,11 +550,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       int cell,
       CellType type) {
     int facing = rotation(d, size, cell), a, b;
-    if (type == CellType.NOT) {
+    if (type == CellType.NOT || type == CellType.BUFFER) {
       a =
           readFrom(
               d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 2) & 3);
-      return a == 0 ? 15 : 0;
+      return type == CellType.NOT ? (a == 0 ? 15 : 0) : (a > 0 ? 15 : 0);
     }
     a = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 3) & 3);
     b = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 1) & 3);

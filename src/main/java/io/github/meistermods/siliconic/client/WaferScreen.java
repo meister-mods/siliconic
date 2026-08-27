@@ -58,20 +58,19 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
               case AND -> 0xff4fc38b;
               case OR -> 0xff4fa9df;
               case XOR -> 0xffe667a0;
+              case BUFFER -> 0xff55d9d2;
               case CHIP -> signal > 0 ? 0xffffd24f : 0xffd6b437;
             };
         int x1 = gridX + x * CELL, y1 = gridY + y * CELL;
-        g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
         if (type.isConductor()) {
-          g.drawCenteredString(
-              font,
-              conductorSymbol(menu.wafer().getConductorMode(cell)),
-              x1 + CELL / 2,
-              y1 + 3,
-              0xff202020);
+          g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, 0xff20272b);
+          drawConductor(g, x1, y1, menu.wafer().getConductorMode(cell), color);
         } else if (type.isGate() || type == CellType.CHIP) {
+          g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
           g.drawCenteredString(font, gateSymbol(type), x1 + CELL / 2, y1 + 3, 0xffffffff);
           g.drawString(font, arrow(menu.wafer().getRotation(cell)), x1, y1, 0xff202020, false);
+        } else {
+          g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
         }
       }
     for (int row = 0; row < 3; row++)
@@ -248,22 +247,48 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       case AND -> "&";
       case OR -> "≥";
       case XOR -> "≠";
+      case BUFFER -> "B";
       case CHIP -> "C";
       default -> "";
     };
   }
 
-  private String conductorSymbol(ConductorMode mode) {
-    return switch (mode) {
-      case PLUS -> "+";
-      case VERTICAL -> "│";
-      case HORIZONTAL -> "─";
-      case CROSSOVER -> "╬";
-      case CORNER_NE -> "└";
-      case CORNER_ES -> "┌";
-      case CORNER_SW -> "┐";
-      case CORNER_WN -> "┘";
-    };
+  private void drawConductor(GuiGraphics g, int x, int y, ConductorMode mode, int color) {
+    int c = CELL / 2, half = 2;
+    boolean north =
+        mode == ConductorMode.PLUS
+            || mode == ConductorMode.VERTICAL
+            || mode == ConductorMode.CROSSOVER
+            || mode == ConductorMode.CORNER_NE
+            || mode == ConductorMode.CORNER_WN;
+    boolean east =
+        mode == ConductorMode.PLUS
+            || mode == ConductorMode.HORIZONTAL
+            || mode == ConductorMode.CROSSOVER
+            || mode == ConductorMode.CORNER_NE
+            || mode == ConductorMode.CORNER_ES;
+    boolean south =
+        mode == ConductorMode.PLUS
+            || mode == ConductorMode.VERTICAL
+            || mode == ConductorMode.CROSSOVER
+            || mode == ConductorMode.CORNER_ES
+            || mode == ConductorMode.CORNER_SW;
+    boolean west =
+        mode == ConductorMode.PLUS
+            || mode == ConductorMode.HORIZONTAL
+            || mode == ConductorMode.CROSSOVER
+            || mode == ConductorMode.CORNER_SW
+            || mode == ConductorMode.CORNER_WN;
+    if (north) g.fill(x + c - half, y + 1, x + c + half, y + c + 1, color);
+    if (east) g.fill(x + c, y + c - half, x + CELL - 1, y + c + half, color);
+    if (south) g.fill(x + c - half, y + c, x + c + half, y + CELL - 1, color);
+    if (west) g.fill(x + 1, y + c - half, x + c + 1, y + c + half, color);
+    if (mode == ConductorMode.CROSSOVER) {
+      g.fill(x + c - half - 1, y + c - half - 1, x + c + half + 1, y + c + half + 1, 0xff20272b);
+      g.fill(x + c - half, y + 1, x + c + half, y + CELL - 1, color);
+    } else {
+      g.fill(x + c - half, y + c - half, x + c + half, y + c + half, color);
+    }
   }
 
   private String arrow(int rotation) {

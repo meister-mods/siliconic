@@ -127,8 +127,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   public int getOutput(Direction direction) {
     Direction[] directions = directions();
+    // Minecraft supplies the direction from the querying neighbor back toward this block.
+    // A physical EAST pin is queried as WEST, and the same inversion applies to N/S.
     for (int i = 0; i < 4; i++)
-      if (directions[i] == direction && getPinMode(i) == PinMode.OUTPUT) return outputs[i];
+      if (directions[i].getOpposite() == direction && getPinMode(i) == PinMode.OUTPUT)
+        return outputs[i];
     return 0;
   }
 

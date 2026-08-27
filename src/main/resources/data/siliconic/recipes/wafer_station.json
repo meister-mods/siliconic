@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":["CGC","RIR","SSS"],"key":{"C":{"item":"minecraft:copper_ingot"},"G":{"item":"minecraft:glass_pane"},"R":{"item":"minecraft:redstone"},"I":{"item":"minecraft:iron_ingot"},"S":{"item":"minecraft:smooth_stone"}},"result":{"item":"siliconic:wafer_station"}}

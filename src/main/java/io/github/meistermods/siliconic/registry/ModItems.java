@@ -17,10 +17,10 @@ public final class ModItems {
       ITEMS.register("pure_silicon", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SILICON_WAFER =
       ITEMS.register("silicon_wafer", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> PROTOTYPE_WAFER =
+  public static final RegistryObject<Item> WAFER_STATION =
       ITEMS.register(
-          "prototype_wafer",
-          () -> new BlockItem(ModBlocks.PROTOTYPE_WAFER.get(), new Item.Properties()));
+          "wafer_station",
+          () -> new BlockItem(ModBlocks.WAFER_STATION.get(), new Item.Properties()));
 
   private ModItems() {}
 }

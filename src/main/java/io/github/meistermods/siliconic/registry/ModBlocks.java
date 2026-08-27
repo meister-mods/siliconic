@@ -13,9 +13,9 @@ import net.minecraftforge.registries.RegistryObject;
 public final class ModBlocks {
   public static final DeferredRegister<Block> BLOCKS =
       DeferredRegister.create(ForgeRegistries.BLOCKS, Siliconic.MOD_ID);
-  public static final RegistryObject<Block> PROTOTYPE_WAFER =
+  public static final RegistryObject<Block> WAFER_STATION =
       BLOCKS.register(
-          "prototype_wafer",
+          "wafer_station",
           () ->
               new PrototypeWaferBlock(
                   BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(1.5f)));

@@ -1,12 +1,14 @@
 {
-  "block.siliconic.prototype_wafer": "프로토타입 웨이퍼",
+  "block.siliconic.wafer_station": "웨이퍼 스테이션",
+  "itemGroup.siliconic": "실리코닉",
   "item.siliconic.crude_silicon": "조실리콘",
   "item.siliconic.pure_silicon": "고순도 실리콘",
   "item.siliconic.silicon_wafer": "실리콘 웨이퍼",
-  "container.siliconic.wafer": "8×8 웨이퍼 배선기",
+  "container.siliconic.wafer_station": "9×9 웨이퍼 스테이션",
   "screen.siliconic.wafer.hint": "셀: 배선 편집 · 패드: 입출력 전환",
   "screen.siliconic.wafer.probe": "프로브 (%s, %s)",
   "screen.siliconic.wafer.trace": "구리 배선",
   "screen.siliconic.wafer.empty": "빈 셀",
-  "screen.siliconic.wafer.signal": "신호 세기: %s"
+  "screen.siliconic.wafer.signal": "신호 세기: %s",
+  "screen.siliconic.wafer.no_wafer": "스테이션에 웨이퍼가 없습니다"
 }

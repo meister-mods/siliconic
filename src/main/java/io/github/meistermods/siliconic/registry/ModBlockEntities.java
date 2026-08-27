@@ -13,10 +13,10 @@ public final class ModBlockEntities {
       DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, Siliconic.MOD_ID);
   public static final RegistryObject<BlockEntityType<PrototypeWaferBlockEntity>> PROTOTYPE_WAFER =
       BLOCK_ENTITIES.register(
-          "prototype_wafer",
+          "wafer_station",
           () ->
               BlockEntityType.Builder.of(
-                      PrototypeWaferBlockEntity::new, ModBlocks.PROTOTYPE_WAFER.get())
+                      PrototypeWaferBlockEntity::new, ModBlocks.WAFER_STATION.get())
                   .build(null));
 
   private ModBlockEntities() {}

@@ -1,0 +1,1 @@
+{"variants":{"has_wafer=false":{"model":"siliconic:block/wafer_station"},"has_wafer=true":{"model":"siliconic:block/wafer_station_loaded"}}}

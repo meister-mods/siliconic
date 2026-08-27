@@ -1,11 +1,14 @@
 package io.github.meistermods.siliconic.wafer;
 
+import org.jetbrains.annotations.Nullable;
+
+import io.github.meistermods.siliconic.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -13,14 +16,18 @@ import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings({"null"})
+@SuppressWarnings({"null", "deprecation"})
 public class PrototypeWaferBlock extends BaseEntityBlock {
+  public static final BooleanProperty HAS_WAFER = BooleanProperty.create("has_wafer");
+
   public PrototypeWaferBlock(Properties properties) {
     super(properties);
+    registerDefaultState(stateDefinition.any().setValue(HAS_WAFER, false));
   }
 
   @Override
@@ -42,12 +49,39 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
       Player player,
       InteractionHand hand,
       BlockHitResult hit) {
-    if (!level.isClientSide
-        && player instanceof ServerPlayer serverPlayer
-        && level.getBlockEntity(pos) instanceof MenuProvider provider) {
-      NetworkHooks.openScreen(serverPlayer, provider, pos);
+    if (level.getBlockEntity(pos) instanceof PrototypeWaferBlockEntity station) {
+      if (player.getItemInHand(hand).is(ModItems.SILICON_WAFER.get()) && !station.hasWafer()) {
+        if (!level.isClientSide) station.insertWafer(player.getItemInHand(hand));
+        return InteractionResult.sidedSuccess(level.isClientSide);
+      }
+      if (player.isShiftKeyDown() && player.getItemInHand(hand).isEmpty() && station.hasWafer()) {
+        if (!level.isClientSide)
+          player.getInventory().placeItemBackInInventory(station.removeWafer());
+        return InteractionResult.sidedSuccess(level.isClientSide);
+      }
+      if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+        NetworkHooks.openScreen(serverPlayer, station, pos);
+      }
     }
     return InteractionResult.sidedSuccess(level.isClientSide);
+  }
+
+  @Override
+  protected void createBlockStateDefinition(
+      StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
+    builder.add(HAS_WAFER);
+  }
+
+  @Override
+  public void onRemove(
+      BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
+    if (!state.is(newState.getBlock())
+        && level.getBlockEntity(pos) instanceof PrototypeWaferBlockEntity station
+        && station.hasWafer()) {
+      Containers.dropItemStack(
+          level, pos.getX(), pos.getY(), pos.getZ(), station.takeWaferOnBreak());
+    }
+    super.onRemove(state, level, pos, newState, moving);
   }
 
   @Override

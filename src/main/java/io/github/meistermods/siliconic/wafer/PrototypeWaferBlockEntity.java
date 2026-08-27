@@ -1,8 +1,12 @@
 package io.github.meistermods.siliconic.wafer;
 
-import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.BitSet;
+
+import org.jetbrains.annotations.Nullable;
+
+import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -13,27 +17,22 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvider {
-  public static final int SIZE = 8;
-  private final boolean[] traces = new boolean[SIZE * SIZE];
-  private final PinMode[] pinModes = {PinMode.INPUT, PinMode.OUTPUT, PinMode.OUTPUT, PinMode.INPUT};
+  public static final int SIZE = 9;
+  private static final String DESIGN_TAG = "SiliconicDesign";
+  private ItemStack wafer = ItemStack.EMPTY;
   private final int[] inputs = new int[4];
   private final int[] outputs = new int[4];
 
   public enum PinMode {
-    DISABLED("disabled"),
-    INPUT("input"),
-    OUTPUT("output");
-    public final String translationKey;
-
-    PinMode(String translationKey) {
-      this.translationKey = translationKey;
-    }
+    DISABLED,
+    INPUT,
+    OUTPUT;
 
     public PinMode next() {
       return values()[(ordinal() + 1) % values().length];
@@ -44,28 +43,63 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     super(ModBlockEntities.PROTOTYPE_WAFER.get(), pos, state);
   }
 
+  public boolean hasWafer() {
+    return !wafer.isEmpty();
+  }
+
+  public ItemStack getWafer() {
+    return wafer;
+  }
+
+  public void insertWafer(ItemStack held) {
+    if (hasWafer() || held.isEmpty()) return;
+    wafer = held.copyWithCount(1);
+    held.shrink(1);
+    changedAndSync();
+  }
+
+  public ItemStack removeWafer() {
+    ItemStack result = wafer;
+    wafer = ItemStack.EMPTY;
+    Arrays.fill(inputs, 0);
+    Arrays.fill(outputs, 0);
+    changedAndSync();
+    return result;
+  }
+
+  public ItemStack takeWaferOnBreak() {
+    ItemStack result = wafer;
+    wafer = ItemStack.EMPTY;
+    setChanged();
+    return result;
+  }
+
   public boolean hasTrace(int index) {
-    return index >= 0 && index < traces.length && traces[index];
+    return hasWafer() && index >= 0 && index < SIZE * SIZE && traces().get(index);
   }
 
   public PinMode getPinMode(int pin) {
-    return pin >= 0 && pin < 4 ? pinModes[pin] : PinMode.DISABLED;
+    if (!hasWafer() || pin < 0 || pin >= 4) return PinMode.DISABLED;
+    int[] modes = design().getIntArray("PinModes");
+    if (modes.length != 4)
+      return new PinMode[] {PinMode.INPUT, PinMode.OUTPUT, PinMode.OUTPUT, PinMode.INPUT}[pin];
+    return PinMode.values()[Math.max(0, Math.min(modes[pin], PinMode.values().length - 1))];
   }
 
   public void toggleTrace(int index) {
-    if (index < 0 || index >= traces.length) return;
-    traces[index] = !traces[index];
-    setChanged();
-    refreshSignals();
-    sync();
+    if (!hasWafer() || index < 0 || index >= SIZE * SIZE) return;
+    BitSet traces = traces();
+    traces.flip(index);
+    design().putLongArray("Traces", traces.toLongArray());
+    changedAndSync();
   }
 
   public void cyclePinMode(int pin) {
-    if (pin < 0 || pin >= 4) return;
-    pinModes[pin] = pinModes[pin].next();
-    setChanged();
-    refreshSignals();
-    sync();
+    if (!hasWafer() || pin < 0 || pin >= 4) return;
+    int[] modes = currentModes();
+    modes[pin] = PinMode.values()[modes[pin]].next().ordinal();
+    design().putIntArray("PinModes", modes);
+    changedAndSync();
   }
 
   public void refreshSignals() {
@@ -74,14 +108,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     Direction[] directions = directions();
     for (int i = 0; i < 4; i++)
       inputs[i] =
-          pinModes[i] == PinMode.INPUT
+          getPinMode(i) == PinMode.INPUT
               ? level.getSignal(worldPosition.relative(directions[i]), directions[i].getOpposite())
               : 0;
     for (int target = 0; target < 4; target++) {
       int value = 0;
-      if (pinModes[target] == PinMode.OUTPUT)
+      if (getPinMode(target) == PinMode.OUTPUT)
         for (int source = 0; source < 4; source++)
-          if (pinModes[source] == PinMode.INPUT && connected(pinCell(source), pinCell(target)))
+          if (getPinMode(source) == PinMode.INPUT && connected(pinCell(source), pinCell(target)))
             value = Math.max(value, inputs[source]);
       outputs[target] = value;
     }
@@ -91,9 +125,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     sync();
   }
 
-  public int getOutput(Direction queriedFrom) {
+  public int getOutput(Direction direction) {
     Direction[] directions = directions();
-    for (int i = 0; i < 4; i++) if (directions[i] == queriedFrom) return outputs[i];
+    for (int i = 0; i < 4; i++)
+      if (directions[i] == direction && getPinMode(i) == PinMode.OUTPUT) return outputs[i];
     return 0;
   }
 
@@ -101,14 +136,15 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (!hasTrace(cell)) return 0;
     int value = 0;
     for (int pin = 0; pin < 4; pin++)
-      if (pinModes[pin] == PinMode.INPUT && connected(pinCell(pin), cell))
+      if (getPinMode(pin) == PinMode.INPUT && connected(pinCell(pin), cell))
         value = Math.max(value, inputs[pin]);
     return value;
   }
 
   private boolean connected(int start, int goal) {
-    if (!traces[start] || !traces[goal]) return false;
-    boolean[] seen = new boolean[traces.length];
+    BitSet traces = traces();
+    if (!traces.get(start) || !traces.get(goal)) return false;
+    boolean[] seen = new boolean[SIZE * SIZE];
     ArrayDeque<Integer> queue = new ArrayDeque<>();
     queue.add(start);
     seen[start] = true;
@@ -116,32 +152,69 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       int at = queue.remove();
       if (at == goal) return true;
       int x = at % SIZE, y = at / SIZE;
-      if (x > 0) visit(at - 1, seen, queue);
-      if (x + 1 < SIZE) visit(at + 1, seen, queue);
-      if (y > 0) visit(at - SIZE, seen, queue);
-      if (y + 1 < SIZE) visit(at + SIZE, seen, queue);
+      if (x > 0) visit(at - 1, traces, seen, queue);
+      if (x + 1 < SIZE) visit(at + 1, traces, seen, queue);
+      if (y > 0) visit(at - SIZE, traces, seen, queue);
+      if (y + 1 < SIZE) visit(at + SIZE, traces, seen, queue);
     }
     return false;
   }
 
-  private void visit(int index, boolean[] seen, ArrayDeque<Integer> queue) {
-    if (traces[index] && !seen[index]) {
+  private void visit(int index, BitSet traces, boolean[] seen, ArrayDeque<Integer> queue) {
+    if (traces.get(index) && !seen[index]) {
       seen[index] = true;
       queue.add(index);
     }
   }
 
   private int pinCell(int pin) {
+    int middle = SIZE / 2;
     return switch (pin) {
-      case 0 -> 3;
-      case 1 -> 4 * SIZE + 7;
-      case 2 -> 7 * SIZE + 4;
-      default -> 3 * SIZE;
+      case 0 -> middle;
+      case 1 -> middle * SIZE + SIZE - 1;
+      case 2 -> (SIZE - 1) * SIZE + middle;
+      default -> middle * SIZE;
     };
   }
 
   private Direction[] directions() {
     return new Direction[] {Direction.NORTH, Direction.EAST, Direction.SOUTH, Direction.WEST};
+  }
+
+  private BitSet traces() {
+    return BitSet.valueOf(design().getLongArray("Traces"));
+  }
+
+  private int[] currentModes() {
+    int[] modes = design().getIntArray("PinModes");
+    if (modes.length != 4)
+      modes =
+          new int[] {
+            PinMode.INPUT.ordinal(),
+            PinMode.OUTPUT.ordinal(),
+            PinMode.OUTPUT.ordinal(),
+            PinMode.INPUT.ordinal()
+          };
+    return modes;
+  }
+
+  private CompoundTag design() {
+    return wafer.getOrCreateTagElement(DESIGN_TAG);
+  }
+
+  private void changedAndSync() {
+    setChanged();
+    refreshSignals();
+    updateBlockState();
+    sync();
+  }
+
+  private void updateBlockState() {
+    if (level != null
+        && getBlockState().hasProperty(PrototypeWaferBlock.HAS_WAFER)
+        && getBlockState().getValue(PrototypeWaferBlock.HAS_WAFER) != hasWafer())
+      level.setBlock(
+          worldPosition, getBlockState().setValue(PrototypeWaferBlock.HAS_WAFER, hasWafer()), 3);
   }
 
   private void sync() {
@@ -152,10 +225,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   @Override
   protected void saveAdditional(CompoundTag tag) {
     super.saveAdditional(tag);
-    long bits = 0;
-    for (int i = 0; i < traces.length; i++) if (traces[i]) bits |= 1L << i;
-    tag.putLong("Traces", bits);
-    tag.putIntArray("PinModes", Arrays.stream(pinModes).mapToInt(Enum::ordinal).toArray());
+    tag.put("Wafer", wafer.save(new CompoundTag()));
     tag.putIntArray("Inputs", inputs);
     tag.putIntArray("Outputs", outputs);
   }
@@ -163,13 +233,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
-    long bits = tag.getLong("Traces");
-    for (int i = 0; i < traces.length; i++) traces[i] = (bits & (1L << i)) != 0;
-    int[] modes = tag.getIntArray("PinModes");
-    if (modes.length == 4)
-      for (int i = 0; i < 4; i++)
-        pinModes[i] =
-            PinMode.values()[Math.max(0, Math.min(modes[i], PinMode.values().length - 1))];
+    wafer = ItemStack.of(tag.getCompound("Wafer"));
     copyFour(tag.getIntArray("Inputs"), inputs);
     copyFour(tag.getIntArray("Outputs"), outputs);
   }
@@ -196,7 +260,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   @Override
   public Component getDisplayName() {
-    return Component.translatable("container.siliconic.wafer");
+    return Component.translatable("container.siliconic.wafer_station");
   }
 
   @Nullable

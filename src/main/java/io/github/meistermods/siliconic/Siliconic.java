@@ -7,6 +7,5 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 public final class Siliconic {
   public static final String MOD_ID = "siliconic";
 
-  public Siliconic(FMLJavaModLoadingContext context) {
-  }
+  public Siliconic(FMLJavaModLoadingContext context) {}
 }

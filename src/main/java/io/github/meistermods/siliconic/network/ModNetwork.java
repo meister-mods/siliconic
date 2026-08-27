@@ -27,6 +27,12 @@ public final class ModNetwork {
         CellInteractionPacket::encode,
         CellInteractionPacket::decode,
         CellInteractionPacket::handle);
+    CHANNEL.registerMessage(
+        2,
+        CompleteWaferPacket.class,
+        CompleteWaferPacket::encode,
+        CompleteWaferPacket::decode,
+        CompleteWaferPacket::handle);
   }
 
   private ModNetwork() {}

@@ -2,6 +2,7 @@ package io.github.meistermods.siliconic.client;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.meistermods.siliconic.network.CellInteractionPacket;
+import io.github.meistermods.siliconic.network.CompleteWaferPacket;
 import io.github.meistermods.siliconic.network.CyclePinModePacket;
 import io.github.meistermods.siliconic.network.ModNetwork;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
@@ -10,6 +11,8 @@ import io.github.meistermods.siliconic.wafer.WaferMenu;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -17,24 +20,49 @@ import net.minecraft.world.entity.player.Inventory;
 @SuppressWarnings({"null"})
 public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
   private static final int CELL = 14;
-  private final int size, grid, inventoryY;
+  private static final int GRID_X = 12;
+  private static final int GRID_Y = 32;
+  private static final int GUI_WIDTH = 320;
+  private static final int GUI_HEIGHT = 180;
+  private final int size, grid;
   private int gridX, gridY;
+  private EditBox nameBox;
 
   public WaferScreen(WaferMenu menu, Inventory inventory, Component title) {
     super(menu, inventory, title);
     size = menu.wafer().getGridSize();
     grid = size * CELL;
-    inventoryY = menu.inventoryY();
-    imageWidth = 232;
-    imageHeight = inventoryY + 84;
-    inventoryLabelY = inventoryY - 13;
+    imageWidth = GUI_WIDTH;
+    imageHeight = GUI_HEIGHT;
+    inventoryLabelX = WaferMenu.INVENTORY_X;
+    inventoryLabelY = WaferMenu.MAIN_INVENTORY_Y - 13;
   }
 
   @Override
   protected void init() {
     super.init();
-    gridX = leftPos + (imageWidth - grid) / 2;
-    gridY = topPos + 30;
+    gridX = leftPos + GRID_X;
+    gridY = topPos + GRID_Y;
+    nameBox =
+        new EditBox(
+            font,
+            leftPos + WaferMenu.INVENTORY_X,
+            topPos + 14,
+            110,
+            18,
+            Component.translatable("screen.siliconic.wafer.name"));
+    nameBox.setMaxLength(50);
+    if (menu.wafer().getWafer().hasCustomHoverName())
+      nameBox.setValue(menu.wafer().getWafer().getHoverName().getString());
+    addRenderableWidget(nameBox);
+    addRenderableWidget(
+        Button.builder(
+                Component.translatable("screen.siliconic.wafer.complete"),
+                button ->
+                    ModNetwork.CHANNEL.sendToServer(
+                        new CompleteWaferPacket(menu.position(), nameBox.getValue())))
+            .bounds(leftPos + 267, topPos + 14, 48, 18)
+            .build());
   }
 
   @Override
@@ -64,7 +92,13 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
         int x1 = gridX + x * CELL, y1 = gridY + y * CELL;
         if (type.isConductor()) {
           g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, 0xff20272b);
-          drawConductor(g, x1, y1, menu.wafer().getConductorMode(cell), color);
+          drawConductor(
+              g,
+              x1,
+              y1,
+              menu.wafer().getConductorMode(cell),
+              conductorColor(type, menu.wafer().getHorizontalSignal(cell) > 0),
+              conductorColor(type, menu.wafer().getVerticalSignal(cell) > 0));
         } else if (type.isGate() || type == CellType.CHIP) {
           g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
           g.drawCenteredString(font, gateSymbol(type), x1 + CELL / 2, y1 + 3, 0xffffffff);
@@ -75,20 +109,24 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       }
     for (int row = 0; row < 3; row++)
       for (int col = 0; col < 9; col++)
-        slotBox(g, leftPos + 35 + col * 18, topPos + inventoryY + row * 18);
-    for (int col = 0; col < 9; col++) slotBox(g, leftPos + 35 + col * 18, topPos + inventoryY + 58);
+        slotBox(
+            g,
+            leftPos + WaferMenu.INVENTORY_X + col * 18,
+            topPos + WaferMenu.MAIN_INVENTORY_Y + row * 18);
+    for (int col = 0; col < 9; col++)
+      slotBox(g, leftPos + WaferMenu.INVENTORY_X + col * 18, topPos + WaferMenu.HOTBAR_Y);
     int energyWidth = 162 * menu.wafer().getEnergyStored() / menu.wafer().getEnergyCapacity();
     g.fill(
-        leftPos + 35,
-        topPos + inventoryY - 26,
-        leftPos + 197,
-        topPos + inventoryY - 18,
+        leftPos + WaferMenu.INVENTORY_X,
+        topPos + 153,
+        leftPos + WaferMenu.INVENTORY_X + 162,
+        topPos + 161,
         0xff292d32);
     g.fill(
-        leftPos + 35,
-        topPos + inventoryY - 26,
-        leftPos + 35 + energyWidth,
-        topPos + inventoryY - 18,
+        leftPos + WaferMenu.INVENTORY_X,
+        topPos + 153,
+        leftPos + WaferMenu.INVENTORY_X + energyWidth,
+        topPos + 161,
         0xffd94f67);
     int m = size / 2;
     g.fill(gridX + m * CELL + 3, gridY - 7, gridX + (m + 1) * CELL - 3, gridY, pinColor(0));
@@ -118,38 +156,41 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
     g.drawString(
         font,
         Component.translatable("screen.siliconic.wafer.level", menu.wafer().getWaferLevel()),
-        imageWidth - 57,
+        95,
         7,
         0xffffd85a,
         false);
-    g.drawCenteredString(font, "N " + pinLabel(0), imageWidth / 2, 18, pinColor(0));
-    int center = 30 + grid / 2;
-    g.drawString(font, "W " + pinLabel(3), 5, center, pinColor(3), false);
-    g.drawString(font, "E " + pinLabel(1), imageWidth - 37, center, pinColor(1), false);
-    g.drawCenteredString(font, "S " + pinLabel(2), imageWidth / 2, 34 + grid, pinColor(2));
+    g.drawCenteredString(font, "N " + pinLabel(0), GRID_X + grid / 2, 20, pinColor(0));
+    int center = GRID_Y + grid / 2;
+    g.drawString(font, "W " + pinLabel(3), GRID_X + 3, center, pinColor(3), false);
+    String eastLabel = "E " + pinLabel(1);
     g.drawString(
-        font,
+        font, eastLabel, GRID_X + grid - font.width(eastLabel) - 3, center, pinColor(1), false);
+    g.drawCenteredString(
+        font, "S " + pinLabel(2), GRID_X + grid / 2, GRID_Y + grid + 5, pinColor(2));
+    drawFittedString(
+        g,
         Component.translatable(
             "screen.siliconic.wafer.energy",
             menu.wafer().getEnergyStored(),
             menu.wafer().getEnergyCapacity(),
             menu.wafer().getOperationCost()),
-        35,
-        inventoryY - 38,
-        0xffff8ca0,
-        false);
+        WaferMenu.INVENTORY_X,
+        139,
+        162,
+        0xffff8ca0);
     g.drawString(
         font,
         Component.translatable("container.inventory"),
-        35,
-        inventoryY - 13,
+        WaferMenu.INVENTORY_X,
+        WaferMenu.MAIN_INVENTORY_Y - 13,
         0xffaeb7c0,
         false);
     if (!menu.wafer().hasWafer())
       g.drawCenteredString(
           font,
           Component.translatable("screen.siliconic.wafer.no_wafer"),
-          imageWidth / 2,
+          GRID_X + grid / 2,
           center,
           0xffff6b6b);
   }
@@ -235,6 +276,17 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
     };
   }
 
+  private void drawFittedString(
+      GuiGraphics g, Component text, int x, int y, int maxWidth, int color) {
+    int width = font.width(text);
+    float scale = width > maxWidth ? (float) maxWidth / width : 1.0f;
+    g.pose().pushPose();
+    g.pose().translate(x, y, 0);
+    g.pose().scale(scale, scale, 1.0f);
+    g.drawString(font, text, 0, 0, color, false);
+    g.pose().popPose();
+  }
+
   private String pinLabel(int pin) {
     return switch (menu.wafer().getPinMode(pin)) {
       case INPUT -> "IN";
@@ -255,7 +307,19 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
     };
   }
 
-  private void drawConductor(GuiGraphics g, int x, int y, ConductorMode mode, int color) {
+  private int conductorColor(CellType type, boolean powered) {
+    return switch (type) {
+      case REDSTONE -> powered ? 0xffff4040 : 0xff8b2525;
+      case COPPER -> powered ? 0xffffb13b : 0xffb86228;
+      case LEAD -> powered ? 0xffaeb8c5 : 0xff626b78;
+      case SILVER -> powered ? 0xffffffff : 0xffb9c8d5;
+      case GOLD -> powered ? 0xffffe05c : 0xffc59b25;
+      default -> 0xffffffff;
+    };
+  }
+
+  private void drawConductor(
+      GuiGraphics g, int x, int y, ConductorMode mode, int horizontalColor, int verticalColor) {
     int c = CELL / 2, half = 2;
     boolean north =
         mode == ConductorMode.PLUS
@@ -281,15 +345,16 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
             || mode == ConductorMode.CROSSOVER
             || mode == ConductorMode.CORNER_SW
             || mode == ConductorMode.CORNER_WN;
-    if (north) g.fill(x + c - half, y + 1, x + c + half, y + c + 1, color);
-    if (east) g.fill(x + c, y + c - half, x + CELL - 1, y + c + half, color);
-    if (south) g.fill(x + c - half, y + c, x + c + half, y + CELL - 1, color);
-    if (west) g.fill(x + 1, y + c - half, x + c + 1, y + c + half, color);
+    if (north) g.fill(x + c - half, y + 1, x + c + half, y + c + 1, verticalColor);
+    if (east) g.fill(x + c, y + c - half, x + CELL - 1, y + c + half, horizontalColor);
+    if (south) g.fill(x + c - half, y + c, x + c + half, y + CELL - 1, verticalColor);
+    if (west) g.fill(x + 1, y + c - half, x + c + 1, y + c + half, horizontalColor);
     if (mode == ConductorMode.CROSSOVER) {
       g.fill(x + c - half - 1, y + c - half - 1, x + c + half + 1, y + c + half + 1, 0xff20272b);
-      g.fill(x + c - half, y + 1, x + c + half, y + CELL - 1, color);
+      g.fill(x + c - half, y + 1, x + c + half, y + CELL - 1, verticalColor);
     } else {
-      g.fill(x + c - half, y + c - half, x + c + half, y + c + half, color);
+      int centerColor = mode == ConductorMode.VERTICAL ? verticalColor : horizontalColor;
+      g.fill(x + c - half, y + c - half, x + c + half, y + c + half, centerColor);
     }
   }
 

@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":["DCD","HWH","III"],"key":{"D":{"item":"minecraft:diamond"},"C":{"item":"minecraft:comparator"},"H":{"item":"minecraft:hopper"},"W":{"item":"siliconic:wafer_station"},"I":{"item":"minecraft:iron_ingot"}},"result":{"item":"siliconic:wafer_duplicator"}}

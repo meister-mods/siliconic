@@ -1,9 +1,12 @@
 package io.github.meistermods.siliconic.wafer;
 
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
+import io.github.meistermods.siliconic.registry.ModBlocks;
 import io.github.meistermods.siliconic.registry.ModItems;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -32,8 +35,9 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvider {
-  public static final int LEVEL_1_SIZE = 9, LEVEL_2_SIZE = 13;
-  private static final String DESIGN_TAG = "SiliconicDesign";
+  public static final int GRID_SIZE = 9;
+  public static final String DESIGN_TAG = "SiliconicDesign";
+  public static final String COMPLETED_TAG = "SiliconicCompleted";
   private static final TagKey<Item> REDSTONE_DUSTS = materialTag("dusts/redstone");
   private static final TagKey<Item> COPPER_NUGGETS = materialTag("nuggets/copper");
   private static final TagKey<Item> LEAD_NUGGETS = materialTag("nuggets/lead");
@@ -42,6 +46,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private ItemStack wafer = ItemStack.EMPTY;
   private final int[] inputs = new int[4], outputs = new int[4];
   private int[] signals = new int[0];
+  private int[] horizontalSignals = new int[0], verticalSignals = new int[0];
   private final StationEnergyStorage energy = new StationEnergyStorage();
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
@@ -123,7 +128,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     }
   }
 
-  private record Simulation(int[] signals, int[] outputs) {}
+  private record Simulation(
+      int[] signals, int[] horizontalSignals, int[] verticalSignals, int[] outputs) {}
 
   private record Pulse(int strength, CellType material, int remaining) {
     static final Pulse NONE = new Pulse(0, CellType.EMPTY, 0);
@@ -174,6 +180,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     return cell >= 0 && cell < signals.length ? signals[cell] : 0;
   }
 
+  public int getHorizontalSignal(int cell) {
+    return cell >= 0 && cell < horizontalSignals.length ? horizontalSignals[cell] : 0;
+  }
+
+  public int getVerticalSignal(int cell) {
+    return cell >= 0 && cell < verticalSignals.length ? verticalSignals[cell] : 0;
+  }
+
   public int getEnergyStored() {
     return energy.getEnergyStored();
   }
@@ -183,7 +197,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public int getOperationCost() {
-    return getWaferLevel() == 2 ? 8 : 2;
+    int level = Math.max(1, getWaferLevel());
+    int stationCost = 2 << ((level - 1) * 2);
+    return isEditable() ? stationCost : Math.max(1, stationCost / 2);
+  }
+
+  public boolean isEditable() {
+    return getBlockState().is(ModBlocks.WAFER_STATION.get());
   }
 
   public boolean isPowered() {
@@ -217,6 +237,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       wafer = held.copyWithCount(1);
       held.shrink(1);
       signals = new int[getGridSize() * getGridSize()];
+      horizontalSignals = new int[signals.length];
+      verticalSignals = new int[signals.length];
       changedAndSync();
     }
   }
@@ -227,6 +249,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     Arrays.fill(inputs, 0);
     Arrays.fill(outputs, 0);
     signals = new int[0];
+    horizontalSignals = new int[0];
+    verticalSignals = new int[0];
     changedAndSync();
     return result;
   }
@@ -244,6 +268,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   public void cyclePinMode(int pin) {
     if (!hasWafer() || pin < 0 || pin >= 4) return;
+    markUnfinished();
     int[] modes = modes(design());
     modes[pin] = PinMode.values()[modes[pin]].next().ordinal();
     design().putIntArray("PinModes", modes);
@@ -255,11 +280,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     CellType old = getCellType(cell);
     if (rotate) {
       if (old.isConductor()) {
+        markUnfinished();
         byte[] modes = conductorModes(design(), getGridSize());
         modes[cell] = (byte) getConductorMode(cell).next().ordinal();
         design().putByteArray("ConductorModes", modes);
         changedAndSync();
       } else if (old.isGate() || old == CellType.CHIP) {
+        markUnfinished();
         byte[] value = rotations(design(), getGridSize());
         value[cell] = (byte) ((value[cell] + 1) & 3);
         design().putByteArray("Rotations", value);
@@ -293,6 +320,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private void setCell(int cell, CellType type) {
+    markUnfinished();
     int size = getGridSize();
     byte[] cells = cells(design(), size), rots = rotations(design(), size);
     byte[] conductorModes = conductorModes(design(), size);
@@ -324,7 +352,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("forge", path));
   }
 
-  private Item itemFor(CellType type) {
+  private static Item itemFor(CellType type) {
     return switch (type) {
       case REDSTONE -> Items.REDSTONE;
       case COPPER -> ModItems.COPPER_FRAGMENT.get();
@@ -364,6 +392,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (!isPowered()) {
       Arrays.fill(outputs, 0);
       Arrays.fill(signals, 0);
+      Arrays.fill(horizontalSignals, 0);
+      Arrays.fill(verticalSignals, 0);
       if (!Arrays.equals(old, outputs))
         level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
       setChanged();
@@ -378,6 +408,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
               : 0;
     Simulation result = simulate(design(), getGridSize(), inputs, 0);
     signals = result.signals;
+    horizontalSignals = result.horizontalSignals;
+    verticalSignals = result.verticalSignals;
     System.arraycopy(result.outputs, 0, outputs, 0, 4);
     if (!Arrays.equals(old, outputs))
       level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
@@ -480,7 +512,17 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
                     pinCell(size, pin),
                     pin)
                 .strength;
-    return new Simulation(values, resultOutputs);
+    int[] horizontal = new int[count], vertical = new int[count];
+    for (int cell = 0; cell < count; cell++) {
+      if (cellType(design, size, cell).isConductor()) {
+        horizontal[cell] = Math.max(wireStrength[cell][1], wireStrength[cell][3]);
+        vertical[cell] = Math.max(wireStrength[cell][0], wireStrength[cell][2]);
+      } else {
+        horizontal[cell] = values[cell];
+        vertical[cell] = values[cell];
+      }
+    }
+    return new Simulation(values, horizontal, vertical, resultOutputs);
   }
 
   private void routeConductor(
@@ -651,18 +693,175 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     };
   }
 
-  private int levelOf(ItemStack stack) {
+  public static int levelOf(ItemStack stack) {
+    if (stack.is(ModItems.LEVEL_5_WAFER.get())) return 5;
+    if (stack.is(ModItems.LEVEL_4_WAFER.get())) return 4;
+    if (stack.is(ModItems.LEVEL_3_WAFER.get())) return 3;
     if (stack.is(ModItems.LEVEL_2_WAFER.get())) return 2;
     if (stack.is(ModItems.SILICON_WAFER.get())) return 1;
     return 0;
   }
 
+  public static boolean isCompleted(ItemStack stack) {
+    return levelOf(stack) > 0 && stack.hasTag() && stack.getTag().getBoolean(COMPLETED_TAG);
+  }
+
+  public static boolean isBlankWafer(ItemStack stack) {
+    return levelOf(stack) > 0
+        && !isCompleted(stack)
+        && (stack.getTagElement(DESIGN_TAG) == null
+            || stack.getTagElement(DESIGN_TAG).getByteArray("Cells").length == 0);
+  }
+
+  public static List<ItemStack> requiredComponents(ItemStack wafer) {
+    List<ItemStack> result = new ArrayList<>();
+    CompoundTag design = wafer.getTagElement(DESIGN_TAG);
+    if (design == null) return result;
+    migrateLegacyGrid(design);
+    byte[] cells = design.getByteArray("Cells");
+    CompoundTag chips = design.getCompound("Chips");
+    for (int cell = 0; cell < Math.min(cells.length, GRID_SIZE * GRID_SIZE); cell++) {
+      CellType type =
+          CellType.values()[
+              Math.min(Byte.toUnsignedInt(cells[cell]), CellType.values().length - 1)];
+      ItemStack required;
+      if (type == CellType.CHIP) required = ItemStack.of(chips.getCompound(Integer.toString(cell)));
+      else if (type == CellType.EMPTY) continue;
+      else required = new ItemStack(itemFor(type));
+      mergeRequirement(result, required);
+    }
+    return result;
+  }
+
+  private static void mergeRequirement(List<ItemStack> requirements, ItemStack added) {
+    if (added.isEmpty()) return;
+    for (ItemStack requirement : requirements)
+      if (ItemStack.isSameItemSameTags(requirement, added)) {
+        requirement.grow(added.getCount());
+        return;
+      }
+    requirements.add(added.copy());
+  }
+
+  public static void mirrorHorizontally(ItemStack stack) {
+    if (levelOf(stack) == 0) return;
+    CompoundTag design = stack.getTagElement(DESIGN_TAG);
+    if (design == null) return;
+    migrateLegacyGrid(design);
+    int count = GRID_SIZE * GRID_SIZE;
+    byte[] oldCells = design.getByteArray("Cells");
+    byte[] oldRotations = design.getByteArray("Rotations");
+    byte[] oldModes = design.getByteArray("ConductorModes");
+    byte[] newCells = new byte[count], newRotations = new byte[count], newModes = new byte[count];
+    for (int oldCell = 0; oldCell < count; oldCell++) {
+      int newCell = mirroredCell(oldCell);
+      if (oldCells.length == count) newCells[newCell] = oldCells[oldCell];
+      if (oldRotations.length == count)
+        newRotations[newCell] = (byte) mirrorRotation(Byte.toUnsignedInt(oldRotations[oldCell]));
+      if (oldModes.length == count)
+        newModes[newCell] =
+            (byte)
+                mirrorConductorMode(
+                        ConductorMode.values()[
+                            Math.min(
+                                Byte.toUnsignedInt(oldModes[oldCell]),
+                                ConductorMode.values().length - 1)])
+                    .ordinal();
+    }
+    if (oldCells.length == count) design.putByteArray("Cells", newCells);
+    if (oldRotations.length == count) design.putByteArray("Rotations", newRotations);
+    if (oldModes.length == count) design.putByteArray("ConductorModes", newModes);
+    int[] pinModes = design.getIntArray("PinModes");
+    if (pinModes.length == 4) {
+      int west = pinModes[3];
+      pinModes[3] = pinModes[1];
+      pinModes[1] = west;
+      design.putIntArray("PinModes", pinModes);
+    }
+    CompoundTag oldChips = design.getCompound("Chips"), newChips = new CompoundTag();
+    for (String key : oldChips.getAllKeys()) {
+      try {
+        int oldCell = Integer.parseInt(key);
+        if (oldCell < 0 || oldCell >= count) continue;
+        ItemStack chip = ItemStack.of(oldChips.getCompound(key));
+        mirrorHorizontally(chip);
+        newChips.put(Integer.toString(mirroredCell(oldCell)), chip.save(new CompoundTag()));
+      } catch (NumberFormatException ignored) {
+        // Ignore malformed legacy chip indices.
+      }
+    }
+    design.put("Chips", newChips);
+  }
+
+  private static int mirroredCell(int cell) {
+    int x = cell % GRID_SIZE, y = cell / GRID_SIZE;
+    return y * GRID_SIZE + (GRID_SIZE - 1 - x);
+  }
+
+  private static int mirrorRotation(int rotation) {
+    return switch (rotation & 3) {
+      case 1 -> 3;
+      case 3 -> 1;
+      default -> rotation & 3;
+    };
+  }
+
+  private static ConductorMode mirrorConductorMode(ConductorMode mode) {
+    return switch (mode) {
+      case CORNER_NE -> ConductorMode.CORNER_WN;
+      case CORNER_ES -> ConductorMode.CORNER_SW;
+      case CORNER_SW -> ConductorMode.CORNER_ES;
+      case CORNER_WN -> ConductorMode.CORNER_NE;
+      default -> mode;
+    };
+  }
+
+  private static void migrateLegacyGrid(CompoundTag design) {
+    final int oldSize = 13, offset = (oldSize - GRID_SIZE) / 2;
+    byte[] oldCells = design.getByteArray("Cells");
+    if (oldCells.length != oldSize * oldSize) return;
+    byte[] oldRotations = design.getByteArray("Rotations");
+    byte[] oldModes = design.getByteArray("ConductorModes");
+    byte[] cells = new byte[GRID_SIZE * GRID_SIZE];
+    byte[] rotations = new byte[cells.length], modes = new byte[cells.length];
+    CompoundTag oldChips = design.getCompound("Chips"), chips = new CompoundTag();
+    for (int y = 0; y < GRID_SIZE; y++)
+      for (int x = 0; x < GRID_SIZE; x++) {
+        int oldCell = (y + offset) * oldSize + x + offset;
+        int cell = y * GRID_SIZE + x;
+        cells[cell] = oldCells[oldCell];
+        if (oldRotations.length == oldCells.length) rotations[cell] = oldRotations[oldCell];
+        if (oldModes.length == oldCells.length) modes[cell] = oldModes[oldCell];
+        String oldKey = Integer.toString(oldCell);
+        if (oldChips.contains(oldKey))
+          chips.put(Integer.toString(cell), oldChips.get(oldKey).copy());
+      }
+    design.putByteArray("Cells", cells);
+    design.putByteArray("Rotations", rotations);
+    design.putByteArray("ConductorModes", modes);
+    design.put("Chips", chips);
+  }
+
   private int sizeOf(ItemStack stack) {
-    return levelOf(stack) == 2 ? LEVEL_2_SIZE : LEVEL_1_SIZE;
+    return GRID_SIZE;
   }
 
   private boolean isWafer(ItemStack stack) {
     return levelOf(stack) > 0;
+  }
+
+  public void completeWafer(String name) {
+    if (!hasWafer()) return;
+    String trimmed = name == null ? "" : name.strip();
+    if (trimmed.length() > 50) trimmed = trimmed.substring(0, 50);
+    if (trimmed.isEmpty()) wafer.resetHoverName();
+    else wafer.setHoverName(Component.literal(trimmed));
+    wafer.getOrCreateTag().putBoolean(COMPLETED_TAG, true);
+    changedAndSync();
+  }
+
+  private void markUnfinished() {
+    if (wafer.hasTag()) wafer.getTag().remove(COMPLETED_TAG);
   }
 
   private boolean valid(int cell) {
@@ -677,6 +876,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private byte[] cells(CompoundTag d, int size) {
+    migrateLegacyGrid(d);
     int count = size * size;
     byte[] value = d.getByteArray("Cells");
     if (value.length == count) return value;
@@ -757,6 +957,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     tag.putIntArray("Inputs", inputs);
     tag.putIntArray("Outputs", outputs);
     tag.putIntArray("Signals", signals);
+    tag.putIntArray("HorizontalSignals", horizontalSignals);
+    tag.putIntArray("VerticalSignals", verticalSignals);
     tag.putInt("Energy", energy.getEnergyStored());
   }
 
@@ -767,6 +969,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     copy(tag.getIntArray("Inputs"), inputs);
     copy(tag.getIntArray("Outputs"), outputs);
     signals = tag.getIntArray("Signals");
+    horizontalSignals = tag.getIntArray("HorizontalSignals");
+    verticalSignals = tag.getIntArray("VerticalSignals");
     energy.setStored(tag.getInt("Energy"));
   }
 

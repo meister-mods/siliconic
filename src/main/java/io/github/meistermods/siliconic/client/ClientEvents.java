@@ -17,6 +17,8 @@ public final class ClientEvents {
   @SubscribeEvent
   public static void setup(FMLClientSetupEvent event) {
     event.enqueueWork(() -> MenuScreens.register(ModMenus.WAFER.get(), WaferScreen::new));
+    event.enqueueWork(
+        () -> MenuScreens.register(ModMenus.WAFER_DUPLICATOR.get(), WaferDuplicatorScreen::new));
   }
 
   private ClientEvents() {}

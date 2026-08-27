@@ -3,6 +3,8 @@ package io.github.meistermods.siliconic.registry;
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
+import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlockEntity;
+import io.github.meistermods.siliconic.wafer.WaferInverterBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -17,7 +19,9 @@ public final class ModBlockEntities {
           "wafer_station",
           () ->
               BlockEntityType.Builder.of(
-                      PrototypeWaferBlockEntity::new, ModBlocks.WAFER_STATION.get())
+                      PrototypeWaferBlockEntity::new,
+                      ModBlocks.WAFER_STATION.get(),
+                      ModBlocks.WAFER_GUARD.get())
                   .build(null));
   public static final RegistryObject<BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
       BLOCK_ENTITIES.register(
@@ -25,6 +29,20 @@ public final class ModBlockEntities {
           () ->
               BlockEntityType.Builder.of(
                       CoalGeneratorBlockEntity::new, ModBlocks.COAL_GENERATOR.get())
+                  .build(null));
+  public static final RegistryObject<BlockEntityType<WaferInverterBlockEntity>> WAFER_INVERTER =
+      BLOCK_ENTITIES.register(
+          "wafer_inverter",
+          () ->
+              BlockEntityType.Builder.of(
+                      WaferInverterBlockEntity::new, ModBlocks.WAFER_INVERTER.get())
+                  .build(null));
+  public static final RegistryObject<BlockEntityType<WaferDuplicatorBlockEntity>> WAFER_DUPLICATOR =
+      BLOCK_ENTITIES.register(
+          "wafer_duplicator",
+          () ->
+              BlockEntityType.Builder.of(
+                      WaferDuplicatorBlockEntity::new, ModBlocks.WAFER_DUPLICATOR.get())
                   .build(null));
 
   private ModBlockEntities() {}

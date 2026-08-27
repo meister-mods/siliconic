@@ -26,8 +26,8 @@ public record CellInteractionPacket(BlockPos pos, int cell, boolean rotate) {
           if (sender != null
               && sender.distanceToSqr(packet.pos.getCenter()) <= 64
               && sender.level().getBlockEntity(packet.pos)
-                  instanceof PrototypeWaferBlockEntity wafer)
-            wafer.interactCell(packet.cell, packet.rotate, sender);
+                  instanceof PrototypeWaferBlockEntity wafer
+              && wafer.isEditable()) wafer.interactCell(packet.cell, packet.rotate, sender);
         });
     context.setPacketHandled(true);
   }

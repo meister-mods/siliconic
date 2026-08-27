@@ -25,6 +25,9 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.PURE_SILICON.get());
                         output.accept(ModItems.SILICON_WAFER.get());
                         output.accept(ModItems.LEVEL_2_WAFER.get());
+                        output.accept(ModItems.LEVEL_3_WAFER.get());
+                        output.accept(ModItems.LEVEL_4_WAFER.get());
+                        output.accept(ModItems.LEVEL_5_WAFER.get());
                         output.accept(ModItems.SILVER_INGOT.get());
                         output.accept(ModItems.SILVER_NUGGET.get());
                         output.accept(ModItems.RAW_SILVER.get());
@@ -35,7 +38,6 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.RAW_LEAD.get());
                         output.accept(ModItems.LEAD_ORE.get());
                         output.accept(ModItems.DEEPSLATE_LEAD_ORE.get());
-                        output.accept(ModItems.SILVER_LEAD_POWER_CELL.get());
                         output.accept(ModItems.COPPER_FRAGMENT.get());
                         output.accept(ModItems.NOT_GATE.get());
                         output.accept(ModItems.AND_GATE.get());
@@ -43,7 +45,11 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.XOR_GATE.get());
                         output.accept(ModItems.BUFFER_GATE.get());
                         output.accept(ModItems.WAFER_STATION.get());
+                        output.accept(ModItems.WAFER_GUARD.get());
+                        output.accept(ModItems.WAFER_INVERTER.get());
+                        output.accept(ModItems.WAFER_DUPLICATOR.get());
                         output.accept(ModItems.COAL_GENERATOR.get());
+                        output.accept(ModItems.REDSTONE_CLOCK.get());
                       })
                   .build());
 

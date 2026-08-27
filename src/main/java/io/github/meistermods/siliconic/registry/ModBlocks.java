@@ -2,7 +2,10 @@ package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
+import io.github.meistermods.siliconic.power.RedstoneClockBlock;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlock;
+import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlock;
+import io.github.meistermods.siliconic.wafer.WaferInverterBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
@@ -20,6 +23,24 @@ public final class ModBlocks {
           () ->
               new PrototypeWaferBlock(
                   BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(1.5f)));
+  public static final RegistryObject<Block> WAFER_GUARD =
+      BLOCKS.register(
+          "wafer_guard",
+          () ->
+              new PrototypeWaferBlock(
+                  BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f), false));
+  public static final RegistryObject<Block> WAFER_INVERTER =
+      BLOCKS.register(
+          "wafer_inverter",
+          () ->
+              new WaferInverterBlock(
+                  BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.5f)));
+  public static final RegistryObject<Block> WAFER_DUPLICATOR =
+      BLOCKS.register(
+          "wafer_duplicator",
+          () ->
+              new WaferDuplicatorBlock(
+                  BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f)));
   public static final RegistryObject<Block> SILVER_ORE =
       BLOCKS.register(
           "silver_ore",
@@ -66,6 +87,16 @@ public final class ModBlocks {
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()
                       .lightLevel(state -> state.getValue(CoalGeneratorBlock.LIT) ? 13 : 0)));
+  public static final RegistryObject<Block> REDSTONE_CLOCK =
+      BLOCKS.register(
+          "redstone_clock",
+          () ->
+              new RedstoneClockBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(2.5f)
+                      .requiresCorrectToolForDrops()
+                      .lightLevel(state -> state.getValue(RedstoneClockBlock.POWERED) ? 7 : 0)));
 
   private ModBlocks() {}
 }

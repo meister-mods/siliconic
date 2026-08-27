@@ -7,17 +7,17 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
 @SuppressWarnings({"null"})
-public record CyclePinModePacket(BlockPos pos, int pin) {
-  static void encode(CyclePinModePacket packet, FriendlyByteBuf buf) {
+public record CompleteWaferPacket(BlockPos pos, String name) {
+  static void encode(CompleteWaferPacket packet, FriendlyByteBuf buf) {
     buf.writeBlockPos(packet.pos);
-    buf.writeByte(packet.pin);
+    buf.writeUtf(packet.name, 50);
   }
 
-  static CyclePinModePacket decode(FriendlyByteBuf buf) {
-    return new CyclePinModePacket(buf.readBlockPos(), buf.readUnsignedByte());
+  static CompleteWaferPacket decode(FriendlyByteBuf buf) {
+    return new CompleteWaferPacket(buf.readBlockPos(), buf.readUtf(50));
   }
 
-  static void handle(CyclePinModePacket packet, Supplier<NetworkEvent.Context> supplier) {
+  static void handle(CompleteWaferPacket packet, Supplier<NetworkEvent.Context> supplier) {
     var context = supplier.get();
     context.enqueueWork(
         () -> {
@@ -26,7 +26,7 @@ public record CyclePinModePacket(BlockPos pos, int pin) {
               && sender.distanceToSqr(packet.pos.getCenter()) <= 64
               && sender.level().getBlockEntity(packet.pos)
                   instanceof PrototypeWaferBlockEntity wafer
-              && wafer.isEditable()) wafer.cyclePinMode(packet.pin);
+              && wafer.isEditable()) wafer.completeWafer(packet.name);
         });
     context.setPacketHandled(true);
   }

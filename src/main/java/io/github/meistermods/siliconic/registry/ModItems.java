@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.wafer.WaferItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
@@ -16,9 +17,15 @@ public final class ModItems {
   public static final RegistryObject<Item> PURE_SILICON =
       ITEMS.register("pure_silicon", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SILICON_WAFER =
-      ITEMS.register("silicon_wafer", () -> new Item(new Item.Properties()));
+      ITEMS.register("silicon_wafer", () -> new WaferItem(new Item.Properties()));
   public static final RegistryObject<Item> LEVEL_2_WAFER =
-      ITEMS.register("level_2_wafer", () -> new Item(new Item.Properties().stacksTo(1)));
+      ITEMS.register("level_2_wafer", () -> new WaferItem(new Item.Properties()));
+  public static final RegistryObject<Item> LEVEL_3_WAFER =
+      ITEMS.register("level_3_wafer", () -> new WaferItem(new Item.Properties()));
+  public static final RegistryObject<Item> LEVEL_4_WAFER =
+      ITEMS.register("level_4_wafer", () -> new WaferItem(new Item.Properties()));
+  public static final RegistryObject<Item> LEVEL_5_WAFER =
+      ITEMS.register("level_5_wafer", () -> new WaferItem(new Item.Properties()));
   public static final RegistryObject<Item> SILVER_INGOT =
       ITEMS.register("silver_ingot", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SILVER_NUGGET =
@@ -31,8 +38,6 @@ public final class ModItems {
       ITEMS.register("raw_silver", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> RAW_LEAD =
       ITEMS.register("raw_lead", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> SILVER_LEAD_POWER_CELL =
-      ITEMS.register("silver_lead_power_cell", () -> new Item(new Item.Properties().stacksTo(16)));
   public static final RegistryObject<Item> COPPER_FRAGMENT =
       ITEMS.register("copper_fragment", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> NOT_GATE =
@@ -49,6 +54,17 @@ public final class ModItems {
       ITEMS.register(
           "wafer_station",
           () -> new BlockItem(ModBlocks.WAFER_STATION.get(), new Item.Properties()));
+  public static final RegistryObject<Item> WAFER_GUARD =
+      ITEMS.register(
+          "wafer_guard", () -> new BlockItem(ModBlocks.WAFER_GUARD.get(), new Item.Properties()));
+  public static final RegistryObject<Item> WAFER_INVERTER =
+      ITEMS.register(
+          "wafer_inverter",
+          () -> new BlockItem(ModBlocks.WAFER_INVERTER.get(), new Item.Properties()));
+  public static final RegistryObject<Item> WAFER_DUPLICATOR =
+      ITEMS.register(
+          "wafer_duplicator",
+          () -> new BlockItem(ModBlocks.WAFER_DUPLICATOR.get(), new Item.Properties()));
   public static final RegistryObject<Item> SILVER_ORE =
       ITEMS.register(
           "silver_ore", () -> new BlockItem(ModBlocks.SILVER_ORE.get(), new Item.Properties()));
@@ -67,6 +83,10 @@ public final class ModItems {
       ITEMS.register(
           "coal_generator",
           () -> new BlockItem(ModBlocks.COAL_GENERATOR.get(), new Item.Properties()));
+  public static final RegistryObject<Item> REDSTONE_CLOCK =
+      ITEMS.register(
+          "redstone_clock",
+          () -> new BlockItem(ModBlocks.REDSTONE_CLOCK.get(), new Item.Properties()));
 
   private ModItems() {}
 }

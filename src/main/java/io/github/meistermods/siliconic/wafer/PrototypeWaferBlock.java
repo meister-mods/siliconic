@@ -1,9 +1,11 @@
 package io.github.meistermods.siliconic.wafer;
 
+import org.jetbrains.annotations.Nullable;
+
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
-import io.github.meistermods.siliconic.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
@@ -21,14 +23,19 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
 public class PrototypeWaferBlock extends BaseEntityBlock {
   public static final BooleanProperty HAS_WAFER = BooleanProperty.create("has_wafer");
+  private final boolean editable;
 
   public PrototypeWaferBlock(Properties properties) {
+    this(properties, true);
+  }
+
+  public PrototypeWaferBlock(Properties properties, boolean editable) {
     super(properties);
+    this.editable = editable;
     registerDefaultState(stateDefinition.any().setValue(HAS_WAFER, false));
   }
 
@@ -52,15 +59,7 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
       InteractionHand hand,
       BlockHitResult hit) {
     if (level.getBlockEntity(pos) instanceof PrototypeWaferBlockEntity station) {
-      if (player.getItemInHand(hand).is(ModItems.SILVER_LEAD_POWER_CELL.get())) {
-        if (!level.isClientSide) {
-          if (station.addEnergy(20_000) > 0 && !player.getAbilities().instabuild)
-            player.getItemInHand(hand).shrink(1);
-        }
-        return InteractionResult.sidedSuccess(level.isClientSide);
-      }
-      if ((player.getItemInHand(hand).is(ModItems.SILICON_WAFER.get())
-              || player.getItemInHand(hand).is(ModItems.LEVEL_2_WAFER.get()))
+      if (PrototypeWaferBlockEntity.levelOf(player.getItemInHand(hand)) > 0
           && !station.hasWafer()) {
         if (!level.isClientSide) station.insertWafer(player.getItemInHand(hand));
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -70,8 +69,16 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
           player.getInventory().placeItemBackInInventory(station.removeWafer());
         return InteractionResult.sidedSuccess(level.isClientSide);
       }
-      if (!level.isClientSide && player instanceof ServerPlayer serverPlayer) {
+      if (editable && !level.isClientSide && player instanceof ServerPlayer serverPlayer) {
         NetworkHooks.openScreen(serverPlayer, station, pos);
+      } else if (!editable && !level.isClientSide) {
+        player.displayClientMessage(
+            Component.translatable(
+                "message.siliconic.wafer_guard_status",
+                station.getEnergyStored(),
+                station.getEnergyCapacity(),
+                station.getOperationCost()),
+            true);
       }
     }
     return InteractionResult.sidedSuccess(level.isClientSide);

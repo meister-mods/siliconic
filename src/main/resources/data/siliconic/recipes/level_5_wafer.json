@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":["PEP","EWE","PEP"],"key":{"P":{"item":"siliconic:pure_silicon"},"E":{"item":"minecraft:echo_shard"},"W":{"item":"siliconic:level_4_wafer"}},"result":{"item":"siliconic:level_5_wafer"}}

@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.wafer.WaferDuplicatorMenu;
 import io.github.meistermods.siliconic.wafer.WaferMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
@@ -13,6 +14,8 @@ public final class ModMenus {
       DeferredRegister.create(ForgeRegistries.MENU_TYPES, Siliconic.MOD_ID);
   public static final RegistryObject<MenuType<WaferMenu>> WAFER =
       MENUS.register("wafer", () -> IForgeMenuType.create(WaferMenu::new));
+  public static final RegistryObject<MenuType<WaferDuplicatorMenu>> WAFER_DUPLICATOR =
+      MENUS.register("wafer_duplicator", () -> IForgeMenuType.create(WaferDuplicatorMenu::new));
 
   private ModMenus() {}
 }

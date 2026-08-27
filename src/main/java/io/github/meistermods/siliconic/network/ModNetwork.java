@@ -21,6 +21,12 @@ public final class ModNetwork {
         ToggleTracePacket::encode,
         ToggleTracePacket::decode,
         ToggleTracePacket::handle);
+    CHANNEL.registerMessage(
+        1,
+        CyclePinModePacket.class,
+        CyclePinModePacket::encode,
+        CyclePinModePacket::decode,
+        CyclePinModePacket::handle);
   }
 
   private ModNetwork() {}

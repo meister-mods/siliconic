@@ -4,5 +4,9 @@
   "item.siliconic.pure_silicon": "High-purity Silicon",
   "item.siliconic.silicon_wafer": "Silicon Wafer",
   "container.siliconic.wafer": "8×8 Wafer Router",
-  "screen.siliconic.wafer.hint": "Click cells to place or remove copper traces"
+  "screen.siliconic.wafer.hint": "Cells: edit traces · Pads: cycle I/O",
+  "screen.siliconic.wafer.probe": "Probe (%s, %s)",
+  "screen.siliconic.wafer.trace": "Copper trace",
+  "screen.siliconic.wafer.empty": "Empty cell",
+  "screen.siliconic.wafer.signal": "Signal strength: %s"
 }

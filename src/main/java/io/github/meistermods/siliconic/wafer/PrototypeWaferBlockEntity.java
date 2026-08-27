@@ -61,6 +61,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       energy = Math.max(0, Math.min(value, capacity));
     }
 
+    boolean consumeInternal(int amount) {
+      if (amount <= 0 || energy < amount) return false;
+      energy -= amount;
+      return true;
+    }
+
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
       int accepted = super.receiveEnergy(amount, simulate);
@@ -221,7 +227,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     boolean powered = false;
     if (station.hasWafer()) {
       int cost = station.getOperationCost();
-      powered = station.energy.extractEnergy(cost, false) == cost;
+      powered = station.energy.consumeInternal(cost);
     }
     if (powered != station.wasPowered) {
       station.wasPowered = powered;

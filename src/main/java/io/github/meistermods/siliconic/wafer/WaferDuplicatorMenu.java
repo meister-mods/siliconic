@@ -38,9 +38,9 @@ public class WaferDuplicatorMenu extends AbstractContainerMenu {
                 68 + row * 18));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
-        addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 119 + row * 18));
+        addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 147 + row * 18));
     for (int column = 0; column < 9; column++)
-      addSlot(new Slot(inventory, column, 8 + column * 18, 177));
+      addSlot(new Slot(inventory, column, 8 + column * 18, 207));
     addDataSlots(duplicator.data());
   }
 
@@ -59,6 +59,10 @@ public class WaferDuplicatorMenu extends AbstractContainerMenu {
   public List<ItemStack> requirements() {
     return PrototypeWaferBlockEntity.requiredComponents(
         duplicator.items().getStackInSlot(WaferDuplicatorBlockEntity.SOURCE_SLOT));
+  }
+
+  public int status() {
+    return duplicator.status();
   }
 
   @Override

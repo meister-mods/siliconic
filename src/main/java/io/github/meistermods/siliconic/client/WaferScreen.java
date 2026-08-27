@@ -16,6 +16,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import org.lwjgl.glfw.GLFW;
 
 @SuppressWarnings({"null"})
 public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
@@ -245,6 +246,15 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       }
     }
     return super.mouseClicked(mx, my, button);
+  }
+
+  @Override
+  public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    if (nameBox != null && nameBox.isFocused() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
+      nameBox.keyPressed(keyCode, scanCode, modifiers);
+      return true;
+    }
+    return super.keyPressed(keyCode, scanCode, modifiers);
   }
 
   private boolean insideGrid(int x, int y) {

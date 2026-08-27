@@ -13,8 +13,8 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
   public WaferDuplicatorScreen(WaferDuplicatorMenu menu, Inventory inventory, Component title) {
     super(menu, inventory, title);
     imageWidth = 176;
-    imageHeight = 201;
-    inventoryLabelY = 108;
+    imageHeight = 231;
+    inventoryLabelY = 136;
   }
 
   @Override
@@ -22,8 +22,8 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
     g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xff17191c);
     for (int[] slot : machineSlots()) slotBox(g, leftPos + slot[0], topPos + slot[1]);
     int width = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();
-    g.fill(leftPos + 8, topPos + 99, leftPos + 168, topPos + 105, 0xff2b3035);
-    g.fill(leftPos + 8, topPos + 99, leftPos + 8 + width, topPos + 105, 0xffd94f67);
+    g.fill(leftPos + 8, topPos + 129, leftPos + 168, topPos + 135, 0xff2b3035);
+    g.fill(leftPos + 8, topPos + 129, leftPos + 8 + width, topPos + 135, 0xffd94f67);
     g.drawString(font, "+", leftPos + 45, topPos + 35, 0xffe8edf2, false);
     g.drawString(font, "→", leftPos + 103, topPos + 35, 0xffe8edf2, false);
   }
@@ -39,9 +39,9 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
         positions[index++] = new int[] {8 + column * 18, 68 + row * 18};
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
-        positions[index++] = new int[] {8 + column * 18, 119 + row * 18};
+        positions[index++] = new int[] {8 + column * 18, 147 + row * 18};
     for (int column = 0; column < 9; column++)
-      positions[index++] = new int[] {8 + column * 18, 177};
+      positions[index++] = new int[] {8 + column * 18, 207};
     return positions;
   }
 
@@ -73,9 +73,17 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
         Component.translatable(
             "screen.siliconic.duplicator.energy", menu.energy(), menu.capacity(), menu.cost()),
         8,
-        88,
+        107,
         160,
         0xffff8ca0);
+    int status = menu.status();
+    drawFittedString(
+        g,
+        Component.translatable("screen.siliconic.duplicator.status." + status),
+        8,
+        118,
+        160,
+        status == 6 ? 0xff66e69a : 0xffffb35c);
   }
 
   private void drawFittedString(

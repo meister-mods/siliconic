@@ -78,6 +78,16 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
       energy = Math.max(0, Math.min(value, capacity));
     }
 
+    boolean canConsumeInternal(int amount) {
+      return amount > 0 && energy >= amount;
+    }
+
+    boolean consumeInternal(int amount) {
+      if (!canConsumeInternal(amount)) return false;
+      energy -= amount;
+      return true;
+    }
+
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
       int accepted = super.receiveEnergy(amount, simulate);
@@ -102,6 +112,18 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
     return 10_000 * PrototypeWaferBlockEntity.levelOf(items.getStackInSlot(SOURCE_SLOT));
   }
 
+  public int status() {
+    ItemStack source = items.getStackInSlot(SOURCE_SLOT);
+    ItemStack blank = items.getStackInSlot(BLANK_SLOT);
+    if (!PrototypeWaferBlockEntity.isCompleted(source)) return 0;
+    if (!PrototypeWaferBlockEntity.isBlankWafer(blank)) return 1;
+    if (!source.is(blank.getItem())) return 2;
+    if (!items.getStackInSlot(OUTPUT_SLOT).isEmpty()) return 3;
+    if (!energy.canConsumeInternal(currentCost())) return 4;
+    if (!hasMaterials(PrototypeWaferBlockEntity.requiredComponents(source))) return 5;
+    return 6;
+  }
+
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, WaferDuplicatorBlockEntity duplicator) {
     if (level.getGameTime() % 20 == 0) duplicator.tryDuplicate();
@@ -115,11 +137,11 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
         || !source.is(blank.getItem())
         || !items.getStackInSlot(OUTPUT_SLOT).isEmpty()) return;
     int cost = currentCost();
-    if (cost <= 0 || energy.extractEnergy(cost, true) < cost) return;
+    if (!energy.canConsumeInternal(cost)) return;
     List<ItemStack> requirements = PrototypeWaferBlockEntity.requiredComponents(source);
     if (!hasMaterials(requirements)) return;
     consumeMaterials(requirements);
-    energy.extractEnergy(cost, false);
+    energy.consumeInternal(cost);
     items.extractItem(BLANK_SLOT, 1, false);
     items.setStackInSlot(OUTPUT_SLOT, source.copyWithCount(1));
     setChanged();

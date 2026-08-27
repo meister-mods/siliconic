@@ -32,6 +32,12 @@ public class WaferInverterBlockEntity extends BlockEntity {
       energy = Math.max(0, Math.min(value, capacity));
     }
 
+    boolean consumeInternal(int amount) {
+      if (amount <= 0 || energy < amount) return false;
+      energy -= amount;
+      return true;
+    }
+
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
       int accepted = super.receiveEnergy(amount, simulate);
@@ -50,8 +56,7 @@ public class WaferInverterBlockEntity extends BlockEntity {
 
   public boolean invert(ItemStack wafer) {
     int cost = costFor(wafer);
-    if (cost <= 0 || energy.extractEnergy(cost, true) < cost) return false;
-    energy.extractEnergy(cost, false);
+    if (!energy.consumeInternal(cost)) return false;
     PrototypeWaferBlockEntity.mirrorHorizontally(wafer);
     setChanged();
     return true;

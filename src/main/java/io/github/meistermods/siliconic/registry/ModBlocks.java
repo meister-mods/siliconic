@@ -19,6 +19,42 @@ public final class ModBlocks {
           () ->
               new PrototypeWaferBlock(
                   BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(1.5f)));
+  public static final RegistryObject<Block> SILVER_ORE =
+      BLOCKS.register(
+          "silver_ore",
+          () ->
+              new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.STONE)
+                      .strength(3.0f, 3.0f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> DEEPSLATE_SILVER_ORE =
+      BLOCKS.register(
+          "deepslate_silver_ore",
+          () ->
+              new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.DEEPSLATE)
+                      .strength(4.5f, 3.0f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> LEAD_ORE =
+      BLOCKS.register(
+          "lead_ore",
+          () ->
+              new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.STONE)
+                      .strength(3.0f, 3.0f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> DEEPSLATE_LEAD_ORE =
+      BLOCKS.register(
+          "deepslate_lead_ore",
+          () ->
+              new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.DEEPSLATE)
+                      .strength(4.5f, 3.0f)
+                      .requiresCorrectToolForDrops()));
 
   private ModBlocks() {}
 }

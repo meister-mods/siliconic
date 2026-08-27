@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 @SuppressWarnings({"null"})
 public class WaferMenu extends AbstractContainerMenu {
   private final PrototypeWaferBlockEntity wafer;
+  private final int inventoryY;
 
   public WaferMenu(int id, Inventory inventory, FriendlyByteBuf data) {
     this(
@@ -23,11 +24,12 @@ public class WaferMenu extends AbstractContainerMenu {
   public WaferMenu(int id, Inventory inventory, PrototypeWaferBlockEntity wafer) {
     super(ModMenus.WAFER.get(), id);
     this.wafer = wafer;
+    this.inventoryY = 64 + wafer.getGridSize() * 14;
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
-        addSlot(new Slot(inventory, column + row * 9 + 9, 31 + column * 18, 220 + row * 18));
+        addSlot(new Slot(inventory, column + row * 9 + 9, 35 + column * 18, inventoryY + row * 18));
     for (int column = 0; column < 9; column++)
-      addSlot(new Slot(inventory, column, 31 + column * 18, 278));
+      addSlot(new Slot(inventory, column, 35 + column * 18, inventoryY + 58));
   }
 
   public PrototypeWaferBlockEntity wafer() {
@@ -36,6 +38,10 @@ public class WaferMenu extends AbstractContainerMenu {
 
   public BlockPos position() {
     return wafer.getBlockPos();
+  }
+
+  public int inventoryY() {
+    return inventoryY;
   }
 
   @Override

@@ -24,6 +24,18 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.CRUDE_SILICON.get());
                         output.accept(ModItems.PURE_SILICON.get());
                         output.accept(ModItems.SILICON_WAFER.get());
+                        output.accept(ModItems.LEVEL_2_WAFER.get());
+                        output.accept(ModItems.SILVER_INGOT.get());
+                        output.accept(ModItems.SILVER_NUGGET.get());
+                        output.accept(ModItems.RAW_SILVER.get());
+                        output.accept(ModItems.SILVER_ORE.get());
+                        output.accept(ModItems.DEEPSLATE_SILVER_ORE.get());
+                        output.accept(ModItems.LEAD_INGOT.get());
+                        output.accept(ModItems.LEAD_NUGGET.get());
+                        output.accept(ModItems.RAW_LEAD.get());
+                        output.accept(ModItems.LEAD_ORE.get());
+                        output.accept(ModItems.DEEPSLATE_LEAD_ORE.get());
+                        output.accept(ModItems.SILVER_LEAD_POWER_CELL.get());
                         output.accept(ModItems.COPPER_FRAGMENT.get());
                         output.accept(ModItems.NOT_GATE.get());
                         output.accept(ModItems.AND_GATE.get());

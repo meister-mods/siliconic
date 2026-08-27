@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":[" S ","RLR"," S "],"key":{"S":{"tag":"forge:ingots/silver"},"L":{"tag":"forge:ingots/lead"},"R":{"item":"minecraft:redstone"}},"result":{"item":"siliconic:silver_lead_power_cell"}}

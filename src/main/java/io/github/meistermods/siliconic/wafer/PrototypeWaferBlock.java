@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -13,6 +14,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
@@ -49,7 +52,16 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
       InteractionHand hand,
       BlockHitResult hit) {
     if (level.getBlockEntity(pos) instanceof PrototypeWaferBlockEntity station) {
-      if (player.getItemInHand(hand).is(ModItems.SILICON_WAFER.get()) && !station.hasWafer()) {
+      if (player.getItemInHand(hand).is(ModItems.SILVER_LEAD_POWER_CELL.get())) {
+        if (!level.isClientSide) {
+          if (station.addEnergy(20_000) > 0 && !player.getAbilities().instabuild)
+            player.getItemInHand(hand).shrink(1);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+      }
+      if ((player.getItemInHand(hand).is(ModItems.SILICON_WAFER.get())
+              || player.getItemInHand(hand).is(ModItems.LEVEL_2_WAFER.get()))
+          && !station.hasWafer()) {
         if (!level.isClientSide) station.insertWafer(player.getItemInHand(hand));
         return InteractionResult.sidedSuccess(level.isClientSide);
       }
@@ -63,6 +75,16 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
       }
     }
     return InteractionResult.sidedSuccess(level.isClientSide);
+  }
+
+  @Nullable
+  @Override
+  public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+      Level level, BlockState state, BlockEntityType<T> type) {
+    return level.isClientSide
+        ? null
+        : createTickerHelper(
+            type, ModBlockEntities.PROTOTYPE_WAFER.get(), PrototypeWaferBlockEntity::serverTick);
   }
 
   @Override

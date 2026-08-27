@@ -24,6 +24,11 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.CRUDE_SILICON.get());
                         output.accept(ModItems.PURE_SILICON.get());
                         output.accept(ModItems.SILICON_WAFER.get());
+                        output.accept(ModItems.COPPER_FRAGMENT.get());
+                        output.accept(ModItems.NOT_GATE.get());
+                        output.accept(ModItems.AND_GATE.get());
+                        output.accept(ModItems.OR_GATE.get());
+                        output.accept(ModItems.XOR_GATE.get());
                         output.accept(ModItems.WAFER_STATION.get());
                       })
                   .build());

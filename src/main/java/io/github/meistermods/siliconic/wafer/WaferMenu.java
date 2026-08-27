@@ -6,6 +6,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 @SuppressWarnings({"null"})
@@ -22,6 +23,11 @@ public class WaferMenu extends AbstractContainerMenu {
   public WaferMenu(int id, Inventory inventory, PrototypeWaferBlockEntity wafer) {
     super(ModMenus.WAFER.get(), id);
     this.wafer = wafer;
+    for (int row = 0; row < 3; row++)
+      for (int column = 0; column < 9; column++)
+        addSlot(new Slot(inventory, column + row * 9 + 9, 31 + column * 18, 220 + row * 18));
+    for (int column = 0; column < 9; column++)
+      addSlot(new Slot(inventory, column, 31 + column * 18, 278));
   }
 
   public PrototypeWaferBlockEntity wafer() {
@@ -34,7 +40,16 @@ public class WaferMenu extends AbstractContainerMenu {
 
   @Override
   public ItemStack quickMoveStack(Player player, int index) {
-    return ItemStack.EMPTY;
+    if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
+    Slot slot = slots.get(index);
+    if (!slot.hasItem()) return ItemStack.EMPTY;
+    ItemStack original = slot.getItem(), copy = original.copy();
+    if (index < 27) {
+      if (!moveItemStackTo(original, 27, 36, false)) return ItemStack.EMPTY;
+    } else if (!moveItemStackTo(original, 0, 27, false)) return ItemStack.EMPTY;
+    if (original.isEmpty()) slot.set(ItemStack.EMPTY);
+    else slot.setChanged();
+    return copy;
   }
 
   @Override

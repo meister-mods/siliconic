@@ -17,6 +17,16 @@ public final class ModItems {
       ITEMS.register("pure_silicon", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SILICON_WAFER =
       ITEMS.register("silicon_wafer", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> COPPER_FRAGMENT =
+      ITEMS.register("copper_fragment", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> NOT_GATE =
+      ITEMS.register("not_gate", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> AND_GATE =
+      ITEMS.register("and_gate", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> OR_GATE =
+      ITEMS.register("or_gate", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> XOR_GATE =
+      ITEMS.register("xor_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> WAFER_STATION =
       ITEMS.register(
           "wafer_station",

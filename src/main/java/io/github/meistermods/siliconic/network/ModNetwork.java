@@ -17,16 +17,16 @@ public final class ModNetwork {
   public static void register() {
     CHANNEL.registerMessage(
         0,
-        ToggleTracePacket.class,
-        ToggleTracePacket::encode,
-        ToggleTracePacket::decode,
-        ToggleTracePacket::handle);
-    CHANNEL.registerMessage(
-        1,
         CyclePinModePacket.class,
         CyclePinModePacket::encode,
         CyclePinModePacket::decode,
         CyclePinModePacket::handle);
+    CHANNEL.registerMessage(
+        1,
+        CellInteractionPacket.class,
+        CellInteractionPacket::encode,
+        CellInteractionPacket::decode,
+        CellInteractionPacket::handle);
   }
 
   private ModNetwork() {}

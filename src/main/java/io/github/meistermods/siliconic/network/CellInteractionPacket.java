@@ -7,17 +7,18 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraftforge.network.NetworkEvent;
 
 @SuppressWarnings({"null"})
-public record ToggleTracePacket(BlockPos pos, int cell) {
-  static void encode(ToggleTracePacket packet, FriendlyByteBuf buf) {
+public record CellInteractionPacket(BlockPos pos, int cell, boolean rotate) {
+  static void encode(CellInteractionPacket packet, FriendlyByteBuf buf) {
     buf.writeBlockPos(packet.pos);
     buf.writeByte(packet.cell);
+    buf.writeBoolean(packet.rotate);
   }
 
-  static ToggleTracePacket decode(FriendlyByteBuf buf) {
-    return new ToggleTracePacket(buf.readBlockPos(), buf.readUnsignedByte());
+  static CellInteractionPacket decode(FriendlyByteBuf buf) {
+    return new CellInteractionPacket(buf.readBlockPos(), buf.readUnsignedByte(), buf.readBoolean());
   }
 
-  static void handle(ToggleTracePacket packet, Supplier<NetworkEvent.Context> supplier) {
+  static void handle(CellInteractionPacket packet, Supplier<NetworkEvent.Context> supplier) {
     var context = supplier.get();
     context.enqueueWork(
         () -> {
@@ -25,7 +26,8 @@ public record ToggleTracePacket(BlockPos pos, int cell) {
           if (sender != null
               && sender.distanceToSqr(packet.pos.getCenter()) <= 64
               && sender.level().getBlockEntity(packet.pos)
-                  instanceof PrototypeWaferBlockEntity wafer) wafer.toggleTrace(packet.cell);
+                  instanceof PrototypeWaferBlockEntity wafer)
+            wafer.interactCell(packet.cell, packet.rotate, sender);
         });
     context.setPacketHandled(true);
   }

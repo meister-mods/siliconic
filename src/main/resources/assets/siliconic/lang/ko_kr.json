@@ -29,7 +29,7 @@
   "screen.siliconic.wafer.trace": "구리 배선",
   "screen.siliconic.wafer.empty": "빈 셀",
   "screen.siliconic.wafer.signal": "신호 세기: %s",
-  "screen.siliconic.wafer.range": "최대 연속 거리: %s셀",
+  "screen.siliconic.wafer.attenuation": "%s셀마다 신호 세기 1 감소",
   "screen.siliconic.wafer.conductor_mode": "배선 형태: %s",
   "conductor_mode.siliconic.plus": "+ 접합",
   "conductor_mode.siliconic.vertical": "세로",

@@ -96,13 +96,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       return this == REDSTONE || this == COPPER || this == LEAD || this == SILVER || this == GOLD;
     }
 
-    public int range() {
+    public int attenuationInterval() {
       return switch (this) {
-        case REDSTONE -> 8;
-        case COPPER -> 16;
-        case LEAD -> 24;
-        case SILVER -> 32;
-        case GOLD -> 48;
+        case REDSTONE -> 1;
+        case COPPER -> 2;
+        case LEAD -> 3;
+        case SILVER -> 4;
+        case GOLD -> 6;
         default -> 0;
       };
     }
@@ -499,7 +499,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       Pulse best = Pulse.NONE;
       for (int side : group) {
         int direct = pinInputFrom(d, size, ext, cell, side);
-        if (direct > best.strength) best = new Pulse(direct, target, target.range() - 1);
+        if (direct > best.strength)
+          best = new Pulse(direct, target, target.attenuationInterval() - 1);
         int n = neighbor(size, cell, side);
         if (n < 0) continue;
         Pulse incoming =
@@ -531,12 +532,18 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   private Pulse enterConductor(Pulse incoming, CellType target) {
     if (incoming.strength <= 0) return Pulse.NONE;
-    if (incoming.material == target)
-      return incoming.remaining > 0
-          ? new Pulse(incoming.strength, target, incoming.remaining - 1)
+    if (incoming.material == target) {
+      if (incoming.remaining > 0)
+        return new Pulse(incoming.strength, target, incoming.remaining - 1);
+      int attenuated = incoming.strength - 1;
+      return attenuated > 0
+          ? new Pulse(attenuated, target, target.attenuationInterval() - 1)
           : Pulse.NONE;
+    }
     int strength = incoming.material.isConductor() ? incoming.strength / 2 : incoming.strength;
-    return strength > 0 ? new Pulse(strength, target, target.range() - 1) : Pulse.NONE;
+    return strength > 0
+        ? new Pulse(strength, target, target.attenuationInterval() - 1)
+        : Pulse.NONE;
   }
 
   private int gateOutput(

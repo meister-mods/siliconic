@@ -29,7 +29,7 @@
   "screen.siliconic.wafer.trace": "Copper trace",
   "screen.siliconic.wafer.empty": "Empty cell",
   "screen.siliconic.wafer.signal": "Signal strength: %s",
-  "screen.siliconic.wafer.range": "Maximum run: %s cells",
+  "screen.siliconic.wafer.attenuation": "Loses 1 signal every %s cells",
   "screen.siliconic.wafer.conductor_mode": "Trace shape: %s",
   "conductor_mode.siliconic.plus": "+ junction",
   "conductor_mode.siliconic.vertical": "Vertical",

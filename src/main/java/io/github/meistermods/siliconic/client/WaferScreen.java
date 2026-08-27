@@ -166,7 +166,9 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       lines.add(Component.translatable("screen.siliconic.wafer.probe", x, y));
       lines.add(Component.translatable("cell.siliconic." + type.name().toLowerCase()));
       if (type.isConductor())
-        lines.add(Component.translatable("screen.siliconic.wafer.range", type.range()));
+        lines.add(
+            Component.translatable(
+                "screen.siliconic.wafer.attenuation", type.attenuationInterval()));
       if (type.isConductor())
         lines.add(
             Component.translatable(

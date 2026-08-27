@@ -1,5 +1,6 @@
 {
   "block.siliconic.wafer_station": "Wafer Station",
+  "block.siliconic.coal_generator": "Coal Generator",
   "itemGroup.siliconic": "Siliconic",
   "item.siliconic.crude_silicon": "Crude Silicon",
   "item.siliconic.pure_silicon": "High-purity Silicon",
@@ -47,4 +48,5 @@
   "direction.siliconic.east": "East",
   "direction.siliconic.south": "South",
   "direction.siliconic.west": "West"
+  ,"message.siliconic.generator_status": "Generator: %s / %s FE · burn %s ticks · fuel %s"
 }

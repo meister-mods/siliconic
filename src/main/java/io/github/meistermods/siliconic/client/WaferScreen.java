@@ -1,15 +1,13 @@
 package io.github.meistermods.siliconic.client;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.mojang.blaze3d.systems.RenderSystem;
-
 import io.github.meistermods.siliconic.network.CellInteractionPacket;
 import io.github.meistermods.siliconic.network.CyclePinModePacket;
 import io.github.meistermods.siliconic.network.ModNetwork;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
 import io.github.meistermods.siliconic.wafer.WaferMenu;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;

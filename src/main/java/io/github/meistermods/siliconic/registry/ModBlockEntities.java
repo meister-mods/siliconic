@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraftforge.registries.DeferredRegister;
@@ -17,6 +18,13 @@ public final class ModBlockEntities {
           () ->
               BlockEntityType.Builder.of(
                       PrototypeWaferBlockEntity::new, ModBlocks.WAFER_STATION.get())
+                  .build(null));
+  public static final RegistryObject<BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
+      BLOCK_ENTITIES.register(
+          "coal_generator",
+          () ->
+              BlockEntityType.Builder.of(
+                      CoalGeneratorBlockEntity::new, ModBlocks.COAL_GENERATOR.get())
                   .build(null));
 
   private ModBlockEntities() {}

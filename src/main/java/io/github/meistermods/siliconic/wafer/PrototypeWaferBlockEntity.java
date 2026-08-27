@@ -1,12 +1,9 @@
 package io.github.meistermods.siliconic.wafer;
 
-import java.util.Arrays;
-import java.util.BitSet;
-
-import org.jetbrains.annotations.Nullable;
-
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModItems;
+import java.util.Arrays;
+import java.util.BitSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -28,6 +25,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvider {
@@ -237,7 +235,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       if (old != CellType.EMPTY) {
         ItemStack returned = old == CellType.CHIP ? removeChip(cell) : new ItemStack(itemFor(old));
         setCell(cell, CellType.EMPTY);
-        player.getInventory().placeItemBackInInventory(returned);
+        if (!player.getAbilities().instabuild)
+          player.getInventory().placeItemBackInInventory(returned);
       }
       return;
     }

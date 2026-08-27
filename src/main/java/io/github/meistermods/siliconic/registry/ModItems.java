@@ -61,6 +61,10 @@ public final class ModItems {
       ITEMS.register(
           "deepslate_lead_ore",
           () -> new BlockItem(ModBlocks.DEEPSLATE_LEAD_ORE.get(), new Item.Properties()));
+  public static final RegistryObject<Item> COAL_GENERATOR =
+      ITEMS.register(
+          "coal_generator",
+          () -> new BlockItem(ModBlocks.COAL_GENERATOR.get(), new Item.Properties()));
 
   private ModItems() {}
 }

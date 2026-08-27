@@ -42,6 +42,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.OR_GATE.get());
                         output.accept(ModItems.XOR_GATE.get());
                         output.accept(ModItems.WAFER_STATION.get());
+                        output.accept(ModItems.COAL_GENERATOR.get());
                       })
                   .build());
 

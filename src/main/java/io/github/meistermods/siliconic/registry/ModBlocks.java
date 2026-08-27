@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -55,6 +56,16 @@ public final class ModBlocks {
                       .mapColor(MapColor.DEEPSLATE)
                       .strength(4.5f, 3.0f)
                       .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> COAL_GENERATOR =
+      BLOCKS.register(
+          "coal_generator",
+          () ->
+              new CoalGeneratorBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()
+                      .lightLevel(state -> state.getValue(CoalGeneratorBlock.LIT) ? 13 : 0)));
 
   private ModBlocks() {}
 }

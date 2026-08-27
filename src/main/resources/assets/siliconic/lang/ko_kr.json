@@ -1,5 +1,6 @@
 {
   "block.siliconic.wafer_station": "웨이퍼 스테이션",
+  "block.siliconic.coal_generator": "석탄 발전기",
   "itemGroup.siliconic": "실리코닉",
   "item.siliconic.crude_silicon": "조실리콘",
   "item.siliconic.pure_silicon": "고순도 실리콘",
@@ -47,4 +48,5 @@
   "direction.siliconic.east": "동쪽",
   "direction.siliconic.south": "남쪽",
   "direction.siliconic.west": "서쪽"
+  ,"message.siliconic.generator_status": "발전기: %s / %s FE · 연소 %s틱 · 연료 %s개"
 }

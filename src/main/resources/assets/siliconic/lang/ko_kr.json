@@ -80,6 +80,8 @@
   "screen.siliconic.wafer.empty": "빈 셀",
   "screen.siliconic.wafer.signal": "신호 세기: %s",
   "screen.siliconic.wafer.attenuation": "%s셀마다 신호 세기 1 감소",
+  "screen.siliconic.wafer.embedded_type": "하위 웨이퍼 종류: %s",
+  "screen.siliconic.wafer.embedded_name": "사용자 지정 이름: %s",
   "screen.siliconic.wafer.conductor_mode": "배선 형태: %s",
   "conductor_mode.siliconic.plus": "+ 접합",
   "conductor_mode.siliconic.vertical": "세로",

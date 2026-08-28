@@ -80,6 +80,8 @@
   "screen.siliconic.wafer.empty": "Empty cell",
   "screen.siliconic.wafer.signal": "Signal strength: %s",
   "screen.siliconic.wafer.attenuation": "Loses 1 signal every %s cells",
+  "screen.siliconic.wafer.embedded_type": "Embedded wafer type: %s",
+  "screen.siliconic.wafer.embedded_name": "Custom name: %s",
   "screen.siliconic.wafer.conductor_mode": "Trace shape: %s",
   "conductor_mode.siliconic.plus": "+ junction",
   "conductor_mode.siliconic.vertical": "Vertical",

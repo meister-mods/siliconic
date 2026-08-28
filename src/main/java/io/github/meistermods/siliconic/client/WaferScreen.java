@@ -16,6 +16,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
 
 @SuppressWarnings({"null"})
@@ -207,6 +208,19 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       List<Component> lines = new ArrayList<>();
       lines.add(Component.translatable("screen.siliconic.wafer.probe", x, y));
       lines.add(Component.translatable("cell.siliconic." + type.name().toLowerCase()));
+      if (type == CellType.CHIP) {
+        ItemStack embeddedWafer = menu.wafer().getEmbeddedWafer(cell);
+        if (!embeddedWafer.isEmpty()) {
+          lines.add(
+              Component.translatable(
+                  "screen.siliconic.wafer.embedded_type",
+                  embeddedWafer.getItem().getDescription()));
+          if (embeddedWafer.hasCustomHoverName())
+            lines.add(
+                Component.translatable(
+                    "screen.siliconic.wafer.embedded_name", embeddedWafer.getHoverName()));
+        }
+      }
       if (type.isConductor())
         lines.add(
             Component.translatable(

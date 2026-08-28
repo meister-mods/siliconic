@@ -165,6 +165,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     return cellType(design(), getGridSize(), cell);
   }
 
+  public ItemStack getEmbeddedWafer(int cell) {
+    if (!valid(cell) || getCellType(cell) != CellType.CHIP) return ItemStack.EMPTY;
+    return chipAt(design(), cell);
+  }
+
   public int getRotation(int cell) {
     byte[] rotations = rotations(design(), getGridSize());
     return valid(cell) ? Byte.toUnsignedInt(rotations[cell]) & 3 : 0;
@@ -320,7 +325,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private boolean canInsertChip(ItemStack stack) {
-    return getWaferLevel() > levelOf(stack) && levelOf(stack) > 0;
+    return canEmbedWafer(getWaferLevel(), levelOf(stack));
+  }
+
+  private static boolean canEmbedWafer(int parentLevel, int childLevel) {
+    return childLevel > 0 && childLevel < parentLevel;
   }
 
   private void setCell(int cell, CellType type) {
@@ -414,7 +423,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
           getPinMode(i) == PinMode.INPUT
               ? level.getSignal(worldPosition.relative(dirs[i]), dirs[i].getOpposite())
               : 0;
-    Simulation result = simulate(design(), getGridSize(), inputs, 0);
+    Simulation result = simulate(design(), getGridSize(), inputs, getWaferLevel());
     signals = result.signals;
     horizontalSignals = result.horizontalSignals;
     verticalSignals = result.verticalSignals;
@@ -424,41 +433,42 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     return true;
   }
 
-  private Simulation simulate(CompoundTag design, int size, int[] externalInputs, int depth) {
+  private Simulation simulate(
+      CompoundTag design, int size, int[] externalInputs, int containingWaferLevel) {
     int count = size * size;
     int[] values = new int[count];
     int[][] wireStrength = new int[count][4], wireRemaining = new int[count][4];
     int[][] chipOutputs = new int[count][4];
     for (int pass = 0; pass < count + 8; pass++) {
       int[][] nextChips = new int[count][4];
-      if (depth < 4)
-        for (int cell = 0; cell < count; cell++)
-          if (cellType(design, size, cell) == CellType.CHIP) {
-            ItemStack chip = chipAt(design, cell);
-            if (chip.isEmpty()) continue;
-            int rotation = rotation(design, size, cell);
-            CompoundTag child = chip.getOrCreateTagElement(DESIGN_TAG);
-            int[] childInputs = new int[4];
-            for (int local = 0; local < 4; local++)
-              if (pinMode(child, local) == PinMode.INPUT) {
-                int world = (local + rotation) & 3;
-                childInputs[local] =
-                    readFrom(
-                        design,
-                        size,
-                        values,
-                        wireStrength,
-                        wireRemaining,
-                        chipOutputs,
-                        externalInputs,
-                        cell,
-                        world);
-              }
-            Simulation nested = simulate(child, sizeOf(chip), childInputs, depth + 1);
-            for (int local = 0; local < 4; local++)
-              if (pinMode(child, local) == PinMode.OUTPUT)
-                nextChips[cell][(local + rotation) & 3] = nested.outputs[local];
-          }
+      for (int cell = 0; cell < count; cell++)
+        if (cellType(design, size, cell) == CellType.CHIP) {
+          ItemStack chip = chipAt(design, cell);
+          int childLevel = levelOf(chip);
+          if (!canEmbedWafer(containingWaferLevel, childLevel)) continue;
+          int rotation = rotation(design, size, cell);
+          CompoundTag child = chip.getOrCreateTagElement(DESIGN_TAG);
+          int[] childInputs = new int[4];
+          for (int local = 0; local < 4; local++)
+            if (pinMode(child, local) == PinMode.INPUT) {
+              int world = (local + rotation) & 3;
+              childInputs[local] =
+                  readFrom(
+                      design,
+                      size,
+                      values,
+                      wireStrength,
+                      wireRemaining,
+                      chipOutputs,
+                      externalInputs,
+                      cell,
+                      world);
+            }
+          Simulation nested = simulate(child, sizeOf(chip), childInputs, childLevel);
+          for (int local = 0; local < 4; local++)
+            if (pinMode(child, local) == PinMode.OUTPUT)
+              nextChips[cell][(local + rotation) & 3] = nested.outputs[local];
+        }
       int[] next = new int[count];
       int[][] nextWire = new int[count][4], nextWireRemaining = new int[count][4];
       for (int cell = 0; cell < count; cell++) {

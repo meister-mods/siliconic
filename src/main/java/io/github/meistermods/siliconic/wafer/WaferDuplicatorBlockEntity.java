@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -46,26 +47,31 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
   private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> items);
+  private final int[] clientData = new int[5];
   private final ContainerData data =
       new ContainerData() {
         @Override
         public int get(int index) {
+          if (level != null && level.isClientSide)
+            return index >= 0 && index < clientData.length ? clientData[index] : 0;
           return switch (index) {
-            case 0 -> energy.getEnergyStored();
-            case 1 -> energy.getMaxEnergyStored();
-            case 2 -> currentCost();
+            case 0 -> MenuDataSync.low(energy.getEnergyStored());
+            case 1 -> MenuDataSync.high(energy.getEnergyStored());
+            case 2 -> MenuDataSync.low(currentCost());
+            case 3 -> MenuDataSync.high(currentCost());
+            case 4 -> status();
             default -> 0;
           };
         }
 
         @Override
         public void set(int index, int value) {
-          if (index == 0) energy.setStored(value);
+          if (index >= 0 && index < clientData.length) clientData[index] = value;
         }
 
         @Override
         public int getCount() {
-          return 3;
+          return 5;
         }
       };
 

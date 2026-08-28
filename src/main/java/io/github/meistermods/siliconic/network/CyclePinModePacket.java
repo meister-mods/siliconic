@@ -1,6 +1,6 @@
 package io.github.meistermods.siliconic.network;
 
-import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
+import io.github.meistermods.siliconic.wafer.WaferMenu;
 import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -23,10 +23,9 @@ public record CyclePinModePacket(BlockPos pos, int pin) {
         () -> {
           var sender = context.getSender();
           if (sender != null
-              && sender.distanceToSqr(packet.pos.getCenter()) <= 64
-              && sender.level().getBlockEntity(packet.pos)
-                  instanceof PrototypeWaferBlockEntity wafer
-              && wafer.isEditable()) wafer.cyclePinMode(packet.pin);
+              && sender.containerMenu instanceof WaferMenu menu
+              && menu.tryBeginMutation(sender, packet.pos))
+            menu.wafer().cyclePinMode(packet.pin);
         });
     context.setPacketHandled(true);
   }

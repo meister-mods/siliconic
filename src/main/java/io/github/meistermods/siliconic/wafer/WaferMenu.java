@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.wafer;
 import io.github.meistermods.siliconic.registry.ModMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -11,11 +12,14 @@ import net.minecraft.world.item.ItemStack;
 
 @SuppressWarnings({"null"})
 public class WaferMenu extends AbstractContainerMenu {
+  private static final int MAX_MUTATIONS_PER_TICK = 16;
   public static final int INVENTORY_X = 153;
   public static final int MAIN_INVENTORY_Y = 50;
   public static final int HOTBAR_Y = 112;
 
   private final PrototypeWaferBlockEntity wafer;
+  private long mutationTick = Long.MIN_VALUE;
+  private int mutationsThisTick;
 
   public WaferMenu(int id, Inventory inventory, FriendlyByteBuf data) {
     this(
@@ -45,6 +49,21 @@ public class WaferMenu extends AbstractContainerMenu {
 
   public BlockPos position() {
     return wafer.getBlockPos();
+  }
+
+  public boolean tryBeginMutation(ServerPlayer player, BlockPos pos) {
+    if (player.containerMenu != this
+        || !position().equals(pos)
+        || !stillValid(player)
+        || !wafer.isEditable()) return false;
+    long gameTime = player.level().getGameTime();
+    if (mutationTick != gameTime) {
+      mutationTick = gameTime;
+      mutationsThisTick = 0;
+    }
+    if (mutationsThisTick >= MAX_MUTATIONS_PER_TICK) return false;
+    mutationsThisTick++;
+    return true;
   }
 
   @Override

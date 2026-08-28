@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModMenus;
 import java.util.List;
 import net.minecraft.network.FriendlyByteBuf;
@@ -45,15 +46,15 @@ public class WaferDuplicatorMenu extends AbstractContainerMenu {
   }
 
   public int energy() {
-    return duplicator.data().get(0);
+    return MenuDataSync.combine(duplicator.data().get(0), duplicator.data().get(1));
   }
 
   public int capacity() {
-    return duplicator.data().get(1);
+    return WaferDuplicatorBlockEntity.ENERGY_CAPACITY;
   }
 
   public int cost() {
-    return duplicator.data().get(2);
+    return MenuDataSync.combine(duplicator.data().get(2), duplicator.data().get(3));
   }
 
   public List<ItemStack> requirements() {
@@ -62,7 +63,7 @@ public class WaferDuplicatorMenu extends AbstractContainerMenu {
   }
 
   public int status() {
-    return duplicator.status();
+    return duplicator.data().get(4);
   }
 
   @Override

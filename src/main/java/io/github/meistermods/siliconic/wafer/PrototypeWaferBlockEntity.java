@@ -232,10 +232,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (powered != station.wasPowered) {
       station.wasPowered = powered;
       station.refreshSignals();
-      station.sync();
     }
     if (powered) station.setChanged();
-    if (level.getGameTime() % 10 == 0) station.sync();
   }
 
   public void insertWafer(ItemStack held) {
@@ -393,7 +391,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public void refreshSignals() {
-    if (level == null || level.isClientSide || !hasWafer()) return;
+    if (!recalculateSignals()) return;
+    setChanged();
+    sync();
+  }
+
+  private boolean recalculateSignals() {
+    if (level == null || level.isClientSide || !hasWafer()) return false;
     int[] old = outputs.clone();
     if (!isPowered()) {
       Arrays.fill(outputs, 0);
@@ -402,9 +406,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       Arrays.fill(verticalSignals, 0);
       if (!Arrays.equals(old, outputs))
         level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
-      setChanged();
-      sync();
-      return;
+      return true;
     }
     Direction[] dirs = directions();
     for (int i = 0; i < 4; i++)
@@ -419,8 +421,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     System.arraycopy(result.outputs, 0, outputs, 0, 4);
     if (!Arrays.equals(old, outputs))
       level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
-    setChanged();
-    sync();
+    return true;
   }
 
   private Simulation simulate(CompoundTag design, int size, int[] externalInputs, int depth) {
@@ -938,7 +939,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   private void changedAndSync() {
     setChanged();
-    refreshSignals();
+    recalculateSignals();
     updateBlockState();
     sync();
   }

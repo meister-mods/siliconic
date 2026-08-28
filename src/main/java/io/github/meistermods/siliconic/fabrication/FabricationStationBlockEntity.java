@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.fabrication;
 
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
@@ -51,14 +52,17 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
   private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> items);
+  private final int[] clientData = new int[6];
   private final ContainerData data =
       new ContainerData() {
         @Override
         public int get(int index) {
+          if (level != null && level.isClientSide)
+            return index >= 0 && index < clientData.length ? clientData[index] : 0;
           MachineProcess process = currentProcess();
           return switch (index) {
-            case 0 -> energy.getEnergyStored();
-            case 1 -> energy.getMaxEnergyStored();
+            case 0 -> MenuDataSync.low(energy.getEnergyStored());
+            case 1 -> MenuDataSync.high(energy.getEnergyStored());
             case 2 -> progress;
             case 3 -> process == null ? 0 : process.ticks();
             case 4 -> process == null ? 0 : process.energyPerTick();
@@ -69,13 +73,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
 
         @Override
         public void set(int index, int value) {
-          switch (index) {
-            case 0 -> energy.setStored(value);
-            case 2 -> progress = Math.max(0, value);
-            default -> {
-              // The remaining values are derived from the shared process definition.
-            }
-          }
+          if (index >= 0 && index < clientData.length) clientData[index] = value;
         }
 
         @Override

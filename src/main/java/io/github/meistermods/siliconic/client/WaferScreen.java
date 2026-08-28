@@ -240,7 +240,6 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
     if (button == 0 && menu.wafer().hasWafer()) {
       int pin = hoveredPin(mx, my);
       if (pin >= 0) {
-        menu.wafer().cyclePinMode(pin);
         ModNetwork.CHANNEL.sendToServer(new CyclePinModePacket(menu.position(), pin));
         return true;
       }

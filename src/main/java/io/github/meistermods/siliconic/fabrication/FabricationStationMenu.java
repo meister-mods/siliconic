@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.fabrication;
 
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -46,11 +47,11 @@ public class FabricationStationMenu extends AbstractContainerMenu {
   }
 
   public int energy() {
-    return station.data().get(0);
+    return MenuDataSync.combine(station.data().get(0), station.data().get(1));
   }
 
   public int capacity() {
-    return station.data().get(1);
+    return FabricationStationBlockEntity.ENERGY_CAPACITY;
   }
 
   public int progress() {

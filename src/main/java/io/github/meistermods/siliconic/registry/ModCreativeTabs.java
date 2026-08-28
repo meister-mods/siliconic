@@ -33,7 +33,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.RAW_LEAD.get());
                         output.accept(ModItems.LEAD_ORE.get());
                         output.accept(ModItems.DEEPSLATE_LEAD_ORE.get());
-                        output.accept(ModItems.COPPER_FRAGMENT.get());
+                        output.accept(ModItems.COPPER_NUGGET.get());
                       })
                   .build());
   public static final RegistryObject<CreativeModeTab> CIRCUITS =

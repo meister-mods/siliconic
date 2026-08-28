@@ -361,7 +361,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private static Item itemFor(CellType type) {
     return switch (type) {
       case REDSTONE -> Items.REDSTONE;
-      case COPPER -> ModItems.COPPER_FRAGMENT.get();
+      case COPPER -> ModItems.COPPER_NUGGET.get();
       case LEAD -> ModItems.LEAD_NUGGET.get();
       case SILVER -> ModItems.SILVER_NUGGET.get();
       case GOLD -> Items.GOLD_NUGGET;
@@ -370,7 +370,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       case OR -> ModItems.OR_GATE.get();
       case XOR -> ModItems.XOR_GATE.get();
       case BUFFER -> ModItems.BUFFER_GATE.get();
-      default -> ModItems.COPPER_FRAGMENT.get();
+      default -> ModItems.COPPER_NUGGET.get();
     };
   }
 

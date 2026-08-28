@@ -38,8 +38,8 @@ public final class ModItems {
       ITEMS.register("raw_silver", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> RAW_LEAD =
       ITEMS.register("raw_lead", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> COPPER_FRAGMENT =
-      ITEMS.register("copper_fragment", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> COPPER_NUGGET =
+      ITEMS.register("copper_nugget", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> NOT_GATE =
       ITEMS.register("not_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> AND_GATE =

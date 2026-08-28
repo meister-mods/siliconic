@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","pattern":["CRC","RQR","CRC"],"key":{"R":{"item":"minecraft:redstone"},"C":{"item":"siliconic:copper_fragment"},"Q":{"item":"minecraft:amethyst_shard"}},"result":{"item":"siliconic:xor_gate"}}
+{"type":"minecraft:crafting_shaped","pattern":["CRC","RQR","CRC"],"key":{"R":{"item":"minecraft:redstone"},"C":{"item":"siliconic:copper_nugget"},"Q":{"item":"minecraft:amethyst_shard"}},"result":{"item":"siliconic:xor_gate"}}

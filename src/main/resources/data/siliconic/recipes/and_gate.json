@@ -1,1 +1,1 @@
-{"type":"minecraft:crafting_shaped","pattern":["C C"," QR","C C"],"key":{"R":{"item":"minecraft:redstone"},"C":{"item":"siliconic:copper_fragment"},"Q":{"item":"minecraft:quartz"}},"result":{"item":"siliconic:and_gate"}}
+{"type":"minecraft:crafting_shaped","pattern":["C C"," QR","C C"],"key":{"R":{"item":"minecraft:redstone"},"C":{"item":"siliconic:copper_nugget"},"Q":{"item":"minecraft:quartz"}},"result":{"item":"siliconic:and_gate"}}

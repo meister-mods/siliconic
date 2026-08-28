@@ -42,14 +42,14 @@ public final class ModCreativeTabs {
           () ->
               CreativeModeTab.builder()
                   .title(Component.translatable("itemGroup.siliconic.circuits"))
-                  .icon(() -> new ItemStack(ModItems.SILICON_WAFER.get()))
+                  .icon(() -> new ItemStack(ModItems.SSI_WAFER.get()))
                   .displayItems(
                       (parameters, output) -> {
-                        output.accept(ModItems.SILICON_WAFER.get());
-                        output.accept(ModItems.LEVEL_2_WAFER.get());
-                        output.accept(ModItems.LEVEL_3_WAFER.get());
-                        output.accept(ModItems.LEVEL_4_WAFER.get());
-                        output.accept(ModItems.LEVEL_5_WAFER.get());
+                        output.accept(ModItems.SSI_WAFER.get());
+                        output.accept(ModItems.MSI_WAFER.get());
+                        output.accept(ModItems.LSI_WAFER.get());
+                        output.accept(ModItems.VLSI_WAFER.get());
+                        output.accept(ModItems.ULSI_WAFER.get());
                         output.accept(ModItems.NOT_GATE.get());
                         output.accept(ModItems.AND_GATE.get());
                         output.accept(ModItems.OR_GATE.get());

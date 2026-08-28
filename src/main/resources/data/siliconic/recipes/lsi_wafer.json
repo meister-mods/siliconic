@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":["PDP","DWD","PDP"],"key":{"P":{"item":"siliconic:pure_silicon"},"D":{"item":"minecraft:diamond"},"W":{"item":"siliconic:msi_wafer"}},"result":{"item":"siliconic:lsi_wafer"}}

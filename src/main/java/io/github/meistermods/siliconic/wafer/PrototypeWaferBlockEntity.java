@@ -700,11 +700,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public static int levelOf(ItemStack stack) {
-    if (stack.is(ModItems.LEVEL_5_WAFER.get())) return 5;
-    if (stack.is(ModItems.LEVEL_4_WAFER.get())) return 4;
-    if (stack.is(ModItems.LEVEL_3_WAFER.get())) return 3;
-    if (stack.is(ModItems.LEVEL_2_WAFER.get())) return 2;
-    if (stack.is(ModItems.SILICON_WAFER.get())) return 1;
+    if (stack.is(ModItems.ULSI_WAFER.get())) return 5;
+    if (stack.is(ModItems.VLSI_WAFER.get())) return 4;
+    if (stack.is(ModItems.LSI_WAFER.get())) return 3;
+    if (stack.is(ModItems.MSI_WAFER.get())) return 2;
+    if (stack.is(ModItems.SSI_WAFER.get())) return 1;
     return 0;
   }
 

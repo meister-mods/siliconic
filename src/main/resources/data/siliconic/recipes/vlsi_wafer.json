@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":["PNP","NWN","PNP"],"key":{"P":{"item":"siliconic:pure_silicon"},"N":{"item":"minecraft:netherite_scrap"},"W":{"item":"siliconic:lsi_wafer"}},"result":{"item":"siliconic:vlsi_wafer"}}

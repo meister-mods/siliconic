@@ -16,16 +16,16 @@ public final class ModItems {
       ITEMS.register("crude_silicon", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> PURE_SILICON =
       ITEMS.register("pure_silicon", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> SILICON_WAFER =
-      ITEMS.register("silicon_wafer", () -> new WaferItem(new Item.Properties()));
-  public static final RegistryObject<Item> LEVEL_2_WAFER =
-      ITEMS.register("level_2_wafer", () -> new WaferItem(new Item.Properties()));
-  public static final RegistryObject<Item> LEVEL_3_WAFER =
-      ITEMS.register("level_3_wafer", () -> new WaferItem(new Item.Properties()));
-  public static final RegistryObject<Item> LEVEL_4_WAFER =
-      ITEMS.register("level_4_wafer", () -> new WaferItem(new Item.Properties()));
-  public static final RegistryObject<Item> LEVEL_5_WAFER =
-      ITEMS.register("level_5_wafer", () -> new WaferItem(new Item.Properties()));
+  public static final RegistryObject<Item> SSI_WAFER =
+      ITEMS.register("ssi_wafer", () -> new WaferItem(new Item.Properties()));
+  public static final RegistryObject<Item> MSI_WAFER =
+      ITEMS.register("msi_wafer", () -> new WaferItem(new Item.Properties()));
+  public static final RegistryObject<Item> LSI_WAFER =
+      ITEMS.register("lsi_wafer", () -> new WaferItem(new Item.Properties()));
+  public static final RegistryObject<Item> VLSI_WAFER =
+      ITEMS.register("vlsi_wafer", () -> new WaferItem(new Item.Properties()));
+  public static final RegistryObject<Item> ULSI_WAFER =
+      ITEMS.register("ulsi_wafer", () -> new WaferItem(new Item.Properties()));
   public static final RegistryObject<Item> SILVER_INGOT =
       ITEMS.register("silver_ingot", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SILVER_NUGGET =

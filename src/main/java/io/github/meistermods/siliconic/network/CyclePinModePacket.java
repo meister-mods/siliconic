@@ -24,8 +24,7 @@ public record CyclePinModePacket(BlockPos pos, int pin) {
           var sender = context.getSender();
           if (sender != null
               && sender.containerMenu instanceof WaferMenu menu
-              && menu.tryBeginMutation(sender, packet.pos))
-            menu.wafer().cyclePinMode(packet.pin);
+              && menu.tryBeginMutation(sender, packet.pos)) menu.wafer().cyclePinMode(packet.pin);
         });
     context.setPacketHandled(true);
   }

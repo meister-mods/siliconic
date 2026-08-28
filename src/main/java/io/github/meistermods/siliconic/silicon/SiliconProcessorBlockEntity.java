@@ -115,9 +115,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   }
 
   private MachineKind machineKind() {
-    return isArcFurnace()
-        ? MachineKind.SILICON_ARC_FURNACE
-        : MachineKind.SILICON_PURIFIER;
+    return isArcFurnace() ? MachineKind.SILICON_ARC_FURNACE : MachineKind.SILICON_PURIFIER;
   }
 
   public ItemStackHandler items() {
@@ -131,8 +129,8 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   public int status() {
     MachineProcess process = currentProcess();
     if (process == null) {
-      if (!ModMachineProcesses.accepts(
-          machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT))) return 0;
+      if (!ModMachineProcesses.accepts(machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT)))
+        return 0;
       return isArcFurnace() ? 1 : 0;
     }
     if (!canFitOutput(process.result())) return 2;

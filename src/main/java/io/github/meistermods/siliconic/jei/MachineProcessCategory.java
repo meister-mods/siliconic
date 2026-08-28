@@ -1,9 +1,8 @@
 package io.github.meistermods.siliconic.jei;
 
-import java.util.Locale;
-
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
+import java.util.Locale;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -34,8 +33,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
   }
 
   @Override
-  public void setRecipe(
-      IRecipeLayoutBuilder builder, MachineProcess process, IFocusGroup focuses) {
+  public void setRecipe(IRecipeLayoutBuilder builder, MachineProcess process, IFocusGroup focuses) {
     if (isGridMachine()) {
       if (process.shaped()) {
         for (int slot = 0; slot < 9; slot++) {
@@ -69,10 +67,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
             .addItemStack(input.stack());
       }
     }
-    builder
-        .addOutputSlot(124, 24)
-        .setOutputSlotBackground()
-        .addItemStack(process.result());
+    builder.addOutputSlot(124, 24).setOutputSlotBackground().addItemStack(process.result());
   }
 
   @Override
@@ -93,8 +88,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
             seconds,
             process.energyPerTick(),
             process.totalEnergy());
-    graphics.drawCenteredString(
-        Minecraft.getInstance().font, details, WIDTH / 2, 66, 0xff404040);
+    graphics.drawCenteredString(Minecraft.getInstance().font, details, WIDTH / 2, 66, 0xff404040);
   }
 
   @Override

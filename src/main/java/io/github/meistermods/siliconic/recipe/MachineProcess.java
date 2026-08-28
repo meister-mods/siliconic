@@ -18,7 +18,8 @@ public record MachineProcess(
     boolean shaped) {
   public MachineProcess {
     inputs = List.copyOf(inputs);
-    if (resultCount < 1) throw new IllegalArgumentException("Process output count must be positive");
+    if (resultCount < 1)
+      throw new IllegalArgumentException("Process output count must be positive");
     if (ticks < 1) throw new IllegalArgumentException("Process duration must be positive");
     if (energyPerTick < 1)
       throw new IllegalArgumentException("Process energy use must be positive");

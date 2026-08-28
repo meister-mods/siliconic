@@ -32,8 +32,7 @@ public class FabricationStationMenu extends AbstractContainerMenu {
             new SlotItemHandler(
                 station.items(), row * 3 + column, 20 + column * 18, 34 + row * 18));
     addSlot(
-        new SlotItemHandler(
-            station.items(), FabricationStationBlockEntity.OUTPUT_SLOT, 132, 52));
+        new SlotItemHandler(station.items(), FabricationStationBlockEntity.OUTPUT_SLOT, 132, 52));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 137 + row * 18));

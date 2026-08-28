@@ -88,7 +88,9 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
             seconds,
             process.energyPerTick(),
             process.totalEnergy());
-    graphics.drawCenteredString(Minecraft.getInstance().font, details, WIDTH / 2, 66, 0xff404040);
+    var font = Minecraft.getInstance().font;
+    int detailsX = (WIDTH - font.width(details)) / 2;
+    graphics.drawString(font, details, detailsX, 66, 0xff404040, false);
   }
 
   @Override

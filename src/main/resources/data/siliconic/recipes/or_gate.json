@@ -1,1 +1,0 @@
-{"type":"minecraft:crafting_shaped","pattern":[" C ","CQC"," R "],"key":{"R":{"item":"minecraft:redstone"},"C":{"item":"siliconic:copper_nugget"},"Q":{"item":"minecraft:quartz"}},"result":{"item":"siliconic:or_gate"}}

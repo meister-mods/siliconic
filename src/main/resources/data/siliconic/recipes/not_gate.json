@@ -1,1 +1,0 @@
-{"type":"minecraft:crafting_shaped","pattern":[" R ","CQC"," C "],"key":{"R":{"item":"minecraft:redstone_torch"},"C":{"item":"siliconic:copper_nugget"},"Q":{"item":"minecraft:quartz"}},"result":{"item":"siliconic:not_gate"}}

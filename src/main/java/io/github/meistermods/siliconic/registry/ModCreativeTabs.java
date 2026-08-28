@@ -68,6 +68,8 @@ public final class ModCreativeTabs {
                       (parameters, output) -> {
                         output.accept(ModItems.SILICON_ARC_FURNACE.get());
                         output.accept(ModItems.SILICON_PURIFIER.get());
+                        output.accept(ModItems.WAFER_FABRICATOR.get());
+                        output.accept(ModItems.GATE_ASSEMBLER.get());
                         output.accept(ModItems.WAFER_STATION.get());
                         output.accept(ModItems.WAFER_GUARD.get());
                         output.accept(ModItems.WAFER_INVERTER.get());

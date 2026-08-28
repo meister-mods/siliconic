@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.fabrication.FabricationStationMenu;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorMenu;
 import io.github.meistermods.siliconic.wafer.WaferDuplicatorMenu;
 import io.github.meistermods.siliconic.wafer.WaferMenu;
@@ -19,6 +20,9 @@ public final class ModMenus {
       MENUS.register("wafer_duplicator", () -> IForgeMenuType.create(WaferDuplicatorMenu::new));
   public static final RegistryObject<MenuType<SiliconProcessorMenu>> SILICON_PROCESSOR =
       MENUS.register("silicon_processor", () -> IForgeMenuType.create(SiliconProcessorMenu::new));
+  public static final RegistryObject<MenuType<FabricationStationMenu>> FABRICATION_STATION =
+      MENUS.register(
+          "fabrication_station", () -> IForgeMenuType.create(FabricationStationMenu::new));
 
   private ModMenus() {}
 }

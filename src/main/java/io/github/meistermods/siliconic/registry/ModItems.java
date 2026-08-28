@@ -73,6 +73,14 @@ public final class ModItems {
       ITEMS.register(
           "silicon_purifier",
           () -> new BlockItem(ModBlocks.SILICON_PURIFIER.get(), new Item.Properties()));
+  public static final RegistryObject<Item> WAFER_FABRICATOR =
+      ITEMS.register(
+          "wafer_fabricator",
+          () -> new BlockItem(ModBlocks.WAFER_FABRICATOR.get(), new Item.Properties()));
+  public static final RegistryObject<Item> GATE_ASSEMBLER =
+      ITEMS.register(
+          "gate_assembler",
+          () -> new BlockItem(ModBlocks.GATE_ASSEMBLER.get(), new Item.Properties()));
   public static final RegistryObject<Item> SILVER_ORE =
       ITEMS.register(
           "silver_ore", () -> new BlockItem(ModBlocks.SILVER_ORE.get(), new Item.Properties()));

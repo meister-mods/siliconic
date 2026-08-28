@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.fabrication.FabricationStationBlock;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
 import io.github.meistermods.siliconic.power.RedstoneClockBlock;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlock;
@@ -58,6 +59,24 @@ public final class ModBlocks {
               new SiliconProcessorBlock(
                   BlockBehaviour.Properties.of()
                       .mapColor(MapColor.QUARTZ)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> WAFER_FABRICATOR =
+      BLOCKS.register(
+          "wafer_fabricator",
+          () ->
+              new FabricationStationBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> GATE_ASSEMBLER =
+      BLOCKS.register(
+          "gate_assembler",
+          () ->
+              new FabricationStationBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.COLOR_ORANGE)
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()));
   public static final RegistryObject<Block> SILVER_ORE =

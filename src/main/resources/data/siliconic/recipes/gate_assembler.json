@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": ["CRC", "IPI", "LLL"],
+  "key": {
+    "C": {"item": "minecraft:copper_ingot"},
+    "R": {"item": "minecraft:redstone"},
+    "I": {"item": "minecraft:iron_ingot"},
+    "P": {"item": "minecraft:piston"},
+    "L": {"tag": "forge:ingots/lead"}
+  },
+  "result": {"item": "siliconic:gate_assembler"}
+}

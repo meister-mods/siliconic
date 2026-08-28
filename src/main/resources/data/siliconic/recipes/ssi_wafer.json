@@ -1,5 +1,0 @@
-{
-  "type":"minecraft:crafting_shapeless",
-  "ingredients":[{"item":"siliconic:pure_silicon"},{"item":"minecraft:iron_nugget"}],
-  "result":{"item":"siliconic:ssi_wafer","count":2}
-}

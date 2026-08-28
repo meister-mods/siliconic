@@ -57,6 +57,7 @@
   "screen.siliconic.fabricator.status.1": "대기: 출력 칸을 비워 주세요",
   "screen.siliconic.fabricator.status.2": "대기: 전력이 부족합니다",
   "screen.siliconic.fabricator.status.3": "처리 중",
+  "jei.siliconic.process.details": "%s초 · %s SE/t · 총 %s SE",
   "screen.siliconic.wafer.name": "웨이퍼 이름",
   "screen.siliconic.wafer.complete": "완성",
   "screen.siliconic.duplicator.materials": "복제 재료",

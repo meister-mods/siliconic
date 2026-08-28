@@ -1,9 +1,10 @@
 package io.github.meistermods.siliconic.fabrication;
 
+import io.github.meistermods.siliconic.recipe.MachineKind;
+import io.github.meistermods.siliconic.recipe.MachineProcess;
+import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
-import io.github.meistermods.siliconic.registry.ModItems;
-import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -13,9 +14,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -31,9 +30,6 @@ import org.jetbrains.annotations.Nullable;
 public class FabricationStationBlockEntity extends BlockEntity implements MenuProvider {
   public static final int INPUT_START = 0, INPUT_SLOTS = 9, OUTPUT_SLOT = 9, SLOT_COUNT = 10;
   public static final int ENERGY_CAPACITY = 60_000;
-  public static final int WAFER_ENERGY_PER_TICK = 60;
-  public static final int GATE_ENERGY_PER_TICK = 30;
-  public static final int GATE_PROCESS_TICKS = 120;
 
   private int progress;
   private final StationEnergyStorage energy = new StationEnergyStorage();
@@ -43,7 +39,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
         public boolean isItemValid(int slot, ItemStack stack) {
           return slot >= INPUT_START
               && slot < INPUT_START + INPUT_SLOTS
-              && isPotentialIngredient(stack);
+              && ModMachineProcesses.accepts(machineKind(), slot - INPUT_START, stack);
         }
 
         @Override
@@ -59,14 +55,14 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
       new ContainerData() {
         @Override
         public int get(int index) {
-          ProcessRecipe recipe = findRecipe();
+          MachineProcess process = currentProcess();
           return switch (index) {
             case 0 -> energy.getEnergyStored();
             case 1 -> energy.getMaxEnergyStored();
             case 2 -> progress;
-            case 3 -> recipe == null ? 0 : recipe.ticks();
-            case 4 -> recipe == null ? 0 : recipe.energyPerTick();
-            case 5 -> status(recipe);
+            case 3 -> process == null ? 0 : process.ticks();
+            case 4 -> process == null ? 0 : process.energyPerTick();
+            case 5 -> status(process);
             default -> 0;
           };
         }
@@ -77,7 +73,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
             case 0 -> energy.setStored(value);
             case 2 -> progress = Math.max(0, value);
             default -> {
-              // The remaining values are derived from the current recipe and machine state.
+              // The remaining values are derived from the shared process definition.
             }
           }
         }
@@ -111,21 +107,16 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
     }
   }
 
-  private record Requirement(Item item, int count) {}
-
-  private record ProcessRecipe(
-      @Nullable Item[] pattern,
-      List<Requirement> requirements,
-      ItemStack result,
-      int ticks,
-      int energyPerTick) {}
-
   public FabricationStationBlockEntity(BlockPos pos, BlockState state) {
     super(ModBlockEntities.FABRICATION_STATION.get(), pos, state);
   }
 
   public boolean isWaferFabricator() {
     return getBlockState().is(ModBlocks.WAFER_FABRICATOR.get());
+  }
+
+  private MachineKind machineKind() {
+    return isWaferFabricator() ? MachineKind.WAFER_FABRICATOR : MachineKind.GATE_ASSEMBLER;
   }
 
   public ItemStackHandler items() {
@@ -137,26 +128,26 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   }
 
   public int status() {
-    return status(findRecipe());
+    return status(currentProcess());
   }
 
-  private int status(@Nullable ProcessRecipe recipe) {
-    if (recipe == null) return 0;
-    if (!canFitOutput(recipe.result())) return 1;
-    if (energy.getEnergyStored() < recipe.energyPerTick()) return 2;
+  private int status(@Nullable MachineProcess process) {
+    if (process == null) return 0;
+    if (!canFitOutput(process.result())) return 1;
+    if (energy.getEnergyStored() < process.energyPerTick()) return 2;
     return 3;
   }
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, FabricationStationBlockEntity station) {
-    ProcessRecipe recipe = station.findRecipe();
-    if (recipe == null || !station.canFitOutput(recipe.result())) {
+    MachineProcess process = station.currentProcess();
+    if (process == null || !station.canFitOutput(process.result())) {
       station.resetProgress();
       return;
     }
-    if (!station.energy.consumeInternal(recipe.energyPerTick())) return;
+    if (!station.energy.consumeInternal(process.energyPerTick())) return;
     station.progress++;
-    if (station.progress >= recipe.ticks()) station.finishProcess(recipe);
+    if (station.progress >= process.ticks()) station.finishProcess(process);
     station.setChanged();
   }
 
@@ -167,168 +158,8 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   }
 
   @Nullable
-  private ProcessRecipe findRecipe() {
-    if (isWaferFabricator()) {
-      ProcessRecipe recipe =
-          waferRecipe(
-              ModItems.ULSI_WAFER.get(),
-              600,
-              ModItems.PURE_SILICON.get(), Items.ECHO_SHARD, ModItems.PURE_SILICON.get(),
-              Items.ECHO_SHARD, ModItems.VLSI_WAFER.get(), Items.ECHO_SHARD,
-              ModItems.PURE_SILICON.get(), Items.ECHO_SHARD, ModItems.PURE_SILICON.get());
-      if (matches(recipe)) return recipe;
-      recipe =
-          waferRecipe(
-              ModItems.VLSI_WAFER.get(),
-              500,
-              ModItems.PURE_SILICON.get(), Items.NETHERITE_SCRAP, ModItems.PURE_SILICON.get(),
-              Items.NETHERITE_SCRAP, ModItems.LSI_WAFER.get(), Items.NETHERITE_SCRAP,
-              ModItems.PURE_SILICON.get(), Items.NETHERITE_SCRAP, ModItems.PURE_SILICON.get());
-      if (matches(recipe)) return recipe;
-      recipe =
-          waferRecipe(
-              ModItems.LSI_WAFER.get(),
-              400,
-              ModItems.PURE_SILICON.get(), Items.DIAMOND, ModItems.PURE_SILICON.get(),
-              Items.DIAMOND, ModItems.MSI_WAFER.get(), Items.DIAMOND,
-              ModItems.PURE_SILICON.get(), Items.DIAMOND, ModItems.PURE_SILICON.get());
-      if (matches(recipe)) return recipe;
-      recipe =
-          waferRecipe(
-              ModItems.MSI_WAFER.get(),
-              300,
-              ModItems.PURE_SILICON.get(), Items.GOLD_INGOT, ModItems.PURE_SILICON.get(),
-              Items.GOLD_INGOT, ModItems.SSI_WAFER.get(), Items.GOLD_INGOT,
-              ModItems.PURE_SILICON.get(), Items.GOLD_INGOT, ModItems.PURE_SILICON.get());
-      if (matches(recipe)) return recipe;
-      recipe =
-          shapelessWaferRecipe(
-              ModItems.SSI_WAFER.get(),
-              200,
-              2,
-              requirement(ModItems.PURE_SILICON.get(), 1),
-              requirement(Items.IRON_NUGGET, 1));
-      return matches(recipe) ? recipe : null;
-    }
-
-    ProcessRecipe recipe =
-        gateRecipe(
-            ModItems.XOR_GATE.get(),
-            ModItems.COPPER_NUGGET.get(), Items.REDSTONE, ModItems.COPPER_NUGGET.get(),
-            Items.REDSTONE, Items.AMETHYST_SHARD, Items.REDSTONE,
-            ModItems.COPPER_NUGGET.get(), Items.REDSTONE, ModItems.COPPER_NUGGET.get());
-    if (matches(recipe)) return recipe;
-    recipe =
-        gateRecipe(
-            ModItems.BUFFER_GATE.get(),
-            null, ModItems.COPPER_NUGGET.get(), null,
-            Items.REDSTONE_TORCH, Items.QUARTZ, Items.REDSTONE_TORCH,
-            null, ModItems.COPPER_NUGGET.get(), null);
-    if (matches(recipe)) return recipe;
-    recipe =
-        gateRecipe(
-            ModItems.NOT_GATE.get(),
-            null, Items.REDSTONE_TORCH, null,
-            ModItems.COPPER_NUGGET.get(), Items.QUARTZ, ModItems.COPPER_NUGGET.get(),
-            null, ModItems.COPPER_NUGGET.get(), null);
-    if (matches(recipe)) return recipe;
-    recipe =
-        gateRecipe(
-            ModItems.AND_GATE.get(),
-            ModItems.COPPER_NUGGET.get(), null, ModItems.COPPER_NUGGET.get(),
-            null, Items.QUARTZ, Items.REDSTONE,
-            ModItems.COPPER_NUGGET.get(), null, ModItems.COPPER_NUGGET.get());
-    if (matches(recipe)) return recipe;
-    recipe =
-        gateRecipe(
-            ModItems.OR_GATE.get(),
-            null, ModItems.COPPER_NUGGET.get(), null,
-            ModItems.COPPER_NUGGET.get(), Items.QUARTZ, ModItems.COPPER_NUGGET.get(),
-            null, Items.REDSTONE, null);
-    return matches(recipe) ? recipe : null;
-  }
-
-  private ProcessRecipe waferRecipe(Item result, int ticks, Item... pattern) {
-    return new ProcessRecipe(
-        pattern,
-        List.of(),
-        new ItemStack(result),
-        ticks,
-        WAFER_ENERGY_PER_TICK);
-  }
-
-  private ProcessRecipe shapelessWaferRecipe(
-      Item result, int ticks, int count, Requirement... requirements) {
-    return new ProcessRecipe(
-        null,
-        List.of(requirements),
-        new ItemStack(result, count),
-        ticks,
-        WAFER_ENERGY_PER_TICK);
-  }
-
-  private ProcessRecipe gateRecipe(Item result, Item... pattern) {
-    return new ProcessRecipe(
-        pattern,
-        List.of(),
-        new ItemStack(result),
-        GATE_PROCESS_TICKS,
-        GATE_ENERGY_PER_TICK);
-  }
-
-  private Requirement requirement(Item item, int count) {
-    return new Requirement(item, count);
-  }
-
-  private boolean matches(ProcessRecipe recipe) {
-    if (recipe.pattern() != null) {
-      if (recipe.pattern().length != INPUT_SLOTS) return false;
-      for (int slot = INPUT_START; slot < INPUT_START + INPUT_SLOTS; slot++) {
-        Item expected = recipe.pattern()[slot - INPUT_START];
-        ItemStack stack = items.getStackInSlot(slot);
-        if (expected == null ? !stack.isEmpty() : !stack.is(expected)) return false;
-      }
-      return true;
-    }
-    for (Requirement requirement : recipe.requirements()) {
-      int available = 0;
-      for (int slot = INPUT_START; slot < INPUT_START + INPUT_SLOTS; slot++) {
-        ItemStack stack = items.getStackInSlot(slot);
-        if (stack.is(requirement.item())) available += stack.getCount();
-      }
-      if (available < requirement.count()) return false;
-    }
-    for (int slot = INPUT_START; slot < INPUT_START + INPUT_SLOTS; slot++) {
-      ItemStack stack = items.getStackInSlot(slot);
-      if (stack.isEmpty()) continue;
-      boolean used = false;
-      for (Requirement requirement : recipe.requirements())
-        if (stack.is(requirement.item())) {
-          used = true;
-          break;
-        }
-      if (!used) return false;
-    }
-    return true;
-  }
-
-  private boolean isPotentialIngredient(ItemStack stack) {
-    if (isWaferFabricator())
-      return stack.is(ModItems.PURE_SILICON.get())
-          || stack.is(Items.IRON_NUGGET)
-          || stack.is(Items.GOLD_INGOT)
-          || stack.is(Items.DIAMOND)
-          || stack.is(Items.NETHERITE_SCRAP)
-          || stack.is(Items.ECHO_SHARD)
-          || stack.is(ModItems.SSI_WAFER.get())
-          || stack.is(ModItems.MSI_WAFER.get())
-          || stack.is(ModItems.LSI_WAFER.get())
-          || stack.is(ModItems.VLSI_WAFER.get());
-    return stack.is(ModItems.COPPER_NUGGET.get())
-        || stack.is(Items.QUARTZ)
-        || stack.is(Items.AMETHYST_SHARD)
-        || stack.is(Items.REDSTONE)
-        || stack.is(Items.REDSTONE_TORCH);
+  private MachineProcess currentProcess() {
+    return ModMachineProcesses.findMatching(machineKind(), items, INPUT_START, INPUT_SLOTS);
   }
 
   private boolean canFitOutput(ItemStack result) {
@@ -338,28 +169,12 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
         && output.getCount() + result.getCount() <= output.getMaxStackSize();
   }
 
-  private void finishProcess(ProcessRecipe recipe) {
-    if (recipe.pattern() != null) {
-      for (int slot = INPUT_START; slot < INPUT_START + INPUT_SLOTS; slot++) {
-        if (recipe.pattern()[slot - INPUT_START] != null) items.extractItem(slot, 1, false);
-      }
-    } else {
-      for (Requirement requirement : recipe.requirements()) {
-        int remaining = requirement.count();
-        for (int slot = INPUT_START;
-            slot < INPUT_START + INPUT_SLOTS && remaining > 0;
-            slot++) {
-          ItemStack stack = items.getStackInSlot(slot);
-          if (!stack.is(requirement.item())) continue;
-          int extracted = Math.min(remaining, stack.getCount());
-          items.extractItem(slot, extracted, false);
-          remaining -= extracted;
-        }
-      }
-    }
+  private void finishProcess(MachineProcess process) {
+    process.consume(items, INPUT_START, INPUT_SLOTS);
+    ItemStack result = process.result();
     ItemStack output = items.getStackInSlot(OUTPUT_SLOT);
-    if (output.isEmpty()) items.setStackInSlot(OUTPUT_SLOT, recipe.result().copy());
-    else output.grow(recipe.result().getCount());
+    if (output.isEmpty()) items.setStackInSlot(OUTPUT_SLOT, result);
+    else output.grow(result.getCount());
     progress = 0;
   }
 

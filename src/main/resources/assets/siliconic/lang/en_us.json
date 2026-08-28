@@ -57,6 +57,7 @@
   "screen.siliconic.fabricator.status.1": "Waiting: clear the output slot",
   "screen.siliconic.fabricator.status.2": "Waiting: not enough power",
   "screen.siliconic.fabricator.status.3": "Processing",
+  "jei.siliconic.process.details": "%s s · %s SE/t · %s SE total",
   "screen.siliconic.wafer.name": "Wafer name",
   "screen.siliconic.wafer.complete": "Finish",
   "screen.siliconic.duplicator.materials": "Replication materials",

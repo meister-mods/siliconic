@@ -1,8 +1,10 @@
 package io.github.meistermods.siliconic.silicon;
 
+import io.github.meistermods.siliconic.recipe.MachineKind;
+import io.github.meistermods.siliconic.recipe.MachineProcess;
+import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
-import io.github.meistermods.siliconic.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -13,7 +15,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -29,9 +30,6 @@ import org.jetbrains.annotations.Nullable;
 public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProvider {
   public static final int INPUT_SLOT = 0, CATALYST_SLOT = 1, OUTPUT_SLOT = 2, SLOT_COUNT = 3;
   public static final int ENERGY_CAPACITY = 30_000;
-  public static final int ENERGY_PER_TICK = 40;
-  public static final int ARC_FURNACE_TICKS = 200;
-  public static final int PURIFIER_TICKS = 300;
 
   private int progress;
   private final ProcessorEnergyStorage energy = new ProcessorEnergyStorage();
@@ -40,11 +38,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
           if (slot == OUTPUT_SLOT) return false;
-          if (isArcFurnace()) {
-            if (slot == INPUT_SLOT) return stack.is(Items.QUARTZ);
-            return slot == CATALYST_SLOT && stack.is(Items.CHARCOAL);
-          }
-          return slot == INPUT_SLOT && stack.is(ModItems.CRUDE_SILICON.get());
+          return ModMachineProcesses.accepts(machineKind(), slot, stack);
         }
 
         @Override
@@ -60,12 +54,13 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       new ContainerData() {
         @Override
         public int get(int index) {
+          MachineProcess process = primaryProcess();
           return switch (index) {
             case 0 -> energy.getEnergyStored();
             case 1 -> energy.getMaxEnergyStored();
             case 2 -> progress;
-            case 3 -> processTicks();
-            case 4 -> ENERGY_PER_TICK;
+            case 3 -> process.ticks();
+            case 4 -> process.energyPerTick();
             case 5 -> status();
             default -> 0;
           };
@@ -119,6 +114,12 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     return getBlockState().is(ModBlocks.SILICON_ARC_FURNACE.get());
   }
 
+  private MachineKind machineKind() {
+    return isArcFurnace()
+        ? MachineKind.SILICON_ARC_FURNACE
+        : MachineKind.SILICON_PURIFIER;
+  }
+
   public ItemStackHandler items() {
     return items;
   }
@@ -127,61 +128,53 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     return data;
   }
 
-  public int processTicks() {
-    return isArcFurnace() ? ARC_FURNACE_TICKS : PURIFIER_TICKS;
-  }
-
   public int status() {
-    if (!validInput()) return 0;
-    if (isArcFurnace() && !items.getStackInSlot(CATALYST_SLOT).is(Items.CHARCOAL)) return 1;
-    if (!canFitOutput()) return 2;
-    if (energy.getEnergyStored() < ENERGY_PER_TICK) return 3;
+    MachineProcess process = currentProcess();
+    if (process == null) {
+      if (!ModMachineProcesses.accepts(
+          machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT))) return 0;
+      return isArcFurnace() ? 1 : 0;
+    }
+    if (!canFitOutput(process.result())) return 2;
+    if (energy.getEnergyStored() < process.energyPerTick()) return 3;
     return 4;
   }
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, SiliconProcessorBlockEntity processor) {
-    if (!processor.canProcess()) {
+    MachineProcess process = processor.currentProcess();
+    if (process == null || !processor.canFitOutput(process.result())) {
       if (processor.progress != 0) {
         processor.progress = 0;
         processor.setChanged();
       }
       return;
     }
-    if (!processor.energy.consumeInternal(ENERGY_PER_TICK)) return;
+    if (!processor.energy.consumeInternal(process.energyPerTick())) return;
     processor.progress++;
-    if (processor.progress >= processor.processTicks()) processor.finishProcess();
+    if (processor.progress >= process.ticks()) processor.finishProcess(process);
     processor.setChanged();
   }
 
-  private boolean canProcess() {
-    return validInput()
-        && (!isArcFurnace() || items.getStackInSlot(CATALYST_SLOT).is(Items.CHARCOAL))
-        && canFitOutput();
+  private MachineProcess primaryProcess() {
+    return ModMachineProcesses.primary(machineKind());
   }
 
-  private boolean validInput() {
-    ItemStack input = items.getStackInSlot(INPUT_SLOT);
-    return isArcFurnace() ? input.is(Items.QUARTZ) : input.is(ModItems.CRUDE_SILICON.get());
+  @Nullable
+  private MachineProcess currentProcess() {
+    return ModMachineProcesses.findMatching(machineKind(), items, INPUT_SLOT, 2);
   }
 
-  private ItemStack result() {
-    return isArcFurnace()
-        ? new ItemStack(ModItems.CRUDE_SILICON.get(), 2)
-        : new ItemStack(ModItems.PURE_SILICON.get());
-  }
-
-  private boolean canFitOutput() {
-    ItemStack result = result(), output = items.getStackInSlot(OUTPUT_SLOT);
+  private boolean canFitOutput(ItemStack result) {
+    ItemStack output = items.getStackInSlot(OUTPUT_SLOT);
     if (output.isEmpty()) return true;
     return ItemStack.isSameItemSameTags(output, result)
         && output.getCount() + result.getCount() <= output.getMaxStackSize();
   }
 
-  private void finishProcess() {
-    ItemStack result = result(), output = items.getStackInSlot(OUTPUT_SLOT);
-    items.extractItem(INPUT_SLOT, 1, false);
-    if (isArcFurnace()) items.extractItem(CATALYST_SLOT, 1, false);
+  private void finishProcess(MachineProcess process) {
+    ItemStack result = process.result(), output = items.getStackInSlot(OUTPUT_SLOT);
+    process.consume(items, INPUT_SLOT, 2);
     if (output.isEmpty()) items.setStackInSlot(OUTPUT_SLOT, result);
     else output.grow(result.getCount());
     progress = 0;

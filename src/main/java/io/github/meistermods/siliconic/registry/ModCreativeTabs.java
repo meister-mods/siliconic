@@ -75,6 +75,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.WAFER_INVERTER.get());
                         output.accept(ModItems.WAFER_DUPLICATOR.get());
                         output.accept(ModItems.COAL_GENERATOR.get());
+                        output.accept(ModItems.POWER_CABLE.get());
                         output.accept(ModItems.REDSTONE_CLOCK.get());
                       })
                   .build());

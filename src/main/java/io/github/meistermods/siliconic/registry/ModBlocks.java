@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.registry;
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlock;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
+import io.github.meistermods.siliconic.power.PowerCableBlock;
 import io.github.meistermods.siliconic.power.RedstoneClockBlock;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlock;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlock;
@@ -125,6 +126,16 @@ public final class ModBlocks {
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()
                       .lightLevel(state -> state.getValue(CoalGeneratorBlock.LIT) ? 13 : 0)));
+  public static final RegistryObject<Block> POWER_CABLE =
+      BLOCKS.register(
+          "power_cable",
+          () ->
+              new PowerCableBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.COLOR_ORANGE)
+                      .strength(0.2f)
+                      .noCollission()
+                      .noOcclusion()));
   public static final RegistryObject<Block> REDSTONE_CLOCK =
       BLOCKS.register(
           "redstone_clock",

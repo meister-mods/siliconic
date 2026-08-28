@@ -1,0 +1,1 @@
+{"ambientocclusion":false,"textures":{"particle":"siliconic:item/copper_nugget","cable":"siliconic:item/copper_nugget"},"elements":[{"from":[7,0,0],"to":[9,8,2],"shade":false,"faces":{"down":{"texture":"#cable"},"up":{"texture":"#cable"},"north":{"texture":"#cable"},"south":{"texture":"#cable"},"west":{"texture":"#cable"},"east":{"texture":"#cable"}}}]}

@@ -99,6 +99,9 @@ public final class ModItems {
       ITEMS.register(
           "coal_generator",
           () -> new BlockItem(ModBlocks.COAL_GENERATOR.get(), new Item.Properties()));
+  public static final RegistryObject<Item> POWER_CABLE =
+      ITEMS.register(
+          "power_cable", () -> new BlockItem(ModBlocks.POWER_CABLE.get(), new Item.Properties()));
   public static final RegistryObject<Item> REDSTONE_CLOCK =
       ITEMS.register(
           "redstone_clock",

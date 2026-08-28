@@ -1,6 +1,11 @@
 package io.github.meistermods.siliconic.power;
 
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
+import java.util.ArrayDeque;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -19,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings({"null"})
 public class CoalGeneratorBlockEntity extends BlockEntity {
   public static final int GENERATION_PER_TICK = 40;
+  private static final int TRANSFER_PER_CONNECTION = 200;
+  private static final int MAX_CABLES_PER_NETWORK = 4_096;
   private final GeneratorEnergyStorage energy = new GeneratorEnergyStorage();
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
@@ -106,15 +113,45 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
   }
 
   private void pushEnergy(Level level, BlockPos pos) {
+    Map<BlockPos, Direction> receivers = new LinkedHashMap<>();
+    ArrayDeque<BlockPos> pendingCables = new ArrayDeque<>();
+    Set<BlockPos> visitedCables = new HashSet<>();
+
     for (Direction direction : Direction.values()) {
+      BlockPos neighborPos = pos.relative(direction);
+      if (level.getBlockState(neighborPos).getBlock() instanceof PowerCableBlock)
+        pendingCables.add(neighborPos);
+      else if (level.getBlockEntity(neighborPos) != null)
+        receivers.putIfAbsent(neighborPos, direction.getOpposite());
+    }
+
+    while (!pendingCables.isEmpty() && visitedCables.size() < MAX_CABLES_PER_NETWORK) {
+      BlockPos cablePos = pendingCables.removeFirst();
+      if (!visitedCables.add(cablePos)) continue;
+      BlockState cableState = level.getBlockState(cablePos);
+      if (!(cableState.getBlock() instanceof PowerCableBlock)) continue;
+
+      for (BlockPos connected : PowerCableBlock.connectedCables(level, cablePos, cableState))
+        if (!visitedCables.contains(connected)) pendingCables.addLast(connected);
+
+      for (Direction direction : Direction.values()) {
+        BlockPos receiverPos = cablePos.relative(direction);
+        if (receiverPos.equals(pos)
+            || level.getBlockState(receiverPos).getBlock() instanceof PowerCableBlock) continue;
+        if (level.getBlockEntity(receiverPos) != null)
+          receivers.putIfAbsent(receiverPos, direction.getOpposite());
+      }
+    }
+
+    for (Map.Entry<BlockPos, Direction> receiver : receivers.entrySet()) {
       if (energy.getEnergyStored() <= 0) break;
-      BlockEntity neighbor = level.getBlockEntity(pos.relative(direction));
-      if (neighbor == null) continue;
-      neighbor
-          .getCapability(ForgeCapabilities.ENERGY, direction.getOpposite())
+      BlockEntity blockEntity = level.getBlockEntity(receiver.getKey());
+      if (blockEntity == null) continue;
+      blockEntity
+          .getCapability(ForgeCapabilities.ENERGY, receiver.getValue())
           .ifPresent(
               storage -> {
-                int offered = Math.min(200, energy.getEnergyStored());
+                int offered = Math.min(TRANSFER_PER_CONNECTION, energy.getEnergyStored());
                 int accepted = storage.receiveEnergy(offered, false);
                 if (accepted > 0) energy.extractEnergy(accepted, false);
               });

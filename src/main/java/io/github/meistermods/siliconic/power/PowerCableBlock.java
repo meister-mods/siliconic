@@ -2,23 +2,31 @@ package io.github.meistermods.siliconic.power;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -28,7 +36,8 @@ import org.jetbrains.annotations.Nullable;
 /** A thin, surface-mounted Forge Energy cable with redstone-like visual connections. */
 @SuppressWarnings({"null", "deprecation"})
 public class PowerCableBlock extends Block {
-  public static final DirectionProperty SUPPORT = DirectionProperty.create("support");
+  public static final EnumProperty<Attachment> ATTACHMENT =
+      EnumProperty.create("attachment", Attachment.class);
   public static final BooleanProperty NORTH = BooleanProperty.create("north");
   public static final BooleanProperty EAST = BooleanProperty.create("east");
   public static final BooleanProperty SOUTH = BooleanProperty.create("south");
@@ -51,7 +60,7 @@ public class PowerCableBlock extends Block {
     registerDefaultState(
         stateDefinition
             .any()
-            .setValue(SUPPORT, Direction.DOWN)
+            .setValue(ATTACHMENT, Attachment.DOWN)
             .setValue(NORTH, false)
             .setValue(EAST, false)
             .setValue(SOUTH, false)
@@ -64,16 +73,36 @@ public class PowerCableBlock extends Block {
   @Override
   public BlockState getStateForPlacement(BlockPlaceContext context) {
     Direction support = context.getClickedFace().getOpposite();
-    BlockState state = defaultBlockState().setValue(SUPPORT, support);
-    if (!canSurvive(state, context.getLevel(), context.getClickedPos())) return null;
-    return connections(state, context.getLevel(), context.getClickedPos());
+    BlockPos pos = context.getClickedPos();
+    if (!canAttachTo(context.getLevel(), pos, support)) return null;
+
+    BlockState existing = context.getLevel().getBlockState(pos);
+    Attachment attachment =
+        existing.is(this)
+            ? existing.getValue(ATTACHMENT).with(support)
+            : Attachment.single(support);
+    if (attachment == null) return null;
+    BlockState state =
+        (existing.is(this) ? existing : defaultBlockState()).setValue(ATTACHMENT, attachment);
+    return connections(state, context.getLevel(), pos);
+  }
+
+  @Override
+  public boolean canBeReplaced(BlockState state, BlockPlaceContext context) {
+    if (!(context.getItemInHand().getItem() instanceof BlockItem item) || item.getBlock() != this)
+      return false;
+    Direction support = context.getClickedFace().getOpposite();
+    Attachment attachment = state.getValue(ATTACHMENT);
+    return !attachment.contains(support)
+        && attachment.with(support) != null
+        && canAttachTo(context.getLevel(), context.getClickedPos(), support);
   }
 
   @Override
   public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
-    Direction support = state.getValue(SUPPORT);
-    BlockPos supportPos = pos.relative(support);
-    return level.getBlockState(supportPos).isFaceSturdy(level, supportPos, support.getOpposite());
+    for (Direction support : state.getValue(ATTACHMENT).faces())
+      if (canAttachTo(level, pos, support)) return true;
+    return false;
   }
 
   @Override
@@ -84,9 +113,16 @@ public class PowerCableBlock extends Block {
       LevelAccessor level,
       BlockPos pos,
       BlockPos neighborPos) {
-    if (direction == state.getValue(SUPPORT) && !canSurvive(state, level, pos))
-      return net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
-    return connections(state, level, pos);
+    Attachment valid = validAttachment(state.getValue(ATTACHMENT), level, pos);
+    if (valid == null) return Blocks.AIR.defaultBlockState();
+    return connections(state.setValue(ATTACHMENT, valid), level, pos);
+  }
+
+  @Override
+  public void setPlacedBy(
+      Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+    super.setPlacedBy(level, pos, state, placer, stack);
+    scheduleNearbyCableUpdates(level, pos);
   }
 
   @Override
@@ -106,54 +142,73 @@ public class PowerCableBlock extends Block {
   @Override
   public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
     if (!state.is(this)) return;
-    if (!canSurvive(state, level, pos)) {
+    Attachment valid = validAttachment(state.getValue(ATTACHMENT), level, pos);
+    if (valid == null) {
       level.destroyBlock(pos, true);
       return;
     }
-    BlockState updated = connections(state, level, pos);
-    if (updated != state) level.setBlock(pos, updated, 2);
+    BlockState updated = connections(state.setValue(ATTACHMENT, valid), level, pos);
+    if (updated != state) {
+      level.setBlock(pos, updated, 2);
+      if (updated.getValue(ATTACHMENT) != state.getValue(ATTACHMENT))
+        scheduleNearbyCableUpdates(level, pos);
+    }
   }
 
   @Override
   protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-    builder.add(SUPPORT, NORTH, EAST, SOUTH, WEST, UP, DOWN);
+    builder.add(ATTACHMENT, NORTH, EAST, SOUTH, WEST, UP, DOWN);
   }
 
   @Override
   public VoxelShape getShape(
       BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-    Direction support = state.getValue(SUPPORT);
-    VoxelShape shape = dotShape(support);
-    for (Direction direction : tangentDirections(support))
-      if (state.getValue(property(direction)))
-        shape = Shapes.or(shape, armShape(support, direction));
+    VoxelShape shape = Shapes.empty();
+    Attachment attachment = state.getValue(ATTACHMENT);
+    for (Direction support : attachment.faces()) {
+      shape = Shapes.or(shape, dotShape(support));
+      for (Direction direction : tangentDirections(support))
+        if (state.getValue(property(direction)))
+          shape = Shapes.or(shape, armShape(support, direction));
+    }
     return shape;
   }
 
-  static List<BlockPos> connectedCables(Level level, BlockPos pos, BlockState state) {
-    List<BlockPos> result = new ArrayList<>();
-    Direction support = state.getValue(SUPPORT);
-    for (Direction tangent : tangentDirections(support)) {
-      BlockPos directPos = pos.relative(tangent);
-      BlockState direct = level.getBlockState(directPos);
-      if (direct.getBlock() instanceof PowerCableBlock && direct.getValue(SUPPORT) == support)
-        result.add(directPos);
+  @Override
+  public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+    return List.of(new ItemStack(this, state.getValue(ATTACHMENT).faceCount()));
+  }
 
-      BlockPos cornerPos = directPos.relative(support);
-      BlockState corner = level.getBlockState(cornerPos);
-      if (corner.getBlock() instanceof PowerCableBlock
-          && corner.getValue(SUPPORT) == tangent.getOpposite()) result.add(cornerPos);
-    }
-    return result;
+  static List<BlockPos> connectedCables(Level level, BlockPos pos, BlockState state) {
+    Set<BlockPos> result = new LinkedHashSet<>();
+    Attachment attachment = state.getValue(ATTACHMENT);
+    for (Direction support : attachment.faces())
+      for (Direction tangent : tangentDirections(support)) {
+        BlockPos directPos = pos.relative(tangent);
+        BlockState direct = level.getBlockState(directPos);
+        if (direct.getBlock() instanceof PowerCableBlock
+            && direct.getValue(ATTACHMENT).contains(support)) result.add(directPos);
+
+        BlockPos cornerPos = directPos.relative(support);
+        BlockState corner = level.getBlockState(cornerPos);
+        if (corner.getBlock() instanceof PowerCableBlock
+            && corner.getValue(ATTACHMENT).contains(tangent.getOpposite())) result.add(cornerPos);
+      }
+    return new ArrayList<>(result);
   }
 
   private BlockState connections(BlockState state, LevelAccessor level, BlockPos pos) {
-    Direction support = state.getValue(SUPPORT);
+    Attachment attachment = state.getValue(ATTACHMENT);
     for (Direction direction : Direction.values()) {
-      boolean connected =
-          direction.getAxis() != support.getAxis()
+      boolean connected = attachment.faceCount() == 2 && attachment.contains(direction);
+      if (!connected)
+        for (Direction support : attachment.faces())
+          if (direction.getAxis() != support.getAxis()
               && (connectsDirectly(level, pos, support, direction)
-                  || connectsAroundCorner(level, pos, support, direction));
+                  || connectsAroundCorner(level, pos, support, direction))) {
+            connected = true;
+            break;
+          }
       state = state.setValue(property(direction), connected);
     }
     return state;
@@ -164,7 +219,7 @@ public class PowerCableBlock extends Block {
     BlockPos neighborPos = pos.relative(direction);
     BlockState neighbor = level.getBlockState(neighborPos);
     if (neighbor.getBlock() instanceof PowerCableBlock)
-      return neighbor.getValue(SUPPORT) == support;
+      return neighbor.getValue(ATTACHMENT).contains(support);
     BlockEntity blockEntity = level.getBlockEntity(neighborPos);
     return blockEntity != null
         && blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).isPresent();
@@ -174,7 +229,20 @@ public class PowerCableBlock extends Block {
       LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
     BlockState corner = level.getBlockState(pos.relative(direction).relative(support));
     return corner.getBlock() instanceof PowerCableBlock
-        && corner.getValue(SUPPORT) == direction.getOpposite();
+        && corner.getValue(ATTACHMENT).contains(direction.getOpposite());
+  }
+
+  @Nullable
+  private Attachment validAttachment(Attachment attachment, LevelReader level, BlockPos pos) {
+    List<Direction> valid = new ArrayList<>();
+    for (Direction support : attachment.faces())
+      if (canAttachTo(level, pos, support)) valid.add(support);
+    return Attachment.from(valid);
+  }
+
+  private boolean canAttachTo(LevelReader level, BlockPos pos, Direction support) {
+    BlockPos supportPos = pos.relative(support);
+    return level.getBlockState(supportPos).isFaceSturdy(level, supportPos, support.getOpposite());
   }
 
   private void scheduleNearbyCableUpdates(Level level, BlockPos pos) {
@@ -257,5 +325,86 @@ public class PowerCableBlock extends Block {
             default -> box(14, 0, 7, 16, 8, 9);
           };
     };
+  }
+
+  public enum Attachment implements StringRepresentable {
+    DOWN("down", Direction.DOWN),
+    UP("up", Direction.UP),
+    NORTH("north", Direction.NORTH),
+    SOUTH("south", Direction.SOUTH),
+    WEST("west", Direction.WEST),
+    EAST("east", Direction.EAST),
+    DOWN_NORTH("down_north", Direction.DOWN, Direction.NORTH),
+    DOWN_SOUTH("down_south", Direction.DOWN, Direction.SOUTH),
+    DOWN_WEST("down_west", Direction.DOWN, Direction.WEST),
+    DOWN_EAST("down_east", Direction.DOWN, Direction.EAST),
+    UP_NORTH("up_north", Direction.UP, Direction.NORTH),
+    UP_SOUTH("up_south", Direction.UP, Direction.SOUTH),
+    UP_WEST("up_west", Direction.UP, Direction.WEST),
+    UP_EAST("up_east", Direction.UP, Direction.EAST),
+    NORTH_WEST("north_west", Direction.NORTH, Direction.WEST),
+    NORTH_EAST("north_east", Direction.NORTH, Direction.EAST),
+    SOUTH_WEST("south_west", Direction.SOUTH, Direction.WEST),
+    SOUTH_EAST("south_east", Direction.SOUTH, Direction.EAST);
+
+    private final String name;
+    private final Direction[] faces;
+
+    Attachment(String name, Direction... faces) {
+      this.name = name;
+      this.faces = faces;
+    }
+
+    @Override
+    public String getSerializedName() {
+      return name;
+    }
+
+    public Direction[] faces() {
+      return faces.clone();
+    }
+
+    public int faceCount() {
+      return faces.length;
+    }
+
+    public boolean contains(Direction direction) {
+      for (Direction face : faces) if (face == direction) return true;
+      return false;
+    }
+
+    @Nullable
+    public Attachment with(Direction direction) {
+      if (contains(direction)) return this;
+      if (faces.length != 1 || faces[0].getAxis() == direction.getAxis()) return null;
+      return pair(faces[0], direction);
+    }
+
+    public static Attachment single(Direction direction) {
+      return switch (direction) {
+        case DOWN -> DOWN;
+        case UP -> UP;
+        case NORTH -> NORTH;
+        case SOUTH -> SOUTH;
+        case WEST -> WEST;
+        case EAST -> EAST;
+      };
+    }
+
+    @Nullable
+    public static Attachment from(List<Direction> faces) {
+      if (faces.isEmpty()) return null;
+      if (faces.size() == 1) return single(faces.get(0));
+      return pair(faces.get(0), faces.get(1));
+    }
+
+    @Nullable
+    private static Attachment pair(Direction first, Direction second) {
+      for (Attachment attachment : values())
+        if (attachment.faces.length == 2
+            && attachment.contains(first)
+            && attachment.contains(second)) return attachment;
+      return null;
+    }
   }
 }

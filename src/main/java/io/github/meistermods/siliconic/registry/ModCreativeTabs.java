@@ -12,22 +12,17 @@ import net.minecraftforge.registries.RegistryObject;
 public final class ModCreativeTabs {
   public static final DeferredRegister<CreativeModeTab> TABS =
       DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Siliconic.MOD_ID);
-  public static final RegistryObject<CreativeModeTab> SILICONIC =
+  public static final RegistryObject<CreativeModeTab> MATERIALS =
       TABS.register(
-          "siliconic",
+          "materials",
           () ->
               CreativeModeTab.builder()
-                  .title(Component.translatable("itemGroup.siliconic"))
-                  .icon(() -> new ItemStack(ModItems.SILICON_WAFER.get()))
+                  .title(Component.translatable("itemGroup.siliconic.materials"))
+                  .icon(() -> new ItemStack(ModItems.SILVER_INGOT.get()))
                   .displayItems(
                       (parameters, output) -> {
                         output.accept(ModItems.CRUDE_SILICON.get());
                         output.accept(ModItems.PURE_SILICON.get());
-                        output.accept(ModItems.SILICON_WAFER.get());
-                        output.accept(ModItems.LEVEL_2_WAFER.get());
-                        output.accept(ModItems.LEVEL_3_WAFER.get());
-                        output.accept(ModItems.LEVEL_4_WAFER.get());
-                        output.accept(ModItems.LEVEL_5_WAFER.get());
                         output.accept(ModItems.SILVER_INGOT.get());
                         output.accept(ModItems.SILVER_NUGGET.get());
                         output.accept(ModItems.RAW_SILVER.get());
@@ -39,11 +34,38 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.LEAD_ORE.get());
                         output.accept(ModItems.DEEPSLATE_LEAD_ORE.get());
                         output.accept(ModItems.COPPER_FRAGMENT.get());
+                      })
+                  .build());
+  public static final RegistryObject<CreativeModeTab> CIRCUITS =
+      TABS.register(
+          "circuits",
+          () ->
+              CreativeModeTab.builder()
+                  .title(Component.translatable("itemGroup.siliconic.circuits"))
+                  .icon(() -> new ItemStack(ModItems.SILICON_WAFER.get()))
+                  .displayItems(
+                      (parameters, output) -> {
+                        output.accept(ModItems.SILICON_WAFER.get());
+                        output.accept(ModItems.LEVEL_2_WAFER.get());
+                        output.accept(ModItems.LEVEL_3_WAFER.get());
+                        output.accept(ModItems.LEVEL_4_WAFER.get());
+                        output.accept(ModItems.LEVEL_5_WAFER.get());
                         output.accept(ModItems.NOT_GATE.get());
                         output.accept(ModItems.AND_GATE.get());
                         output.accept(ModItems.OR_GATE.get());
                         output.accept(ModItems.XOR_GATE.get());
                         output.accept(ModItems.BUFFER_GATE.get());
+                      })
+                  .build());
+  public static final RegistryObject<CreativeModeTab> MACHINES =
+      TABS.register(
+          "machines",
+          () ->
+              CreativeModeTab.builder()
+                  .title(Component.translatable("itemGroup.siliconic.machines"))
+                  .icon(() -> new ItemStack(ModItems.WAFER_STATION.get()))
+                  .displayItems(
+                      (parameters, output) -> {
                         output.accept(ModItems.WAFER_STATION.get());
                         output.accept(ModItems.WAFER_GUARD.get());
                         output.accept(ModItems.WAFER_INVERTER.get());

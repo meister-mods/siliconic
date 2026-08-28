@@ -19,6 +19,8 @@ public final class ClientEvents {
     event.enqueueWork(() -> MenuScreens.register(ModMenus.WAFER.get(), WaferScreen::new));
     event.enqueueWork(
         () -> MenuScreens.register(ModMenus.WAFER_DUPLICATOR.get(), WaferDuplicatorScreen::new));
+    event.enqueueWork(
+        () -> MenuScreens.register(ModMenus.SILICON_PROCESSOR.get(), SiliconProcessorScreen::new));
   }
 
   private ClientEvents() {}

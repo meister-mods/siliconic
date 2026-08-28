@@ -2,6 +2,7 @@ package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
+import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlockEntity;
 import io.github.meistermods.siliconic.wafer.WaferInverterBlockEntity;
@@ -44,6 +45,16 @@ public final class ModBlockEntities {
               BlockEntityType.Builder.of(
                       WaferDuplicatorBlockEntity::new, ModBlocks.WAFER_DUPLICATOR.get())
                   .build(null));
+  public static final RegistryObject<BlockEntityType<SiliconProcessorBlockEntity>>
+      SILICON_PROCESSOR =
+          BLOCK_ENTITIES.register(
+              "silicon_processor",
+              () ->
+                  BlockEntityType.Builder.of(
+                          SiliconProcessorBlockEntity::new,
+                          ModBlocks.SILICON_ARC_FURNACE.get(),
+                          ModBlocks.SILICON_PURIFIER.get())
+                      .build(null));
 
   private ModBlockEntities() {}
 }

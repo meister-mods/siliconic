@@ -66,6 +66,8 @@ public final class ModCreativeTabs {
                   .icon(() -> new ItemStack(ModItems.WAFER_STATION.get()))
                   .displayItems(
                       (parameters, output) -> {
+                        output.accept(ModItems.SILICON_ARC_FURNACE.get());
+                        output.accept(ModItems.SILICON_PURIFIER.get());
                         output.accept(ModItems.WAFER_STATION.get());
                         output.accept(ModItems.WAFER_GUARD.get());
                         output.accept(ModItems.WAFER_INVERTER.get());

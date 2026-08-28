@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.registry;
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
 import io.github.meistermods.siliconic.power.RedstoneClockBlock;
+import io.github.meistermods.siliconic.silicon.SiliconProcessorBlock;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlock;
 import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlock;
 import io.github.meistermods.siliconic.wafer.WaferInverterBlock;
@@ -41,6 +42,24 @@ public final class ModBlocks {
           () ->
               new WaferDuplicatorBlock(
                   BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f)));
+  public static final RegistryObject<Block> SILICON_ARC_FURNACE =
+      BLOCKS.register(
+          "silicon_arc_furnace",
+          () ->
+              new SiliconProcessorBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> SILICON_PURIFIER =
+      BLOCKS.register(
+          "silicon_purifier",
+          () ->
+              new SiliconProcessorBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.QUARTZ)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()));
   public static final RegistryObject<Block> SILVER_ORE =
       BLOCKS.register(
           "silver_ore",

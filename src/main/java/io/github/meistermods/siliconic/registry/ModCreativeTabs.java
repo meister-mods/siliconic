@@ -77,6 +77,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.COAL_GENERATOR.get());
                         output.accept(ModItems.POWER_CABLE.get());
                         output.accept(ModItems.REDSTONE_CLOCK.get());
+                        output.accept(ModItems.CONDITIONER.get());
                       })
                   .build());
 

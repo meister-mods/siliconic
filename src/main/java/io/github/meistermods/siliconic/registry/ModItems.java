@@ -106,6 +106,9 @@ public final class ModItems {
       ITEMS.register(
           "redstone_clock",
           () -> new BlockItem(ModBlocks.REDSTONE_CLOCK.get(), new Item.Properties()));
+  public static final RegistryObject<Item> CONDITIONER =
+      ITEMS.register(
+          "conditioner", () -> new BlockItem(ModBlocks.CONDITIONER.get(), new Item.Properties()));
 
   private ModItems() {}
 }

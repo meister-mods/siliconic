@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.cleanroom.ConditionerBlock;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlock;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
 import io.github.meistermods.siliconic.power.PowerCableBlock;
@@ -146,6 +147,16 @@ public final class ModBlocks {
                       .strength(2.5f)
                       .requiresCorrectToolForDrops()
                       .lightLevel(state -> state.getValue(RedstoneClockBlock.POWERED) ? 7 : 0)));
+  public static final RegistryObject<Block> CONDITIONER =
+      BLOCKS.register(
+          "conditioner",
+          () ->
+              new ConditionerBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.QUARTZ)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()
+                      .lightLevel(state -> state.getValue(ConditionerBlock.ACTIVE) ? 7 : 0)));
 
   private ModBlocks() {}
 }

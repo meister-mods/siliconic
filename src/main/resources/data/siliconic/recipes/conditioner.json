@@ -1,0 +1,1 @@
+{"type":"minecraft:crafting_shaped","pattern":["IGI","RCR","IPI"],"key":{"I":{"item":"minecraft:iron_ingot"},"G":{"item":"minecraft:glass"},"R":{"item":"minecraft:redstone"},"C":{"item":"minecraft:comparator"},"P":{"item":"siliconic:pure_silicon"}},"result":{"item":"siliconic:conditioner"}}

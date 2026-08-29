@@ -1,8 +1,10 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomContamination;
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
+import io.github.meistermods.siliconic.registry.ModItems;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -28,8 +30,10 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings({"null"})
 public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvider {
   public static final int SOURCE_SLOT = 0, BLANK_SLOT = 1, OUTPUT_SLOT = 2;
-  public static final int MATERIAL_START = 3, MATERIAL_SLOTS = 18, SLOT_COUNT = 21;
+  public static final int MATERIAL_START = 3, MATERIAL_SLOTS = 18;
+  public static final int EXTRA_OUTPUT_START = 21, OUTPUT_SLOTS = 9, SLOT_COUNT = 29;
   public static final int ENERGY_CAPACITY = 100_000;
+  private ItemStack pendingResult = ItemStack.EMPTY;
   private final DuplicatorEnergyStorage energy = new DuplicatorEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
@@ -37,11 +41,12 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
         public boolean isItemValid(int slot, ItemStack stack) {
           if (slot == SOURCE_SLOT) return PrototypeWaferBlockEntity.isCompleted(stack);
           if (slot == BLANK_SLOT) return PrototypeWaferBlockEntity.isBlankWafer(stack);
-          return slot != OUTPUT_SLOT;
+          return slot >= MATERIAL_START && slot < MATERIAL_START + MATERIAL_SLOTS;
         }
 
         @Override
         protected void onContentsChanged(int slot) {
+          if (!isOutputSlot(slot)) pendingResult = ItemStack.EMPTY;
           setChanged();
         }
       };
@@ -126,7 +131,10 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
     if (!PrototypeWaferBlockEntity.isCompleted(source)) return 0;
     if (!PrototypeWaferBlockEntity.isBlankWafer(blank)) return 1;
     if (!source.is(blank.getItem())) return 2;
-    if (!items.getStackInSlot(OUTPUT_SLOT).isEmpty()) return 3;
+    if (pendingResult.isEmpty()) {
+      if (!canFitOutput(source.copyWithCount(1))
+          && !canFitOutput(new ItemStack(ModItems.CONTAMINATED_WAFER.get()))) return 3;
+    } else if (!canFitOutput(pendingResult)) return 3;
     if (!energy.canConsumeInternal(currentCost())) return 4;
     if (!hasMaterials(PrototypeWaferBlockEntity.requiredComponents(source))) return 5;
     return 6;
@@ -143,17 +151,62 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
     ItemStack blank = items.getStackInSlot(BLANK_SLOT);
     if (!PrototypeWaferBlockEntity.isCompleted(source)
         || !PrototypeWaferBlockEntity.isBlankWafer(blank)
-        || !source.is(blank.getItem())
-        || !items.getStackInSlot(OUTPUT_SLOT).isEmpty()) return;
+        || !source.is(blank.getItem())) return;
     int cost = currentCost();
     if (!energy.canConsumeInternal(cost)) return;
     List<ItemStack> requirements = PrototypeWaferBlockEntity.requiredComponents(source);
     if (!hasMaterials(requirements)) return;
+    ItemStack result = pendingResult;
+    if (result.isEmpty()) {
+      result =
+          CleanroomContamination.processResult(
+              level, worldPosition, source.copyWithCount(1));
+      pendingResult = result;
+    }
+    int outputSlot = findOutputSlot(result);
+    if (outputSlot < 0) {
+      setChanged();
+      return;
+    }
     consumeMaterials(requirements);
     energy.consumeInternal(cost);
     items.extractItem(BLANK_SLOT, 1, false);
-    items.setStackInSlot(OUTPUT_SLOT, source.copyWithCount(1));
+    insertOutput(outputSlot, result);
+    pendingResult = ItemStack.EMPTY;
     setChanged();
+  }
+
+  public static int outputSlot(int index) {
+    if (index < 0 || index >= OUTPUT_SLOTS) throw new IndexOutOfBoundsException(index);
+    return index == 0 ? OUTPUT_SLOT : EXTRA_OUTPUT_START + index - 1;
+  }
+
+  private static boolean isOutputSlot(int slot) {
+    return slot == OUTPUT_SLOT
+        || (slot >= EXTRA_OUTPUT_START && slot < EXTRA_OUTPUT_START + OUTPUT_SLOTS - 1);
+  }
+
+  private boolean canFitOutput(ItemStack result) {
+    return findOutputSlot(result) >= 0;
+  }
+
+  private int findOutputSlot(ItemStack result) {
+    int emptySlot = -1;
+    for (int index = 0; index < OUTPUT_SLOTS; index++) {
+      int slot = outputSlot(index);
+      ItemStack output = items.getStackInSlot(slot);
+      if (output.isEmpty()) {
+        if (emptySlot < 0) emptySlot = slot;
+      } else if (ItemStack.isSameItemSameTags(output, result)
+          && output.getCount() + result.getCount() <= output.getMaxStackSize()) return slot;
+    }
+    return emptySlot;
+  }
+
+  private void insertOutput(int slot, ItemStack result) {
+    ItemStack output = items.getStackInSlot(slot);
+    if (output.isEmpty()) items.setStackInSlot(slot, result);
+    else output.grow(result.getCount());
   }
 
   private boolean hasMaterials(List<ItemStack> requirements) {
@@ -186,13 +239,17 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
     super.saveAdditional(tag);
     tag.put("Items", items.serializeNBT());
     tag.putInt("Energy", energy.getEnergyStored());
+    tag.put("PendingResult", pendingResult.save(new CompoundTag()));
   }
 
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
-    items.deserializeNBT(tag.getCompound("Items"));
+    CompoundTag itemData = tag.getCompound("Items").copy();
+    itemData.putInt("Size", SLOT_COUNT);
+    items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
+    pendingResult = ItemStack.of(tag.getCompound("PendingResult"));
   }
 
   @Override

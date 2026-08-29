@@ -13,8 +13,8 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
   public WaferDuplicatorScreen(WaferDuplicatorMenu menu, Inventory inventory, Component title) {
     super(menu, inventory, title);
     imageWidth = 176;
-    imageHeight = 231;
-    inventoryLabelY = 136;
+    imageHeight = 245;
+    inventoryLabelY = 152;
   }
 
   @Override
@@ -22,26 +22,28 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
     g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xff17191c);
     for (int[] slot : machineSlots()) slotBox(g, leftPos + slot[0], topPos + slot[1]);
     int width = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();
-    g.fill(leftPos + 8, topPos + 129, leftPos + 168, topPos + 135, 0xff2b3035);
-    g.fill(leftPos + 8, topPos + 129, leftPos + 8 + width, topPos + 135, 0xffd94f67);
-    g.drawString(font, "+", leftPos + 45, topPos + 35, 0xffe8edf2, false);
-    g.drawString(font, "→", leftPos + 103, topPos + 35, 0xffe8edf2, false);
+    g.fill(leftPos + 8, topPos + 145, leftPos + 168, topPos + 151, 0xff2b3035);
+    g.fill(leftPos + 8, topPos + 145, leftPos + 8 + width, topPos + 151, 0xffd94f67);
+    g.drawString(font, "+", leftPos + 45, topPos + 43, 0xffe8edf2, false);
+    g.drawString(font, "→", leftPos + 101, topPos + 43, 0xffe8edf2, false);
   }
 
   private int[][] machineSlots() {
-    int[][] positions = new int[57][2];
-    positions[0] = new int[] {20, 31};
-    positions[1] = new int[] {61, 31};
-    positions[2] = new int[] {138, 31};
-    int index = 3;
+    int[][] positions = new int[65][2];
+    positions[0] = new int[] {20, 39};
+    positions[1] = new int[] {61, 39};
+    int index = 2;
+    for (int row = 0; row < 3; row++)
+      for (int column = 0; column < 3; column++)
+        positions[index++] = new int[] {114 + column * 18, 22 + row * 18};
     for (int row = 0; row < 2; row++)
       for (int column = 0; column < 9; column++)
-        positions[index++] = new int[] {8 + column * 18, 68 + row * 18};
+        positions[index++] = new int[] {8 + column * 18, 86 + row * 18};
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
-        positions[index++] = new int[] {8 + column * 18, 147 + row * 18};
+        positions[index++] = new int[] {8 + column * 18, 163 + row * 18};
     for (int column = 0; column < 9; column++)
-      positions[index++] = new int[] {8 + column * 18, 207};
+      positions[index++] = new int[] {8 + column * 18, 221};
     return positions;
   }
 
@@ -57,15 +59,15 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
         font,
         Component.translatable("screen.siliconic.duplicator.materials"),
         8,
-        56,
+        74,
         0xffaeb7c0,
         false);
     g.drawCenteredString(
-        font, Component.translatable("screen.siliconic.duplicator.source"), 28, 20, 0xffaeb7c0);
+        font, Component.translatable("screen.siliconic.duplicator.source"), 28, 27, 0xffaeb7c0);
     g.drawCenteredString(
-        font, Component.translatable("screen.siliconic.duplicator.blank"), 69, 20, 0xffaeb7c0);
+        font, Component.translatable("screen.siliconic.duplicator.blank"), 69, 27, 0xffaeb7c0);
     g.drawCenteredString(
-        font, Component.translatable("screen.siliconic.duplicator.output"), 146, 20, 0xffaeb7c0);
+        font, Component.translatable("screen.siliconic.duplicator.output"), 140, 10, 0xffaeb7c0);
     g.drawString(
         font, Component.translatable("container.inventory"), 8, inventoryLabelY, 0xffaeb7c0, false);
     drawFittedString(
@@ -73,7 +75,7 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
         Component.translatable(
             "screen.siliconic.duplicator.energy", menu.energy(), menu.capacity(), menu.cost()),
         8,
-        107,
+        123,
         160,
         0xffff8ca0);
     int status = menu.status();
@@ -81,7 +83,7 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
         g,
         Component.translatable("screen.siliconic.duplicator.status." + status),
         8,
-        118,
+        134,
         160,
         status == 6 ? 0xff66e69a : 0xffffb35c);
   }
@@ -104,8 +106,8 @@ public class WaferDuplicatorScreen extends AbstractContainerScreen<WaferDuplicat
     renderTooltip(g, mouseX, mouseY);
     if (mouseX >= leftPos + 8
         && mouseX < leftPos + 100
-        && mouseY >= topPos + 54
-        && mouseY < topPos + 66) {
+        && mouseY >= topPos + 72
+        && mouseY < topPos + 84) {
       List<Component> lines = new ArrayList<>();
       lines.add(Component.translatable("screen.siliconic.duplicator.requirements"));
       for (var requirement : menu.requirements())

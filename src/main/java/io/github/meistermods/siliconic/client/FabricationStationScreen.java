@@ -22,13 +22,15 @@ public class FabricationStationScreen extends AbstractContainerScreen<Fabricatio
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 3; column++)
         slotBox(g, leftPos + 20 + column * 18, topPos + 34 + row * 18);
-    slotBox(g, leftPos + 132, topPos + 52);
+    for (int row = 0; row < 3; row++)
+      for (int column = 0; column < 3; column++)
+        slotBox(g, leftPos + 114 + column * 18, topPos + 34 + row * 18);
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         slotBox(g, leftPos + 8 + column * 18, topPos + 137 + row * 18);
     for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 195);
 
-    g.drawString(font, "→", leftPos + 100, topPos + 56, 0xffe8edf2, false);
+    g.drawString(font, "→", leftPos + 98, topPos + 56, 0xffe8edf2, false);
     int progressWidth = menu.maxProgress() == 0 ? 0 : 24 * menu.progress() / menu.maxProgress();
     g.fill(leftPos + 94, topPos + 70, leftPos + 118, topPos + 74, 0xff2b3035);
     g.fill(leftPos + 94, topPos + 70, leftPos + 94 + progressWidth, topPos + 74, 0xff66d99a);
@@ -48,7 +50,7 @@ public class FabricationStationScreen extends AbstractContainerScreen<Fabricatio
     g.drawCenteredString(
         font, Component.translatable("screen.siliconic.fabricator.materials"), 46, 22, 0xffaeb7c0);
     g.drawCenteredString(
-        font, Component.translatable("screen.siliconic.fabricator.output"), 140, 39, 0xffaeb7c0);
+        font, Component.translatable("screen.siliconic.fabricator.output"), 140, 22, 0xffaeb7c0);
     g.drawString(
         font, Component.translatable("container.inventory"), 8, inventoryLabelY, 0xffaeb7c0, false);
     drawFittedString(

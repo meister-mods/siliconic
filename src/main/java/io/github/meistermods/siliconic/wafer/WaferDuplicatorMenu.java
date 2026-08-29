@@ -26,9 +26,16 @@ public class WaferDuplicatorMenu extends AbstractContainerMenu {
   public WaferDuplicatorMenu(int id, Inventory inventory, WaferDuplicatorBlockEntity duplicator) {
     super(ModMenus.WAFER_DUPLICATOR.get(), id);
     this.duplicator = duplicator;
-    addSlot(new SlotItemHandler(duplicator.items(), 0, 20, 31));
-    addSlot(new SlotItemHandler(duplicator.items(), 1, 61, 31));
-    addSlot(new SlotItemHandler(duplicator.items(), 2, 138, 31));
+    addSlot(new SlotItemHandler(duplicator.items(), 0, 20, 39));
+    addSlot(new SlotItemHandler(duplicator.items(), 1, 61, 39));
+    for (int row = 0; row < 3; row++)
+      for (int column = 0; column < 3; column++)
+        addSlot(
+            new SlotItemHandler(
+                duplicator.items(),
+                WaferDuplicatorBlockEntity.outputSlot(row * 3 + column),
+                114 + column * 18,
+                22 + row * 18));
     for (int row = 0; row < 2; row++)
       for (int column = 0; column < 9; column++)
         addSlot(
@@ -36,12 +43,12 @@ public class WaferDuplicatorMenu extends AbstractContainerMenu {
                 duplicator.items(),
                 WaferDuplicatorBlockEntity.MATERIAL_START + row * 9 + column,
                 8 + column * 18,
-                68 + row * 18));
+                86 + row * 18));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
-        addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 147 + row * 18));
+        addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 163 + row * 18));
     for (int column = 0; column < 9; column++)
-      addSlot(new Slot(inventory, column, 8 + column * 18, 207));
+      addSlot(new Slot(inventory, column, 8 + column * 18, 221));
     addDataSlots(duplicator.data());
   }
 

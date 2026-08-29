@@ -16,6 +16,14 @@ public final class ModItems {
       ITEMS.register("crude_silicon", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> PURE_SILICON =
       ITEMS.register("pure_silicon", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> CONTAMINATED_CRUDE_SILICON =
+      ITEMS.register("contaminated_crude_silicon", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> CONTAMINATED_PURE_SILICON =
+      ITEMS.register("contaminated_pure_silicon", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> CONTAMINATED_WAFER =
+      ITEMS.register("contaminated_wafer", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> CONTAMINATED_GATE =
+      ITEMS.register("contaminated_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SSI_WAFER =
       ITEMS.register("ssi_wafer", () -> new WaferItem(new Item.Properties()));
   public static final RegistryObject<Item> MSI_WAFER =

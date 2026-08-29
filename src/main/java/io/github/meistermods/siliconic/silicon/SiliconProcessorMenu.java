@@ -27,19 +27,25 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
     boolean arcFurnace = processor.isArcFurnace();
     addSlot(
         new SlotItemHandler(
-            processor.items(), SiliconProcessorBlockEntity.INPUT_SLOT, arcFurnace ? 26 : 44, 35));
+            processor.items(), SiliconProcessorBlockEntity.INPUT_SLOT, arcFurnace ? 26 : 44, 42));
     if (arcFurnace)
       addSlot(
           new SlotItemHandler(
-              processor.items(), SiliconProcessorBlockEntity.CATALYST_SLOT, 53, 35));
-    addSlot(
-        new SlotItemHandler(processor.items(), SiliconProcessorBlockEntity.OUTPUT_SLOT, 116, 35));
-    machineSlots = arcFurnace ? 3 : 2;
+              processor.items(), SiliconProcessorBlockEntity.CATALYST_SLOT, 53, 42));
+    for (int row = 0; row < 3; row++)
+      for (int column = 0; column < 3; column++)
+        addSlot(
+            new SlotItemHandler(
+                processor.items(),
+                SiliconProcessorBlockEntity.OUTPUT_START + row * 3 + column,
+                110 + column * 18,
+                24 + row * 18));
+    machineSlots = (arcFurnace ? 2 : 1) + SiliconProcessorBlockEntity.OUTPUT_SLOTS;
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
-        addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 101 + row * 18));
+        addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 123 + row * 18));
     for (int column = 0; column < 9; column++)
-      addSlot(new Slot(inventory, column, 8 + column * 18, 159));
+      addSlot(new Slot(inventory, column, 8 + column * 18, 181));
     addDataSlots(processor.data());
   }
 

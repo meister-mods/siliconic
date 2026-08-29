@@ -23,6 +23,8 @@ public final class ModCreativeTabs {
                       (parameters, output) -> {
                         output.accept(ModItems.CRUDE_SILICON.get());
                         output.accept(ModItems.PURE_SILICON.get());
+                        output.accept(ModItems.CONTAMINATED_CRUDE_SILICON.get());
+                        output.accept(ModItems.CONTAMINATED_PURE_SILICON.get());
                         output.accept(ModItems.SILVER_INGOT.get());
                         output.accept(ModItems.SILVER_NUGGET.get());
                         output.accept(ModItems.RAW_SILVER.get());
@@ -51,6 +53,8 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.LSI_WAFER.get());
                         output.accept(ModItems.VLSI_WAFER.get());
                         output.accept(ModItems.ULSI_WAFER.get());
+                        output.accept(ModItems.CONTAMINATED_WAFER.get());
+                        output.accept(ModItems.CONTAMINATED_GATE.get());
                         output.accept(ModItems.NOT_GATE.get());
                         output.accept(ModItems.AND_GATE.get());
                         output.accept(ModItems.OR_GATE.get());

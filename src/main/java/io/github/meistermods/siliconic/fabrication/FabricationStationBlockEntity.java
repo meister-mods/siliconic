@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.fabrication;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomContamination;
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
@@ -30,10 +31,12 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class FabricationStationBlockEntity extends BlockEntity implements MenuProvider {
-  public static final int INPUT_START = 0, INPUT_SLOTS = 9, OUTPUT_SLOT = 9, SLOT_COUNT = 10;
+  public static final int INPUT_START = 0, INPUT_SLOTS = 9;
+  public static final int OUTPUT_START = 9, OUTPUT_SLOTS = 9, SLOT_COUNT = 18;
   public static final int ENERGY_CAPACITY = 60_000;
 
   private int progress;
+  private ItemStack pendingResult = ItemStack.EMPTY;
   private final StationEnergyStorage energy = new StationEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
@@ -46,7 +49,10 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
 
         @Override
         protected void onContentsChanged(int slot) {
-          if (slot < INPUT_START + INPUT_SLOTS) progress = 0;
+          if (slot < INPUT_START + INPUT_SLOTS) {
+            progress = 0;
+            pendingResult = ItemStack.EMPTY;
+          }
           setChanged();
         }
       };
@@ -133,7 +139,9 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   private int status(@Nullable MachineProcess process) {
     if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 4;
     if (process == null) return 0;
-    if (!canFitOutput(process.result())) return 1;
+    ItemStack expectedResult = pendingResult.isEmpty() ? process.result() : pendingResult;
+    if (!canFitOutput(expectedResult)) return 1;
+    if (!pendingResult.isEmpty()) return 3;
     if (energy.getEnergyStored() < process.energyPerTick()) return 2;
     return 3;
   }
@@ -142,19 +150,34 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
       Level level, BlockPos pos, BlockState state, FabricationStationBlockEntity station) {
     if (!CleanroomOccupancy.isMachineInside(level, pos)) return;
     MachineProcess process = station.currentProcess();
-    if (process == null || !station.canFitOutput(process.result())) {
+    if (process == null) {
+      station.resetProgress();
+      return;
+    }
+    if (!station.pendingResult.isEmpty()) {
+      if (station.canFitOutput(station.pendingResult))
+        station.finishProcess(process, station.pendingResult);
+      return;
+    }
+    if (!station.canFitOutput(process.result())) {
       station.resetProgress();
       return;
     }
     if (!station.energy.consumeInternal(process.energyPerTick())) return;
     station.progress++;
-    if (station.progress >= process.ticks()) station.finishProcess(process);
+    if (station.progress >= process.ticks()) {
+      ItemStack result =
+          CleanroomContamination.processResult(level, pos, process.result());
+      if (station.canFitOutput(result)) station.finishProcess(process, result);
+      else station.pendingResult = result;
+    }
     station.setChanged();
   }
 
   private void resetProgress() {
-    if (progress == 0) return;
+    if (progress == 0 && pendingResult.isEmpty()) return;
     progress = 0;
+    pendingResult = ItemStack.EMPTY;
     setChanged();
   }
 
@@ -164,19 +187,30 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   }
 
   private boolean canFitOutput(ItemStack result) {
-    ItemStack output = items.getStackInSlot(OUTPUT_SLOT);
-    if (output.isEmpty()) return true;
-    return ItemStack.isSameItemSameTags(output, result)
-        && output.getCount() + result.getCount() <= output.getMaxStackSize();
+    return findOutputSlot(result) >= 0;
   }
 
-  private void finishProcess(MachineProcess process) {
+  private int findOutputSlot(ItemStack result) {
+    int emptySlot = -1;
+    for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_SLOTS; slot++) {
+      ItemStack output = items.getStackInSlot(slot);
+      if (output.isEmpty()) {
+        if (emptySlot < 0) emptySlot = slot;
+      } else if (ItemStack.isSameItemSameTags(output, result)
+          && output.getCount() + result.getCount() <= output.getMaxStackSize()) return slot;
+    }
+    return emptySlot;
+  }
+
+  private void finishProcess(MachineProcess process, ItemStack result) {
+    int outputSlot = findOutputSlot(result);
+    if (outputSlot < 0) return;
     process.consume(items, INPUT_START, INPUT_SLOTS);
-    ItemStack result = process.result();
-    ItemStack output = items.getStackInSlot(OUTPUT_SLOT);
-    if (output.isEmpty()) items.setStackInSlot(OUTPUT_SLOT, result);
+    ItemStack output = items.getStackInSlot(outputSlot);
+    if (output.isEmpty()) items.setStackInSlot(outputSlot, result);
     else output.grow(result.getCount());
     progress = 0;
+    pendingResult = ItemStack.EMPTY;
   }
 
   @Override
@@ -185,14 +219,18 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
     tag.put("Items", items.serializeNBT());
     tag.putInt("Energy", energy.getEnergyStored());
     tag.putInt("Progress", progress);
+    tag.put("PendingResult", pendingResult.save(new CompoundTag()));
   }
 
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
-    items.deserializeNBT(tag.getCompound("Items"));
+    CompoundTag itemData = tag.getCompound("Items").copy();
+    itemData.putInt("Size", SLOT_COUNT);
+    items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
     progress = Math.max(0, tag.getInt("Progress"));
+    pendingResult = ItemStack.of(tag.getCompound("PendingResult"));
   }
 
   @Override

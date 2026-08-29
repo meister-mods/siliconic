@@ -11,29 +11,31 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
   public SiliconProcessorScreen(SiliconProcessorMenu menu, Inventory inventory, Component title) {
     super(menu, inventory, title);
     imageWidth = 176;
-    imageHeight = 183;
-    inventoryLabelY = 90;
+    imageHeight = 205;
+    inventoryLabelY = 112;
   }
 
   @Override
   protected void renderBg(GuiGraphics g, float partial, int mouseX, int mouseY) {
     g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xff17191c);
-    slotBox(g, leftPos + (menu.isArcFurnace() ? 26 : 44), topPos + 35);
-    if (menu.isArcFurnace()) slotBox(g, leftPos + 53, topPos + 35);
-    slotBox(g, leftPos + 116, topPos + 35);
+    slotBox(g, leftPos + (menu.isArcFurnace() ? 26 : 44), topPos + 42);
+    if (menu.isArcFurnace()) slotBox(g, leftPos + 53, topPos + 42);
+    for (int row = 0; row < 3; row++)
+      for (int column = 0; column < 3; column++)
+        slotBox(g, leftPos + 110 + column * 18, topPos + 24 + row * 18);
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
-        slotBox(g, leftPos + 8 + column * 18, topPos + 101 + row * 18);
-    for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 159);
+        slotBox(g, leftPos + 8 + column * 18, topPos + 123 + row * 18);
+    for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 181);
 
-    if (menu.isArcFurnace()) g.drawString(font, "+", leftPos + 46, topPos + 39, 0xffe8edf2, false);
-    g.drawString(font, "→", leftPos + 92, topPos + 39, 0xffe8edf2, false);
+    if (menu.isArcFurnace()) g.drawString(font, "+", leftPos + 46, topPos + 46, 0xffe8edf2, false);
+    g.drawString(font, "→", leftPos + 92, topPos + 46, 0xffe8edf2, false);
     int progressWidth = menu.maxProgress() == 0 ? 0 : 20 * menu.progress() / menu.maxProgress();
-    g.fill(leftPos + 84, topPos + 52, leftPos + 104, topPos + 56, 0xff2b3035);
-    g.fill(leftPos + 84, topPos + 52, leftPos + 84 + progressWidth, topPos + 56, 0xff66d99a);
+    g.fill(leftPos + 84, topPos + 59, leftPos + 104, topPos + 63, 0xff2b3035);
+    g.fill(leftPos + 84, topPos + 59, leftPos + 84 + progressWidth, topPos + 63, 0xff66d99a);
     int energyWidth = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();
-    g.fill(leftPos + 8, topPos + 84, leftPos + 168, topPos + 89, 0xff2b3035);
-    g.fill(leftPos + 8, topPos + 84, leftPos + 8 + energyWidth, topPos + 89, 0xffd94f67);
+    g.fill(leftPos + 8, topPos + 102, leftPos + 168, topPos + 107, 0xff2b3035);
+    g.fill(leftPos + 8, topPos + 102, leftPos + 8 + energyWidth, topPos + 107, 0xffd94f67);
   }
 
   private void slotBox(GuiGraphics g, int x, int y) {
@@ -48,13 +50,13 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
         font,
         Component.translatable("screen.siliconic.processor.input"),
         menu.isArcFurnace() ? 34 : 52,
-        23,
+        29,
         0xffaeb7c0);
     if (menu.isArcFurnace())
       g.drawCenteredString(
-          font, Component.translatable("screen.siliconic.processor.carbon"), 61, 23, 0xffaeb7c0);
+          font, Component.translatable("screen.siliconic.processor.carbon"), 61, 29, 0xffaeb7c0);
     g.drawCenteredString(
-        font, Component.translatable("screen.siliconic.processor.output"), 124, 23, 0xffaeb7c0);
+        font, Component.translatable("screen.siliconic.processor.output"), 136, 13, 0xffaeb7c0);
     g.drawString(
         font, Component.translatable("container.inventory"), 8, inventoryLabelY, 0xffaeb7c0, false);
     drawFittedString(
@@ -65,7 +67,7 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
             menu.capacity(),
             menu.energyPerTick()),
         8,
-        73,
+        91,
         160,
         0xffff8ca0);
     int status = menu.status();
@@ -73,7 +75,7 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
         g,
         Component.translatable("screen.siliconic.processor.status." + status),
         8,
-        62,
+        80,
         160,
         status == 4 ? 0xff66e69a : 0xffffb35c);
   }

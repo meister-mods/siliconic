@@ -17,6 +17,8 @@ Siliconic introduces a technology path that begins with resource gathering and c
 - An energy system with coal-powered generation and machine-specific power consumption
 - Cleanroom conditioning with seal monitoring, persistent cleanliness, coated-wall bonuses, and
   cleanroom-only machine operation (generators excluded)
+- Cleanliness-dependent contamination risk for crude silicon, high-purity silicon, wafers, and
+  logic gates
 - Support for both singleplayer and multiplayer
 - Optional JEI integration for viewing machine recipes
 

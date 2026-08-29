@@ -130,8 +130,9 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (conditioner.scanCooldown > 0) conditioner.scanCooldown--;
     if (conditioner.scanCooldown == 0) {
       conditioner.lastScan = RoomScanner.scan(level, pos);
-      CleanroomOccupancy.update(level, pos, conditioner.lastScan);
       conditioner.updateCleanliness();
+      CleanroomOccupancy.update(
+          level, pos, conditioner.lastScan, conditioner.cleanliness);
       conditioner.scanCooldown = SCAN_INTERVAL;
       conditioner.sync();
     } else if (powerChanged) conditioner.sync();

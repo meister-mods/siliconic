@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FFF",
+    "FGF"
+  ],
+  "key": {
+    "F": {
+      "item": "siliconic:antistatic_fabric"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    }
+  },
+  "result": {
+    "item": "siliconic:cleanroom_hood"
+  }
+}

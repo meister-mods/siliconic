@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -54,7 +55,12 @@ public class WaferInverterBlockEntity extends BlockEntity {
     return 2_000 * PrototypeWaferBlockEntity.levelOf(wafer);
   }
 
+  public boolean isInsideCleanroom() {
+    return CleanroomOccupancy.isMachineInside(level, worldPosition);
+  }
+
   public boolean invert(ItemStack wafer) {
+    if (!isInsideCleanroom()) return false;
     int cost = costFor(wafer);
     if (!energy.consumeInternal(cost)) return false;
     PrototypeWaferBlockEntity.mirrorHorizontally(wafer);

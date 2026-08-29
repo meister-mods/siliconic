@@ -1,8 +1,10 @@
 package io.github.meistermods.siliconic.cleanroom;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -33,22 +35,25 @@ public final class RoomScanResult {
   private final int scannedPositions;
   private final Map<ResourceLocation, Integer> surfaceMaterials;
   private final Map<ResourceLocation, OpenableStats> openables;
+  private final Set<Long> interiorPositions;
 
   public RoomScanResult(
       Status status,
       int volume,
       int scannedPositions,
       Map<ResourceLocation, Integer> surfaceMaterials,
-      Map<ResourceLocation, OpenableStats> openables) {
+      Map<ResourceLocation, OpenableStats> openables,
+      Set<Long> interiorPositions) {
     this.status = status;
     this.volume = Math.max(0, volume);
     this.scannedPositions = Math.max(0, scannedPositions);
     this.surfaceMaterials = immutableCopy(surfaceMaterials);
     this.openables = immutableCopy(openables);
+    this.interiorPositions = Collections.unmodifiableSet(new HashSet<>(interiorPositions));
   }
 
   public static RoomScanResult notScanned() {
-    return new RoomScanResult(Status.NOT_SCANNED, 0, 0, Map.of(), Map.of());
+    return new RoomScanResult(Status.NOT_SCANNED, 0, 0, Map.of(), Map.of(), Set.of());
   }
 
   private static <T> Map<ResourceLocation, T> immutableCopy(Map<ResourceLocation, T> source) {
@@ -77,6 +82,11 @@ public final class RoomScanResult {
 
   public Map<ResourceLocation, OpenableStats> openables() {
     return openables;
+  }
+
+  /** Server-side positions reached by the scan. These are rebuilt instead of saved to NBT. */
+  public Set<Long> interiorPositions() {
+    return interiorPositions;
   }
 
   public int openableCount() {
@@ -142,6 +152,7 @@ public final class RoomScanResult {
         tag.getInt("Volume"),
         tag.getInt("ScannedPositions"),
         surfaces,
-        openables);
+        openables,
+        Set.of());
   }
 }

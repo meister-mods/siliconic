@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.fabrication;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
@@ -130,6 +131,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   }
 
   private int status(@Nullable MachineProcess process) {
+    if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 4;
     if (process == null) return 0;
     if (!canFitOutput(process.result())) return 1;
     if (energy.getEnergyStored() < process.energyPerTick()) return 2;
@@ -138,6 +140,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, FabricationStationBlockEntity station) {
+    if (!CleanroomOccupancy.isMachineInside(level, pos)) return;
     MachineProcess process = station.currentProcess();
     if (process == null || !station.canFitOutput(process.result())) {
       station.resetProgress();

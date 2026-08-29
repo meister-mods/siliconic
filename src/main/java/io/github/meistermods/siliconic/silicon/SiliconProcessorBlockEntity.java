@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.silicon;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
@@ -32,6 +33,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   public static final int ENERGY_CAPACITY = 30_000;
 
   private int progress;
+  private int clientStatus;
   private final ProcessorEnergyStorage energy = new ProcessorEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
@@ -54,6 +56,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       new ContainerData() {
         @Override
         public int get(int index) {
+          if (level != null && level.isClientSide && index == 5) return clientStatus;
           MachineProcess process = primaryProcess();
           return switch (index) {
             case 0 -> energy.getEnergyStored();
@@ -71,6 +74,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
           switch (index) {
             case 0 -> energy.setStored(value);
             case 2 -> progress = Math.max(0, value);
+            case 5 -> clientStatus = value;
             default -> {
               // The remaining values are derived from the machine state.
             }
@@ -127,6 +131,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   }
 
   public int status() {
+    if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 5;
     MachineProcess process = currentProcess();
     if (process == null) {
       if (!ModMachineProcesses.accepts(machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT)))
@@ -140,6 +145,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, SiliconProcessorBlockEntity processor) {
+    if (!CleanroomOccupancy.isMachineInside(level, pos)) return;
     MachineProcess process = processor.currentProcess();
     if (process == null || !processor.canFitOutput(process.result())) {
       if (processor.progress != 0) {

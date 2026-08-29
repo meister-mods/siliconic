@@ -181,6 +181,14 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
         139,
         162,
         0xffff8ca0);
+    if (!menu.wafer().isInsideCleanroom())
+      drawFittedString(
+          g,
+          Component.translatable("screen.siliconic.machine.outside_cleanroom"),
+          WaferMenu.INVENTORY_X,
+          127,
+          162,
+          0xffffb35c);
     g.drawString(
         font,
         Component.translatable("container.inventory"),

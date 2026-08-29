@@ -130,6 +130,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (conditioner.scanCooldown > 0) conditioner.scanCooldown--;
     if (conditioner.scanCooldown == 0) {
       conditioner.lastScan = RoomScanner.scan(level, pos);
+      CleanroomOccupancy.update(level, pos, conditioner.lastScan);
       conditioner.updateCleanliness();
       conditioner.scanCooldown = SCAN_INTERVAL;
       conditioner.sync();
@@ -217,6 +218,12 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     setChanged();
     if (level != null && !level.isClientSide)
       level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 2);
+  }
+
+  @Override
+  public void setRemoved() {
+    if (level != null) CleanroomOccupancy.remove(level, worldPosition);
+    super.setRemoved();
   }
 
   @Override

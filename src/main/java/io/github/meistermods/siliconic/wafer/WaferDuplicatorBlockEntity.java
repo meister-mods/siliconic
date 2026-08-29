@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.List;
@@ -119,6 +120,7 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
   }
 
   public int status() {
+    if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 7;
     ItemStack source = items.getStackInSlot(SOURCE_SLOT);
     ItemStack blank = items.getStackInSlot(BLANK_SLOT);
     if (!PrototypeWaferBlockEntity.isCompleted(source)) return 0;
@@ -132,7 +134,8 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, WaferDuplicatorBlockEntity duplicator) {
-    if (level.getGameTime() % 20 == 0) duplicator.tryDuplicate();
+    if (level.getGameTime() % 20 == 0 && CleanroomOccupancy.isMachineInside(level, pos))
+      duplicator.tryDuplicate();
   }
 
   private void tryDuplicate() {

@@ -71,13 +71,17 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
       if (editable && !level.isClientSide && player instanceof ServerPlayer serverPlayer) {
         NetworkHooks.openScreen(serverPlayer, station, pos);
       } else if (!editable && !level.isClientSide) {
-        player.displayClientMessage(
-            Component.translatable(
-                "message.siliconic.wafer_guard_status",
-                station.getEnergyStored(),
-                station.getEnergyCapacity(),
-                station.getOperationCost()),
-            true);
+        if (!station.isInsideCleanroom())
+          player.displayClientMessage(
+              Component.translatable("message.siliconic.machine.outside_cleanroom"), true);
+        else
+          player.displayClientMessage(
+              Component.translatable(
+                  "message.siliconic.wafer_guard_status",
+                  station.getEnergyStored(),
+                  station.getEnergyCapacity(),
+                  station.getOperationCost()),
+              true);
       }
     }
     return InteractionResult.sidedSuccess(level.isClientSide);

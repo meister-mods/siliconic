@@ -15,7 +15,8 @@ Siliconic introduces a technology path that begins with resource gathering and c
 - Hierarchical integration that allows completed lower-tier wafers to be reused inside higher-tier wafers
 - Utility machines for duplicating, mirroring, and operating wafer circuits
 - An energy system with coal-powered generation and machine-specific power consumption
-- Cleanroom conditioning with seal monitoring, persistent cleanliness, and coated-wall bonuses
+- Cleanroom conditioning with seal monitoring, persistent cleanliness, coated-wall bonuses, and
+  cleanroom-only machine operation (generators excluded)
 - Support for both singleplayer and multiplayer
 - Optional JEI integration for viewing machine recipes
 

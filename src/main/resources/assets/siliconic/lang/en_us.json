@@ -75,6 +75,7 @@
   "screen.siliconic.processor.status.2": "Waiting: clear the output slot",
   "screen.siliconic.processor.status.3": "Waiting: not enough power",
   "screen.siliconic.processor.status.4": "Processing",
+  "screen.siliconic.processor.status.5": "Stopped: outside a sealed conditioner room",
   "screen.siliconic.fabricator.materials": "Materials",
   "screen.siliconic.fabricator.output": "Output",
   "screen.siliconic.fabricator.energy": "Power %s/%s SE · Draw %s SE/t",
@@ -82,6 +83,7 @@
   "screen.siliconic.fabricator.status.1": "Waiting: clear the output slot",
   "screen.siliconic.fabricator.status.2": "Waiting: not enough power",
   "screen.siliconic.fabricator.status.3": "Processing",
+  "screen.siliconic.fabricator.status.4": "Stopped: outside a sealed conditioner room",
   "jei.siliconic.process.details": "%s s · %s SE/t · %s SE total",
   "screen.siliconic.wafer.name": "Wafer name",
   "screen.siliconic.wafer.complete": "Finish",
@@ -98,7 +100,9 @@
   "screen.siliconic.duplicator.status.4": "Waiting: not enough power",
   "screen.siliconic.duplicator.status.5": "Waiting: missing circuit materials",
   "screen.siliconic.duplicator.status.6": "Ready: duplication starts on the next cycle",
+  "screen.siliconic.duplicator.status.7": "Stopped: outside a sealed conditioner room",
   "screen.siliconic.duplicator.energy": "Power %s/%s SE · Cost %s SE",
+  "screen.siliconic.machine.outside_cleanroom": "Stopped: outside a sealed conditioner room",
   "screen.siliconic.wafer.hint": "Left: place/reclaim · Right: rotate gate",
   "screen.siliconic.wafer.probe": "Probe (%s, %s)",
   "screen.siliconic.wafer.trace": "Copper trace",
@@ -141,5 +145,6 @@
   "message.siliconic.wafer_inverter.success": "Wafer mirrored horizontally. (%s SE)",
   "message.siliconic.wafer_inverter.no_energy": "Not enough power to mirror the wafer. (%s SE)",
   "message.siliconic.wafer_inverter.require_completed": "Finish the wafer at a Wafer Station first.",
-  "message.siliconic.wafer_inverter.status": "Wafer Inverter: %s/%s SE"
+  "message.siliconic.wafer_inverter.status": "Wafer Inverter: %s/%s SE",
+  "message.siliconic.machine.outside_cleanroom": "This machine requires a sealed conditioner room."
 }

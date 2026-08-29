@@ -55,7 +55,8 @@ public class WaferMenu extends AbstractContainerMenu {
     if (player.containerMenu != this
         || !position().equals(pos)
         || !stillValid(player)
-        || !wafer.isEditable()) return false;
+        || !wafer.isEditable()
+        || !wafer.isInsideCleanroom()) return false;
     long gameTime = player.level().getGameTime();
     if (mutationTick != gameTime) {
       mutationTick = gameTime;

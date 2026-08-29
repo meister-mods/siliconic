@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
 import io.github.meistermods.siliconic.registry.ModItems;
@@ -55,6 +56,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
   private boolean powered;
+  private boolean insideCleanroom;
   private boolean simulationDirty = true;
   private final LinkedHashMap<Integer, Simulation> simulationCache =
       new LinkedHashMap<>(16, 0.75f, true);
@@ -227,7 +229,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public boolean isPowered() {
-    return hasWafer() && powered;
+    return hasWafer() && powered && isInsideCleanroom();
+  }
+
+  public boolean isInsideCleanroom() {
+    return level != null && !level.isClientSide
+        ? CleanroomOccupancy.isMachineInside(level, worldPosition)
+        : insideCleanroom;
   }
 
   public int addEnergy(int amount) {
@@ -238,15 +246,18 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, PrototypeWaferBlockEntity station) {
+    boolean nextInsideCleanroom = CleanroomOccupancy.isMachineInside(level, pos);
+    boolean cleanroomChanged = nextInsideCleanroom != station.insideCleanroom;
+    station.insideCleanroom = nextInsideCleanroom;
     boolean nextPowered = false;
-    if (station.hasWafer()) {
+    if (nextInsideCleanroom && station.hasWafer()) {
       int cost = station.getOperationCost();
       nextPowered = station.energy.consumeInternal(cost);
     }
     if (nextPowered != station.powered) {
       station.powered = nextPowered;
       station.refreshSignals();
-    }
+    } else if (cleanroomChanged) station.sync();
     if (nextPowered) station.setChanged();
   }
 
@@ -288,7 +299,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public void cyclePinMode(int pin) {
-    if (!hasWafer() || pin < 0 || pin >= 4) return;
+    if (!isInsideCleanroom() || !hasWafer() || pin < 0 || pin >= 4) return;
     markUnfinished();
     int[] modes = modes(design());
     modes[pin] = PinMode.values()[modes[pin]].next().ordinal();
@@ -297,7 +308,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public void interactCell(int cell, boolean rotate, ServerPlayer player) {
-    if (!valid(cell)) return;
+    if (!isInsideCleanroom() || !valid(cell)) return;
     CellType old = getCellType(cell);
     if (rotate) {
       if (old.isConductor()) {
@@ -746,6 +757,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public int getOutput(Direction direction) {
+    if (!isInsideCleanroom()) return 0;
     Direction[] dirs = directions();
     for (int i = 0; i < 4; i++)
       if (dirs[i].getOpposite() == direction && getPinMode(i) == PinMode.OUTPUT) return outputs[i];
@@ -920,7 +932,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public void completeWafer(String name) {
-    if (!hasWafer()) return;
+    if (!isInsideCleanroom() || !hasWafer()) return;
     String trimmed = name == null ? "" : name.strip();
     if (trimmed.length() > 50) trimmed = trimmed.substring(0, 50);
     if (trimmed.isEmpty()) wafer.resetHoverName();
@@ -1031,6 +1043,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     tag.putIntArray("HorizontalSignals", horizontalSignals);
     tag.putIntArray("VerticalSignals", verticalSignals);
     tag.putInt("Energy", energy.getEnergyStored());
+    tag.putBoolean("InsideCleanroom", insideCleanroom);
   }
 
   @Override
@@ -1045,6 +1058,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     horizontalSignals = tag.getIntArray("HorizontalSignals");
     verticalSignals = tag.getIntArray("VerticalSignals");
     energy.setStored(tag.getInt("Energy"));
+    insideCleanroom = tag.getBoolean("InsideCleanroom");
   }
 
   private void copy(int[] source, int[] target) {

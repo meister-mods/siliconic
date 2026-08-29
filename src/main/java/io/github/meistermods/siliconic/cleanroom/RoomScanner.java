@@ -93,7 +93,7 @@ public final class RoomScanner {
     Status status =
         determineStatus(flags, discovered.isEmpty(), openCount);
     return new RoomScanResult(
-        status, volume, discovered.size(), sortedSurfaces, sortedOpenables);
+        status, volume, discovered.size(), sortedSurfaces, sortedOpenables, discovered);
   }
 
   private static void inspectNeighbor(

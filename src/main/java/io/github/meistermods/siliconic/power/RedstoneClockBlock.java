@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.power;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -30,6 +31,11 @@ public class RedstoneClockBlock extends Block {
 
   @Override
   public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+    if (!CleanroomOccupancy.isMachineInside(level, pos)) {
+      if (state.getValue(POWERED)) level.setBlock(pos, state.setValue(POWERED, false), 3);
+      level.scheduleTick(pos, this, OFF_TICKS);
+      return;
+    }
     boolean powered = !state.getValue(POWERED);
     level.setBlock(pos, state.setValue(POWERED, powered), 3);
     level.scheduleTick(pos, this, powered ? ON_TICKS : OFF_TICKS);

@@ -43,7 +43,10 @@ public class WaferInverterBlock extends BaseEntityBlock {
     var held = player.getItemInHand(hand);
     if (PrototypeWaferBlockEntity.levelOf(held) > 0) {
       if (!level.isClientSide) {
-        if (!PrototypeWaferBlockEntity.isCompleted(held))
+        if (!inverter.isInsideCleanroom())
+          player.displayClientMessage(
+              Component.translatable("message.siliconic.machine.outside_cleanroom"), true);
+        else if (!PrototypeWaferBlockEntity.isCompleted(held))
           player.displayClientMessage(
               Component.translatable("message.siliconic.wafer_inverter.require_completed"), true);
         else {
@@ -60,11 +63,16 @@ public class WaferInverterBlock extends BaseEntityBlock {
       }
       return InteractionResult.sidedSuccess(level.isClientSide);
     }
-    if (!level.isClientSide)
-      player.displayClientMessage(
-          Component.translatable(
-              "message.siliconic.wafer_inverter.status", inverter.getEnergyStored(), 50_000),
-          true);
+    if (!level.isClientSide) {
+      if (!inverter.isInsideCleanroom())
+        player.displayClientMessage(
+            Component.translatable("message.siliconic.machine.outside_cleanroom"), true);
+      else
+        player.displayClientMessage(
+            Component.translatable(
+                "message.siliconic.wafer_inverter.status", inverter.getEnergyStored(), 50_000),
+            true);
+    }
     return InteractionResult.sidedSuccess(level.isClientSide);
   }
 }

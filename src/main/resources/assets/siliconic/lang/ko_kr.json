@@ -75,6 +75,7 @@
   "screen.siliconic.processor.status.2": "대기: 출력 칸을 비워 주세요",
   "screen.siliconic.processor.status.3": "대기: 전력이 부족합니다",
   "screen.siliconic.processor.status.4": "처리 중",
+  "screen.siliconic.processor.status.5": "정지: 밀폐된 컨디셔너 공간 밖에 있음",
   "screen.siliconic.fabricator.materials": "공정 재료",
   "screen.siliconic.fabricator.output": "생산물",
   "screen.siliconic.fabricator.energy": "전력 %s/%s SE · 소비 %s SE/t",
@@ -82,6 +83,7 @@
   "screen.siliconic.fabricator.status.1": "대기: 출력 칸을 비워 주세요",
   "screen.siliconic.fabricator.status.2": "대기: 전력이 부족합니다",
   "screen.siliconic.fabricator.status.3": "처리 중",
+  "screen.siliconic.fabricator.status.4": "정지: 밀폐된 컨디셔너 공간 밖에 있음",
   "jei.siliconic.process.details": "%s초 · %s SE/t · 총 %s SE",
   "screen.siliconic.wafer.name": "웨이퍼 이름",
   "screen.siliconic.wafer.complete": "완성",
@@ -98,7 +100,9 @@
   "screen.siliconic.duplicator.status.4": "대기: 전력이 부족합니다",
   "screen.siliconic.duplicator.status.5": "대기: 회로 재료가 부족합니다",
   "screen.siliconic.duplicator.status.6": "준비 완료: 다음 처리 주기에 복제합니다",
+  "screen.siliconic.duplicator.status.7": "정지: 밀폐된 컨디셔너 공간 밖에 있음",
   "screen.siliconic.duplicator.energy": "전력 %s/%s SE · 비용 %s SE",
+  "screen.siliconic.machine.outside_cleanroom": "정지: 밀폐된 컨디셔너 공간 밖에 있음",
   "screen.siliconic.wafer.hint": "좌클릭: 배치/회수 · 우클릭: 게이트 회전",
   "screen.siliconic.wafer.probe": "프로브 (%s, %s)",
   "screen.siliconic.wafer.trace": "구리 배선",
@@ -141,5 +145,6 @@
   "message.siliconic.wafer_inverter.success": "웨이퍼를 좌우 반전했습니다. (%s SE)",
   "message.siliconic.wafer_inverter.no_energy": "반전에 필요한 전력이 부족합니다. (%s SE)",
   "message.siliconic.wafer_inverter.require_completed": "먼저 웨이퍼 스테이션에서 웨이퍼를 완성해야 합니다.",
-  "message.siliconic.wafer_inverter.status": "웨이퍼 반전기: %s/%s SE"
+  "message.siliconic.wafer_inverter.status": "웨이퍼 반전기: %s/%s SE",
+  "message.siliconic.machine.outside_cleanroom": "이 기계는 밀폐된 컨디셔너 공간 안에서만 작동합니다."
 }

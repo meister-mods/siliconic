@@ -109,7 +109,7 @@ public class PrototypeWaferBlock extends HorizontalFacingEntityBlock {
     return level.isClientSide
         ? null
         : createTickerHelper(
-            type, ModBlockEntities.PROTOTYPE_WAFER.get(), PrototypeWaferBlockEntity::serverTick);
+            type, ModBlockEntities.WAFER_ASSEMBLER.get(), PrototypeWaferBlockEntity::serverTick);
   }
 
   @Override

@@ -9,5 +9,5 @@
     "L": {"tag": "forge:ingots/lead"},
     "C": {"item": "minecraft:comparator"}
   },
-  "result": {"item": "siliconic:reprocessing_station"}
+  "result": {"item": "siliconic:reprocessor"}
 }

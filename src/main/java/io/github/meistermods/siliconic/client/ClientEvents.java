@@ -41,7 +41,7 @@ public final class ClientEvents {
     event.enqueueWork(
         () ->
             MenuScreens.register(
-                ModMenus.REPROCESSING_STATION.get(), ReprocessingStationScreen::new));
+                ModMenus.REPROCESSOR.get(), ReprocessorScreen::new));
     event.enqueueWork(
         () -> MenuScreens.register(ModMenus.CONDITIONER.get(), ConditionerScreen::new));
   }

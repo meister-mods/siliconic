@@ -1,0 +1,1 @@
+{"variants":{"facing=north":{"model":"siliconic:block/reprocessor"},"facing=east":{"model":"siliconic:block/reprocessor","y":90},"facing=south":{"model":"siliconic:block/reprocessor","y":180},"facing=west":{"model":"siliconic:block/reprocessor","y":270}}}

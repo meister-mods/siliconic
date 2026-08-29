@@ -75,15 +75,15 @@ public final class ModCreativeTabs {
           () ->
               CreativeModeTab.builder()
                   .title(Component.translatable("itemGroup.siliconic.machines"))
-                  .icon(() -> new ItemStack(ModItems.WAFER_STATION.get()))
+                  .icon(() -> new ItemStack(ModItems.WAFER_ASSEMBLER.get()))
                   .displayItems(
                       (parameters, output) -> {
                         output.accept(ModItems.SILICON_ARC_FURNACE.get());
                         output.accept(ModItems.SILICON_PURIFIER.get());
                         output.accept(ModItems.WAFER_FABRICATOR.get());
                         output.accept(ModItems.GATE_ASSEMBLER.get());
-                        output.accept(ModItems.REPROCESSING_STATION.get());
-                        output.accept(ModItems.WAFER_STATION.get());
+                        output.accept(ModItems.REPROCESSOR.get());
+                        output.accept(ModItems.WAFER_ASSEMBLER.get());
                         output.accept(ModItems.WAFER_GUARD.get());
                         output.accept(ModItems.WAFER_INVERTER.get());
                         output.accept(ModItems.WAFER_DUPLICATOR.get());

@@ -155,7 +155,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public PrototypeWaferBlockEntity(BlockPos pos, BlockState state) {
-    super(ModBlockEntities.PROTOTYPE_WAFER.get(), pos, state);
+    super(ModBlockEntities.WAFER_ASSEMBLER.get(), pos, state);
   }
 
   public boolean hasWafer() {
@@ -227,7 +227,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public boolean isEditable() {
-    return getBlockState().is(ModBlocks.WAFER_STATION.get());
+    return getBlockState().is(ModBlocks.WAFER_ASSEMBLER.get());
   }
 
   public boolean isPowered() {
@@ -1199,7 +1199,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   @Override
   public Component getDisplayName() {
-    return Component.translatable("container.siliconic.wafer_station");
+    return Component.translatable("container.siliconic.wafer_assembler");
   }
 
   @Nullable

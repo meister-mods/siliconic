@@ -20,8 +20,8 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
-public class ReprocessingStationBlock extends HorizontalFacingEntityBlock {
-  public ReprocessingStationBlock(Properties properties) {
+public class ReprocessorBlock extends HorizontalFacingEntityBlock {
+  public ReprocessorBlock(Properties properties) {
     super(properties);
   }
 
@@ -33,7 +33,7 @@ public class ReprocessingStationBlock extends HorizontalFacingEntityBlock {
   @Nullable
   @Override
   public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-    return new ReprocessingStationBlockEntity(pos, state);
+    return new ReprocessorBlockEntity(pos, state);
   }
 
   @Override
@@ -46,8 +46,8 @@ public class ReprocessingStationBlock extends HorizontalFacingEntityBlock {
       BlockHitResult hit) {
     if (!level.isClientSide
         && player instanceof ServerPlayer serverPlayer
-        && level.getBlockEntity(pos) instanceof ReprocessingStationBlockEntity station)
-      NetworkHooks.openScreen(serverPlayer, station, pos);
+        && level.getBlockEntity(pos) instanceof ReprocessorBlockEntity reprocessor)
+      NetworkHooks.openScreen(serverPlayer, reprocessor, pos);
     return InteractionResult.sidedSuccess(level.isClientSide);
   }
 
@@ -59,17 +59,16 @@ public class ReprocessingStationBlock extends HorizontalFacingEntityBlock {
         ? null
         : createTickerHelper(
             type,
-            ModBlockEntities.REPROCESSING_STATION.get(),
-            ReprocessingStationBlockEntity::serverTick);
+            ModBlockEntities.REPROCESSOR.get(), ReprocessorBlockEntity::serverTick);
   }
 
   @Override
   public void onRemove(
       BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
     if (!state.is(newState.getBlock())
-        && level.getBlockEntity(pos) instanceof ReprocessingStationBlockEntity station)
-      for (int slot = 0; slot < ReprocessingStationBlockEntity.SLOT_COUNT; slot++) {
-        ItemStack stack = station.items().getStackInSlot(slot);
+        && level.getBlockEntity(pos) instanceof ReprocessorBlockEntity reprocessor)
+      for (int slot = 0; slot < ReprocessorBlockEntity.SLOT_COUNT; slot++) {
+        ItemStack stack = reprocessor.items().getStackInSlot(slot);
         if (!stack.isEmpty())
           Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack);
       }

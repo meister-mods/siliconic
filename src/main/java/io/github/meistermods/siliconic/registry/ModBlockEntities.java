@@ -4,7 +4,7 @@ import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.cleanroom.ConditionerBlockEntity;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
-import io.github.meistermods.siliconic.reprocessing.ReprocessingStationBlockEntity;
+import io.github.meistermods.siliconic.reprocessing.ReprocessorBlockEntity;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlockEntity;
@@ -18,13 +18,13 @@ import net.minecraftforge.registries.RegistryObject;
 public final class ModBlockEntities {
   public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES =
       DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, Siliconic.MOD_ID);
-  public static final RegistryObject<BlockEntityType<PrototypeWaferBlockEntity>> PROTOTYPE_WAFER =
+  public static final RegistryObject<BlockEntityType<PrototypeWaferBlockEntity>> WAFER_ASSEMBLER =
       BLOCK_ENTITIES.register(
-          "wafer_station",
+          "wafer_assembler",
           () ->
               BlockEntityType.Builder.of(
                       PrototypeWaferBlockEntity::new,
-                      ModBlocks.WAFER_STATION.get(),
+                      ModBlocks.WAFER_ASSEMBLER.get(),
                       ModBlocks.WAFER_GUARD.get())
                   .build(null));
   public static final RegistryObject<BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
@@ -68,14 +68,13 @@ public final class ModBlockEntities {
                           ModBlocks.WAFER_FABRICATOR.get(),
                           ModBlocks.GATE_ASSEMBLER.get())
                       .build(null));
-  public static final RegistryObject<BlockEntityType<ReprocessingStationBlockEntity>>
-      REPROCESSING_STATION =
-          BLOCK_ENTITIES.register(
-              "reprocessing_station",
-              () ->
-                  BlockEntityType.Builder.of(
-                          ReprocessingStationBlockEntity::new, ModBlocks.REPROCESSING_STATION.get())
-                      .build(null));
+  public static final RegistryObject<BlockEntityType<ReprocessorBlockEntity>> REPROCESSOR =
+      BLOCK_ENTITIES.register(
+          "reprocessor",
+          () ->
+              BlockEntityType.Builder.of(
+                      ReprocessorBlockEntity::new, ModBlocks.REPROCESSOR.get())
+                  .build(null));
   public static final RegistryObject<BlockEntityType<ConditionerBlockEntity>> CONDITIONER =
       BLOCK_ENTITIES.register(
           "conditioner",

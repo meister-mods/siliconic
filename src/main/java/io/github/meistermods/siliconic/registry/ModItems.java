@@ -78,10 +78,10 @@ public final class ModItems {
       ITEMS.register(
           "cleanroom_boots",
           () -> new CleanroomSuitItem(ArmorItem.Type.BOOTS, new Item.Properties()));
-  public static final RegistryObject<Item> WAFER_STATION =
+  public static final RegistryObject<Item> WAFER_ASSEMBLER =
       ITEMS.register(
-          "wafer_station",
-          () -> new BlockItem(ModBlocks.WAFER_STATION.get(), new Item.Properties()));
+          "wafer_assembler",
+          () -> new BlockItem(ModBlocks.WAFER_ASSEMBLER.get(), new Item.Properties()));
   public static final RegistryObject<Item> WAFER_GUARD =
       ITEMS.register(
           "wafer_guard", () -> new BlockItem(ModBlocks.WAFER_GUARD.get(), new Item.Properties()));
@@ -109,10 +109,10 @@ public final class ModItems {
       ITEMS.register(
           "gate_assembler",
           () -> new BlockItem(ModBlocks.GATE_ASSEMBLER.get(), new Item.Properties()));
-  public static final RegistryObject<Item> REPROCESSING_STATION =
+  public static final RegistryObject<Item> REPROCESSOR =
       ITEMS.register(
-          "reprocessing_station",
-          () -> new BlockItem(ModBlocks.REPROCESSING_STATION.get(), new Item.Properties()));
+          "reprocessor",
+          () -> new BlockItem(ModBlocks.REPROCESSOR.get(), new Item.Properties()));
   public static final RegistryObject<Item> SILVER_ORE =
       ITEMS.register(
           "silver_ore", () -> new BlockItem(ModBlocks.SILVER_ORE.get(), new Item.Properties()));

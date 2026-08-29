@@ -1,15 +1,14 @@
 package io.github.meistermods.siliconic.client;
 
-import io.github.meistermods.siliconic.reprocessing.ReprocessingStationMenu;
+import io.github.meistermods.siliconic.reprocessing.ReprocessorMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 @SuppressWarnings({"null"})
-public class ReprocessingStationScreen extends AbstractContainerScreen<ReprocessingStationMenu> {
-  public ReprocessingStationScreen(
-      ReprocessingStationMenu menu, Inventory inventory, Component title) {
+public class ReprocessorScreen extends AbstractContainerScreen<ReprocessorMenu> {
+  public ReprocessorScreen(ReprocessorMenu menu, Inventory inventory, Component title) {
     super(menu, inventory, title);
     imageWidth = 176;
     imageHeight = 219;

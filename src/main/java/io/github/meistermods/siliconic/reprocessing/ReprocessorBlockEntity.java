@@ -26,13 +26,13 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
-public class ReprocessingStationBlockEntity extends BlockEntity implements MenuProvider {
+public class ReprocessorBlockEntity extends BlockEntity implements MenuProvider {
   public static final int INPUT_START = 0, INPUT_SLOTS = 9;
   public static final int OUTPUT_START = 9, OUTPUT_SLOTS = 9, SLOT_COUNT = 18;
   public static final int ENERGY_CAPACITY = 60_000;
 
   private int progress;
-  private final StationEnergyStorage energy = new StationEnergyStorage();
+  private final ReprocessorEnergyStorage energy = new ReprocessorEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
         @Override
@@ -81,8 +81,8 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
         }
       };
 
-  private final class StationEnergyStorage extends EnergyStorage {
-    StationEnergyStorage() {
+  private final class ReprocessorEnergyStorage extends EnergyStorage {
+    ReprocessorEnergyStorage() {
       super(ENERGY_CAPACITY, 2_000, 0);
     }
 
@@ -99,13 +99,13 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
       int accepted = super.receiveEnergy(amount, simulate);
-      if (accepted > 0 && !simulate) ReprocessingStationBlockEntity.this.setChanged();
+      if (accepted > 0 && !simulate) ReprocessorBlockEntity.this.setChanged();
       return accepted;
     }
   }
 
-  public ReprocessingStationBlockEntity(BlockPos pos, BlockState state) {
-    super(ModBlockEntities.REPROCESSING_STATION.get(), pos, state);
+  public ReprocessorBlockEntity(BlockPos pos, BlockState state) {
+    super(ModBlockEntities.REPROCESSOR.get(), pos, state);
   }
 
   public ItemStackHandler items() {
@@ -128,17 +128,17 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
   }
 
   public static void serverTick(
-      Level level, BlockPos pos, BlockState state, ReprocessingStationBlockEntity station) {
-    ReprocessingProcess process = station.currentProcess();
+      Level level, BlockPos pos, BlockState state, ReprocessorBlockEntity reprocessor) {
+    ReprocessingProcess process = reprocessor.currentProcess();
     if (process == null) {
-      station.resetProgress();
+      reprocessor.resetProgress();
       return;
     }
-    if (!station.canFitOutputs(process.outputs())) return;
-    if (!station.energy.consumeInternal(process.energyPerTick())) return;
-    station.progress++;
-    if (station.progress >= process.ticks()) station.finishProcess(process);
-    station.setChanged();
+    if (!reprocessor.canFitOutputs(process.outputs())) return;
+    if (!reprocessor.energy.consumeInternal(process.energyPerTick())) return;
+    reprocessor.progress++;
+    if (reprocessor.progress >= process.ticks()) reprocessor.finishProcess(process);
+    reprocessor.setChanged();
   }
 
   @Nullable
@@ -253,12 +253,12 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
 
   @Override
   public Component getDisplayName() {
-    return Component.translatable("container.siliconic.reprocessing_station");
+    return Component.translatable("container.siliconic.reprocessor");
   }
 
   @Nullable
   @Override
   public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
-    return new ReprocessingStationMenu(id, inventory, this);
+    return new ReprocessorMenu(id, inventory, this);
   }
 }

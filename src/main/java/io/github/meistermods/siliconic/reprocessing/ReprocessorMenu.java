@@ -11,36 +11,35 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
 @SuppressWarnings({"null"})
-public class ReprocessingStationMenu extends AbstractContainerMenu {
-  private static final int MACHINE_SLOTS = ReprocessingStationBlockEntity.SLOT_COUNT;
-  private final ReprocessingStationBlockEntity station;
+public class ReprocessorMenu extends AbstractContainerMenu {
+  private static final int MACHINE_SLOTS = ReprocessorBlockEntity.SLOT_COUNT;
+  private final ReprocessorBlockEntity reprocessor;
 
-  public ReprocessingStationMenu(int id, Inventory inventory, FriendlyByteBuf data) {
+  public ReprocessorMenu(int id, Inventory inventory, FriendlyByteBuf data) {
     this(
         id,
         inventory,
-        (ReprocessingStationBlockEntity)
+        (ReprocessorBlockEntity)
             inventory.player.level().getBlockEntity(data.readBlockPos()));
   }
 
-  public ReprocessingStationMenu(
-      int id, Inventory inventory, ReprocessingStationBlockEntity station) {
-    super(ModMenus.REPROCESSING_STATION.get(), id);
-    this.station = station;
+  public ReprocessorMenu(int id, Inventory inventory, ReprocessorBlockEntity reprocessor) {
+    super(ModMenus.REPROCESSOR.get(), id);
+    this.reprocessor = reprocessor;
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 3; column++)
         addSlot(
             new SlotItemHandler(
-                station.items(),
-                ReprocessingStationBlockEntity.INPUT_START + row * 3 + column,
+                reprocessor.items(),
+                ReprocessorBlockEntity.INPUT_START + row * 3 + column,
                 20 + column * 18,
                 34 + row * 18));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 3; column++)
         addSlot(
             new SlotItemHandler(
-                station.items(),
-                ReprocessingStationBlockEntity.OUTPUT_START + row * 3 + column,
+                reprocessor.items(),
+                ReprocessorBlockEntity.OUTPUT_START + row * 3 + column,
                 114 + column * 18,
                 34 + row * 18));
     for (int row = 0; row < 3; row++)
@@ -48,31 +47,31 @@ public class ReprocessingStationMenu extends AbstractContainerMenu {
         addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 137 + row * 18));
     for (int column = 0; column < 9; column++)
       addSlot(new Slot(inventory, column, 8 + column * 18, 195));
-    addDataSlots(station.data());
+    addDataSlots(reprocessor.data());
   }
 
   public int energy() {
-    return MenuDataSync.combine(station.data().get(0), station.data().get(1));
+    return MenuDataSync.combine(reprocessor.data().get(0), reprocessor.data().get(1));
   }
 
   public int capacity() {
-    return ReprocessingStationBlockEntity.ENERGY_CAPACITY;
+    return ReprocessorBlockEntity.ENERGY_CAPACITY;
   }
 
   public int progress() {
-    return station.data().get(2);
+    return reprocessor.data().get(2);
   }
 
   public int maxProgress() {
-    return station.data().get(3);
+    return reprocessor.data().get(3);
   }
 
   public int energyPerTick() {
-    return station.data().get(4);
+    return reprocessor.data().get(4);
   }
 
   public int status() {
-    return station.data().get(5);
+    return reprocessor.data().get(5);
   }
 
   @Override
@@ -83,7 +82,7 @@ public class ReprocessingStationMenu extends AbstractContainerMenu {
     ItemStack stack = slot.getItem(), copy = stack.copy();
     if (index < MACHINE_SLOTS) {
       if (!moveItemStackTo(stack, MACHINE_SLOTS, slots.size(), true)) return ItemStack.EMPTY;
-    } else if (!moveItemStackTo(stack, 0, ReprocessingStationBlockEntity.INPUT_SLOTS, false)) {
+    } else if (!moveItemStackTo(stack, 0, ReprocessorBlockEntity.INPUT_SLOTS, false)) {
       return ItemStack.EMPTY;
     }
     if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
@@ -93,6 +92,7 @@ public class ReprocessingStationMenu extends AbstractContainerMenu {
 
   @Override
   public boolean stillValid(Player player) {
-    return !station.isRemoved() && player.distanceToSqr(station.getBlockPos().getCenter()) <= 64;
+    return !reprocessor.isRemoved()
+        && player.distanceToSqr(reprocessor.getBlockPos().getCenter()) <= 64;
   }
 }

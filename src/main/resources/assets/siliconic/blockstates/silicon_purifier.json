@@ -1,1 +1,1 @@
-{"variants":{"":{"model":"siliconic:block/silicon_purifier"}}}
+{"variants":{"active=false":{"model":"siliconic:block/silicon_purifier"},"active=true":{"model":"siliconic:block/silicon_purifier_active"}}}

@@ -154,22 +154,31 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, SiliconProcessorBlockEntity processor) {
-    if (!CleanroomOccupancy.isMachineInside(level, pos)) return;
+    if (!CleanroomOccupancy.isMachineInside(level, pos)) {
+      updateActiveState(level, pos, state, false);
+      return;
+    }
     MachineProcess process = processor.currentProcess();
     if (process == null) {
       processor.resetProgress();
+      updateActiveState(level, pos, state, false);
       return;
     }
     if (!processor.pendingResult.isEmpty()) {
       if (processor.canFitOutput(processor.pendingResult))
         processor.finishProcess(process, processor.pendingResult);
+      updateActiveState(level, pos, state, false);
       return;
     }
     if (!processor.canFitPossibleOutput(process.result())) {
       processor.resetProgress();
+      updateActiveState(level, pos, state, false);
       return;
     }
-    if (!processor.energy.consumeInternal(process.energyPerTick())) return;
+    if (!processor.energy.consumeInternal(process.energyPerTick())) {
+      updateActiveState(level, pos, state, false);
+      return;
+    }
     processor.progress++;
     if (processor.progress >= process.ticks()) {
       ItemStack result =
@@ -178,6 +187,13 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       else processor.pendingResult = result;
     }
     processor.setChanged();
+    updateActiveState(level, pos, state, true);
+  }
+
+  private static void updateActiveState(
+      Level level, BlockPos pos, BlockState state, boolean active) {
+    if (state.getValue(SiliconProcessorBlock.ACTIVE) != active)
+      level.setBlock(pos, state.setValue(SiliconProcessorBlock.ACTIVE, active), 3);
   }
 
   private void resetProgress() {

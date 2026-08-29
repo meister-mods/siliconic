@@ -1,1 +1,1 @@
-{"parent":"minecraft:block/orientable","textures":{"front":"minecraft:block/smooth_stone","side":"siliconic:block/fabrication_frame_side","top":"siliconic:block/fabrication_frame_cap"}}
+{"parent":"minecraft:block/orientable","textures":{"front":"siliconic:block/wafer_station_front","side":"siliconic:block/fabrication_frame_side","top":"siliconic:block/fabrication_frame_cap"}}

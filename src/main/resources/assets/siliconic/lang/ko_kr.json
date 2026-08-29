@@ -1,5 +1,5 @@
 {
-  "block.siliconic.wafer_station": "웨이퍼 작업기",
+  "block.siliconic.wafer_station": "웨이퍼 조립기",
   "block.siliconic.wafer_guard": "웨이퍼 가드",
   "block.siliconic.wafer_inverter": "웨이퍼 반전기",
   "block.siliconic.wafer_duplicator": "웨이퍼 복제기",
@@ -50,7 +50,7 @@
   "item.siliconic.cleanroom_chestplate": "방진복 상의",
   "item.siliconic.cleanroom_leggings": "방진복 하의",
   "item.siliconic.cleanroom_boots": "방진 장화",
-  "container.siliconic.wafer_station": "9×9 웨이퍼 작업기",
+  "container.siliconic.wafer_station": "9×9 웨이퍼 조립기",
   "container.siliconic.wafer_duplicator": "웨이퍼 복제기",
   "container.siliconic.silicon_arc_furnace": "실리콘 전기로",
   "container.siliconic.silicon_purifier": "실리콘 정제기",

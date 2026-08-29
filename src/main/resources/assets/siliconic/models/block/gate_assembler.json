@@ -1,1 +1,1 @@
-{"parent":"minecraft:block/orientable","textures":{"front":"minecraft:block/redstone_lamp_on","side":"siliconic:block/fabrication_frame_side","top":"siliconic:block/fabrication_frame_cap"}}
+{"parent":"minecraft:block/orientable","textures":{"front":"siliconic:block/gate_assembler_front","side":"siliconic:block/fabrication_frame_side","top":"siliconic:block/fabrication_frame_cap"}}

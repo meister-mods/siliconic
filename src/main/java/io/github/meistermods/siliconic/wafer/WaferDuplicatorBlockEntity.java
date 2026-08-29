@@ -222,7 +222,8 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
       int available = 0;
       for (int slot = MATERIAL_START; slot < MATERIAL_START + MATERIAL_SLOTS; slot++) {
         ItemStack candidate = items.getStackInSlot(slot);
-        if (ItemStack.isSameItemSameTags(requirement, candidate)) available += candidate.getCount();
+        if (PrototypeWaferBlockEntity.isSameComponent(requirement, candidate))
+          available += candidate.getCount();
       }
       if (available < requirement.getCount()) return false;
     }
@@ -236,7 +237,7 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
           slot < MATERIAL_START + MATERIAL_SLOTS && remaining > 0;
           slot++) {
         ItemStack candidate = items.getStackInSlot(slot);
-        if (!ItemStack.isSameItemSameTags(requirement, candidate)) continue;
+        if (!PrototypeWaferBlockEntity.isSameComponent(requirement, candidate)) continue;
         int extracted = Math.min(remaining, candidate.getCount());
         items.extractItem(slot, extracted, false);
         remaining -= extracted;

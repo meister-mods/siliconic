@@ -7,10 +7,7 @@ import io.github.meistermods.siliconic.registry.ModItems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -42,7 +39,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public static final int GRID_SIZE = 9;
   public static final String DESIGN_TAG = "SiliconicDesign";
   public static final String COMPLETED_TAG = "SiliconicCompleted";
-  private static final int MAX_CACHED_INPUTS = 64;
+  public static final String RUNTIME_TAG = "SiliconicRuntime";
   private static final TagKey<Item> REDSTONE_DUSTS = materialTag("dusts/redstone");
   private static final TagKey<Item> COPPER_NUGGETS = materialTag("nuggets/copper");
   private static final TagKey<Item> LEAD_NUGGETS = materialTag("nuggets/lead");
@@ -58,8 +55,6 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private boolean powered;
   private boolean insideCleanroom;
   private boolean simulationDirty = true;
-  private final LinkedHashMap<Integer, Simulation> simulationCache =
-      new LinkedHashMap<>(16, 0.75f, true);
 
   private final class StationEnergyStorage extends EnergyStorage {
     StationEnergyStorage() {
@@ -144,9 +139,16 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private record Simulation(
-      int[] signals, int[] horizontalSignals, int[] verticalSignals, int[] outputs) {}
+      int[] signals,
+      int[] horizontalSignals,
+      int[] verticalSignals,
+      int[] outputs,
+      int[][] wireStrength,
+      int[][] wireRemaining,
+      int[][] chipOutputs) {}
 
-  private record SimulationKey(CompoundTag design, int size, int waferLevel, int packedInputs) {}
+  private record RuntimeState(
+      int[] signals, int[][] wireStrength, int[][] wireRemaining, int[][] chipOutputs) {}
 
   private record Pulse(int strength, CellType material, int remaining) {
     static final Pulse NONE = new Pulse(0, CellType.EMPTY, 0);
@@ -301,6 +303,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public void cyclePinMode(int pin) {
     if (!isInsideCleanroom() || !hasWafer() || pin < 0 || pin >= 4) return;
     markUnfinished();
+    clearRuntimeState(wafer);
     int[] modes = modes(design());
     modes[pin] = PinMode.values()[modes[pin]].next().ordinal();
     design().putIntArray("PinModes", modes);
@@ -313,12 +316,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (rotate) {
       if (old.isConductor()) {
         markUnfinished();
+        clearRuntimeState(wafer);
         byte[] modes = conductorModes(design(), getGridSize());
         modes[cell] = (byte) getConductorMode(cell).next().ordinal();
         design().putByteArray("ConductorModes", modes);
         changedAndSync();
       } else if (old.isGate() || old == CellType.CHIP) {
         markUnfinished();
+        clearRuntimeState(wafer);
         byte[] value = rotations(design(), getGridSize());
         value[cell] = (byte) ((value[cell] + 1) & 3);
         design().putByteArray("Rotations", value);
@@ -357,6 +362,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   private void setCell(int cell, CellType type) {
     markUnfinished();
+    clearRuntimeState(wafer);
     int size = getGridSize();
     byte[] cells = cells(design(), size), rots = rotations(design(), size);
     byte[] conductorModes = conductorModes(design(), size);
@@ -405,9 +411,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private void storeChip(int cell, ItemStack stack) {
-    CompoundTag chips = design().getCompound("Chips");
+    storeChip(design(), cell, stack);
+  }
+
+  private void storeChip(CompoundTag design, int cell, ItemStack stack) {
+    CompoundTag chips = design.getCompound("Chips");
     chips.put(Integer.toString(cell), stack.save(new CompoundTag()));
-    design().put("Chips", chips);
+    design.put("Chips", chips);
   }
 
   private ItemStack chipAt(CompoundTag design, int cell) {
@@ -450,14 +460,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
               : 0;
     if (!simulationDirty && Arrays.equals(inputs, nextInputs)) return false;
     System.arraycopy(nextInputs, 0, inputs, 0, inputs.length);
-    int inputKey = packInputs(inputs);
-    Simulation result = simulationCache.get(inputKey);
-    if (result == null) {
-      result = simulate(design(), getGridSize(), inputs, getWaferLevel(), new HashMap<>());
-      simulationCache.put(inputKey, result);
-      if (simulationCache.size() > MAX_CACHED_INPUTS)
-        simulationCache.remove(simulationCache.keySet().iterator().next());
-    }
+    Simulation result = simulateWafer(wafer, inputs, getWaferLevel());
     simulationDirty = false;
     signals = result.signals.clone();
     horizontalSignals = result.horizontalSignals.clone();
@@ -468,16 +471,36 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     return true;
   }
 
+  private Simulation simulateWafer(
+      ItemStack stack, int[] externalInputs, int containingWaferLevel) {
+    int size = sizeOf(stack);
+    CompoundTag design = stack.getOrCreateTagElement(DESIGN_TAG);
+    Simulation result =
+        simulate(
+            design,
+            size,
+            externalInputs,
+            containingWaferLevel,
+            readRuntimeState(stack, size));
+    writeRuntimeState(stack, result);
+    return result;
+  }
+
   private Simulation simulate(
       CompoundTag design,
       int size,
       int[] externalInputs,
       int containingWaferLevel,
-      Map<SimulationKey, int[]> nestedCache) {
+      RuntimeState previous) {
     int count = size * size;
-    int[] values = new int[count];
-    int[][] wireStrength = new int[count][4], wireRemaining = new int[count][4];
-    int[][] chipOutputs = new int[count][4];
+    // Seed fixed-point iteration with the prior settled state so feedback circuits retain memory.
+    int[] values = previous.signals.clone();
+    int[][] wireStrength = copyMatrix(previous.wireStrength);
+    int[][] wireRemaining = copyMatrix(previous.wireRemaining);
+    int[][] chipOutputs = copyMatrix(previous.chipOutputs);
+    // Nested chips are instance-local and only need reevaluation when their inputs change.
+    int[][] lastChipInputs = new int[count][];
+    int[][] lastNestedOutputs = new int[count][];
     for (int pass = 0; pass < count + 8; pass++) {
       int[][] nextChips = new int[count][4];
       for (int cell = 0; cell < count; cell++)
@@ -503,8 +526,15 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
                       cell,
                       world);
             }
-          int[] nestedOutputs =
-              simulateNested(child, sizeOf(chip), childInputs, childLevel, nestedCache);
+          int[] nestedOutputs;
+          if (Arrays.equals(lastChipInputs[cell], childInputs)) {
+            nestedOutputs = lastNestedOutputs[cell];
+          } else {
+            nestedOutputs = simulateWafer(chip, childInputs, childLevel).outputs.clone();
+            lastChipInputs[cell] = childInputs.clone();
+            lastNestedOutputs[cell] = nestedOutputs;
+            storeChip(design, cell, chip);
+          }
           for (int local = 0; local < 4; local++)
             if (pinMode(child, local) == PinMode.OUTPUT)
               nextChips[cell][(local + rotation) & 3] = nestedOutputs[local];
@@ -579,30 +609,77 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
         vertical[cell] = values[cell];
       }
     }
-    return new Simulation(values, horizontal, vertical, resultOutputs);
+    return new Simulation(
+        values,
+        horizontal,
+        vertical,
+        resultOutputs,
+        wireStrength,
+        wireRemaining,
+        chipOutputs);
   }
 
-  private int[] simulateNested(
-      CompoundTag design,
-      int size,
-      int[] externalInputs,
-      int waferLevel,
-      Map<SimulationKey, int[]> nestedCache) {
-    // Legacy designs are normalized before becoming map keys so their hash remains stable.
-    cells(design, size);
-    SimulationKey key = new SimulationKey(design, size, waferLevel, packInputs(externalInputs));
-    int[] cached = nestedCache.get(key);
-    if (cached != null) return cached;
-    int[] outputs = simulate(design, size, externalInputs, waferLevel, nestedCache).outputs.clone();
-    nestedCache.put(key, outputs);
-    return outputs;
+  private RuntimeState readRuntimeState(ItemStack stack, int size) {
+    int count = size * size;
+    CompoundTag runtime = stack.getTagElement(RUNTIME_TAG);
+    if (runtime == null || runtime.getInt("Size") != size)
+      return new RuntimeState(
+          new int[count], new int[count][4], new int[count][4], new int[count][4]);
+    return new RuntimeState(
+        readByteVector(runtime, "Signals", count),
+        readByteMatrix(runtime, "WireStrength", count),
+        readByteMatrix(runtime, "WireRemaining", count),
+        readByteMatrix(runtime, "ChipOutputs", count));
   }
 
-  private static int packInputs(int[] inputs) {
-    int packed = 0;
-    for (int pin = 0; pin < Math.min(4, inputs.length); pin++)
-      packed |= (inputs[pin] & 15) << (pin * 4);
-    return packed;
+  private int[] readByteVector(CompoundTag tag, String key, int length) {
+    byte[] stored = tag.getByteArray(key);
+    int[] result = new int[length];
+    if (stored.length != length) return result;
+    for (int index = 0; index < length; index++)
+      result[index] = Byte.toUnsignedInt(stored[index]);
+    return result;
+  }
+
+  private int[][] readByteMatrix(CompoundTag tag, String key, int rows) {
+    byte[] stored = tag.getByteArray(key);
+    int[][] result = new int[rows][4];
+    if (stored.length != rows * 4) return result;
+    for (int row = 0; row < rows; row++)
+      for (int column = 0; column < 4; column++)
+        result[row][column] = Byte.toUnsignedInt(stored[row * 4 + column]);
+    return result;
+  }
+
+  private void writeRuntimeState(ItemStack stack, Simulation simulation) {
+    CompoundTag runtime = stack.getOrCreateTagElement(RUNTIME_TAG);
+    runtime.putInt("Size", sizeOf(stack));
+    runtime.putByteArray("Signals", toByteArray(simulation.signals));
+    runtime.putByteArray("WireStrength", toByteArray(simulation.wireStrength));
+    runtime.putByteArray("WireRemaining", toByteArray(simulation.wireRemaining));
+    runtime.putByteArray("ChipOutputs", toByteArray(simulation.chipOutputs));
+  }
+
+  private byte[] toByteArray(int[] values) {
+    byte[] result = new byte[values.length];
+    for (int index = 0; index < values.length; index++)
+      result[index] = (byte) Math.max(0, Math.min(255, values[index]));
+    return result;
+  }
+
+  private byte[] toByteArray(int[][] values) {
+    byte[] result = new byte[values.length * 4];
+    for (int row = 0; row < values.length; row++)
+      for (int column = 0; column < 4; column++)
+        result[row * 4 + column] =
+            (byte) Math.max(0, Math.min(255, values[row][column]));
+    return result;
+  }
+
+  private int[][] copyMatrix(int[][] values) {
+    int[][] result = new int[values.length][];
+    for (int row = 0; row < values.length; row++) result[row] = values[row].clone();
+    return result;
   }
 
   private void routeConductor(
@@ -817,15 +894,42 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private static void mergeRequirement(List<ItemStack> requirements, ItemStack added) {
     if (added.isEmpty()) return;
     for (ItemStack requirement : requirements)
-      if (ItemStack.isSameItemSameTags(requirement, added)) {
+      if (isSameComponent(requirement, added)) {
         requirement.grow(added.getCount());
         return;
       }
     requirements.add(added.copy());
   }
 
+  /** Runtime latch state does not change which physical circuit component an item represents. */
+  public static boolean isSameComponent(ItemStack first, ItemStack second) {
+    if (!first.is(second.getItem())) return false;
+    if (levelOf(first) == 0 && levelOf(second) == 0)
+      return ItemStack.isSameItemSameTags(first, second);
+    ItemStack normalizedFirst = first.copy();
+    ItemStack normalizedSecond = second.copy();
+    removeRuntimeStateRecursively(normalizedFirst);
+    removeRuntimeStateRecursively(normalizedSecond);
+    return ItemStack.isSameItemSameTags(normalizedFirst, normalizedSecond);
+  }
+
+  private static void removeRuntimeStateRecursively(ItemStack stack) {
+    clearRuntimeState(stack);
+    CompoundTag design = stack.getTagElement(DESIGN_TAG);
+    if (design == null) return;
+    CompoundTag chips = design.getCompound("Chips");
+    for (String key : chips.getAllKeys()) {
+      ItemStack child = ItemStack.of(chips.getCompound(key));
+      if (child.isEmpty()) continue;
+      removeRuntimeStateRecursively(child);
+      chips.put(key, child.save(new CompoundTag()));
+    }
+    design.put("Chips", chips);
+  }
+
   public static void mirrorHorizontally(ItemStack stack) {
     if (levelOf(stack) == 0) return;
+    clearRuntimeState(stack);
     CompoundTag design = stack.getTagElement(DESIGN_TAG);
     if (design == null) return;
     migrateLegacyGrid(design);
@@ -945,6 +1049,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (wafer.hasTag()) wafer.getTag().remove(COMPLETED_TAG);
   }
 
+  private static void clearRuntimeState(ItemStack stack) {
+    if (stack.hasTag()) stack.getTag().remove(RUNTIME_TAG);
+  }
+
   private boolean valid(int cell) {
     return hasWafer() && cell >= 0 && cell < getGridSize() * getGridSize();
   }
@@ -1013,7 +1121,6 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   private void changedAndSync() {
     simulationDirty = true;
-    simulationCache.clear();
     setChanged();
     recalculateSignals();
     updateBlockState();
@@ -1050,7 +1157,6 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public void load(CompoundTag tag) {
     super.load(tag);
     simulationDirty = true;
-    simulationCache.clear();
     wafer = ItemStack.of(tag.getCompound("Wafer"));
     copy(tag.getIntArray("Inputs"), inputs);
     copy(tag.getIntArray("Outputs"), outputs);

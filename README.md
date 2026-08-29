@@ -13,6 +13,7 @@ Siliconic introduces a technology path that begins with resource gathering and c
 - A tiered wafer system ranging from SSI to ULSI
 - Circuit design using traces, input and output pins, and signal direction
 - Hierarchical integration that allows completed lower-tier wafers to be reused inside higher-tier wafers
+- Stateful sequential circuits such as NAND flip-flops, including state-preserving embedded wafers
 - Utility machines for duplicating, mirroring, and operating wafer circuits
 - An energy system with coal-powered generation and machine-specific power consumption
 - Cleanroom conditioning with seal monitoring, persistent cleanliness, coated-wall bonuses, and

@@ -6,6 +6,7 @@ import io.github.meistermods.siliconic.fabrication.FabricationStationBlock;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
 import io.github.meistermods.siliconic.power.PowerCableBlock;
 import io.github.meistermods.siliconic.power.RedstoneClockBlock;
+import io.github.meistermods.siliconic.reprocessing.ReprocessingStationBlock;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlock;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlock;
 import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlock;
@@ -79,6 +80,15 @@ public final class ModBlocks {
               new FabricationStationBlock(
                   BlockBehaviour.Properties.of()
                       .mapColor(MapColor.COLOR_ORANGE)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> REPROCESSING_STATION =
+      BLOCKS.register(
+          "reprocessing_station",
+          () ->
+              new ReprocessingStationBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()));
   public static final RegistryObject<Block> SILVER_ORE =

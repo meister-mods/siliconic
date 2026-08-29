@@ -75,6 +75,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SILICON_PURIFIER.get());
                         output.accept(ModItems.WAFER_FABRICATOR.get());
                         output.accept(ModItems.GATE_ASSEMBLER.get());
+                        output.accept(ModItems.REPROCESSING_STATION.get());
                         output.accept(ModItems.WAFER_STATION.get());
                         output.accept(ModItems.WAFER_GUARD.get());
                         output.accept(ModItems.WAFER_INVERTER.get());

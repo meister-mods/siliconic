@@ -89,6 +89,10 @@ public final class ModItems {
       ITEMS.register(
           "gate_assembler",
           () -> new BlockItem(ModBlocks.GATE_ASSEMBLER.get(), new Item.Properties()));
+  public static final RegistryObject<Item> REPROCESSING_STATION =
+      ITEMS.register(
+          "reprocessing_station",
+          () -> new BlockItem(ModBlocks.REPROCESSING_STATION.get(), new Item.Properties()));
   public static final RegistryObject<Item> SILVER_ORE =
       ITEMS.register(
           "silver_ore", () -> new BlockItem(ModBlocks.SILVER_ORE.get(), new Item.Properties()));

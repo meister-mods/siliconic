@@ -21,6 +21,7 @@ Siliconic introduces a technology path that begins with resource gathering and c
   logic gates
 - 3x3 output storage for silicon processors, wafer fabricators, gate assemblers, and wafer
   duplicators
+- A powered reprocessing station that recovers usable materials from contaminated process waste
 - Support for both singleplayer and multiplayer
 - Optional JEI integration for viewing machine recipes
 

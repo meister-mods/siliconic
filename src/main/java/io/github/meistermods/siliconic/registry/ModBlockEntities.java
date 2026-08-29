@@ -4,6 +4,7 @@ import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.cleanroom.ConditionerBlockEntity;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
+import io.github.meistermods.siliconic.reprocessing.ReprocessingStationBlockEntity;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlockEntity;
@@ -66,6 +67,15 @@ public final class ModBlockEntities {
                           FabricationStationBlockEntity::new,
                           ModBlocks.WAFER_FABRICATOR.get(),
                           ModBlocks.GATE_ASSEMBLER.get())
+                      .build(null));
+  public static final RegistryObject<BlockEntityType<ReprocessingStationBlockEntity>>
+      REPROCESSING_STATION =
+          BLOCK_ENTITIES.register(
+              "reprocessing_station",
+              () ->
+                  BlockEntityType.Builder.of(
+                          ReprocessingStationBlockEntity::new,
+                          ModBlocks.REPROCESSING_STATION.get())
                       .build(null));
   public static final RegistryObject<BlockEntityType<ConditionerBlockEntity>> CONDITIONER =
       BLOCK_ENTITIES.register(

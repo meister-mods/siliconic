@@ -183,6 +183,7 @@ public final class ModBlocks {
                       .mapColor(MapColor.METAL)
                       .strength(2.5f)
                       .requiresCorrectToolForDrops()
+                      .noOcclusion()
                       .lightLevel(state -> state.getValue(RedstoneClockBlock.POWERED) ? 7 : 0)));
   public static final RegistryObject<Block> CONDITIONER =
       BLOCKS.register(

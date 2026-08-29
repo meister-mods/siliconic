@@ -1,6 +1,5 @@
 package io.github.meistermods.siliconic.power;
 
-import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -11,12 +10,15 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 @SuppressWarnings({"null"})
 public class RedstoneClockBlock extends Block {
   public static final BooleanProperty POWERED = BooleanProperty.create("powered");
   private static final int ON_TICKS = 2;
   private static final int OFF_TICKS = 18;
+  private static final VoxelShape SHAPE = box(0, 0, 0, 16, 3, 16);
 
   public RedstoneClockBlock(Properties properties) {
     super(properties);
@@ -31,14 +33,21 @@ public class RedstoneClockBlock extends Block {
 
   @Override
   public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-    if (!CleanroomOccupancy.isMachineInside(level, pos)) {
-      if (state.getValue(POWERED)) level.setBlock(pos, state.setValue(POWERED, false), 3);
-      level.scheduleTick(pos, this, OFF_TICKS);
-      return;
-    }
     boolean powered = !state.getValue(POWERED);
     level.setBlock(pos, state.setValue(POWERED, powered), 3);
     level.scheduleTick(pos, this, powered ? ON_TICKS : OFF_TICKS);
+  }
+
+  @Override
+  public VoxelShape getShape(
+      BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    return SHAPE;
+  }
+
+  @Override
+  public VoxelShape getCollisionShape(
+      BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    return SHAPE;
   }
 
   @Override

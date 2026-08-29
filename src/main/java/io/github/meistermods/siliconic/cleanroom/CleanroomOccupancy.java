@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.cleanroom;
 
+import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -14,12 +15,22 @@ import net.minecraft.world.level.Level;
 public final class CleanroomOccupancy {
   private static final Map<Level, LevelClaims> LEVEL_CLAIMS = new WeakHashMap<>();
 
-  public static void update(
+  public static Set<Long> update(
       Level level, BlockPos conditionerPos, Set<Long> claimedPositions, int cleanliness) {
-    if (level.isClientSide) return;
+    if (level.isClientSide) return Set.of(conditionerPos.asLong());
     LevelClaims claims = LEVEL_CLAIMS.computeIfAbsent(level, ignored -> new LevelClaims());
     claims.update(conditionerPos.asLong(), claimedPositions, cleanliness);
+    Set<Long> group = claims.group(conditionerPos.asLong());
     if (claims.isEmpty()) LEVEL_CLAIMS.remove(level);
+    return group;
+  }
+
+  /** Keeps every claim for one connected cleanroom on the same shared cleanliness value. */
+  public static void synchronizeCleanliness(
+      Level level, Set<Long> conditionerPositions, int cleanliness) {
+    if (level.isClientSide) return;
+    LevelClaims claims = LEVEL_CLAIMS.get(level);
+    if (claims != null) claims.setCleanliness(conditionerPositions, cleanliness);
   }
 
   public static void remove(Level level, BlockPos conditionerPos) {
@@ -86,6 +97,41 @@ public final class CleanroomOccupancy {
         if (touches(entry.getValue(), machinePos))
           best = Math.max(best, cleanlinessByConditioner.getOrDefault(entry.getKey(), 0));
       return best;
+    }
+
+    Set<Long> group(long origin) {
+      Set<Long> originPositions = positionsByConditioner.get(origin);
+      if (originPositions == null) return Set.of(origin);
+
+      Set<Long> connected = new HashSet<>();
+      ArrayDeque<Long> pending = new ArrayDeque<>();
+      connected.add(origin);
+      pending.add(origin);
+      while (!pending.isEmpty()) {
+        Set<Long> currentPositions = positionsByConditioner.get(pending.removeFirst());
+        if (currentPositions == null) continue;
+        for (Map.Entry<Long, Set<Long>> entry : positionsByConditioner.entrySet()) {
+          if (connected.contains(entry.getKey())) continue;
+          if (!overlaps(currentPositions, entry.getValue())) continue;
+          connected.add(entry.getKey());
+          pending.addLast(entry.getKey());
+        }
+      }
+      return Set.copyOf(connected);
+    }
+
+    void setCleanliness(Set<Long> conditionerPositions, int cleanliness) {
+      int clamped = Math.max(0, Math.min(100, cleanliness));
+      for (long conditionerPos : conditionerPositions)
+        if (positionsByConditioner.containsKey(conditionerPos))
+          cleanlinessByConditioner.put(conditionerPos, clamped);
+    }
+
+    private boolean overlaps(Set<Long> first, Set<Long> second) {
+      Set<Long> smaller = first.size() <= second.size() ? first : second;
+      Set<Long> larger = smaller == first ? second : first;
+      for (long position : smaller) if (larger.contains(position)) return true;
+      return false;
     }
 
     private boolean touches(Set<Long> positions, BlockPos machinePos) {

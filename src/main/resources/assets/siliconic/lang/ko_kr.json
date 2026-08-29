@@ -60,6 +60,7 @@
   "container.siliconic.conditioner": "클린룸 컨디셔너",
   "screen.siliconic.conditioner.powered": "가동 중 · 1초마다 공간 재스캔",
   "screen.siliconic.conditioner.unpowered": "정지: 전력 부족 · 공간 감시는 계속됨",
+  "screen.siliconic.conditioner.count": "연동 컨디셔너: %s대",
   "screen.siliconic.conditioner.status.not_scanned": "공간 상태: 아직 스캔되지 않음",
   "screen.siliconic.conditioner.status.sealed": "공간 상태: 밀폐됨",
   "screen.siliconic.conditioner.status.openable_open": "공간 상태: 개폐 블록이 열려 있음",

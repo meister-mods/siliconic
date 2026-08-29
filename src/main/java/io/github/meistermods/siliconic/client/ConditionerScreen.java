@@ -48,6 +48,16 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
   protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
     RoomScanResult result = menu.lastScan();
     g.drawString(font, title, 8, 6, 0xffe8edf2, false);
+    Component conditionerCount =
+        Component.translatable(
+            "screen.siliconic.conditioner.count", menu.conditionerCount());
+    g.drawString(
+        font,
+        conditionerCount,
+        imageWidth - 8 - font.width(conditionerCount),
+        6,
+        0xff8bcff3,
+        false);
     g.drawString(
         font,
         Component.translatable(

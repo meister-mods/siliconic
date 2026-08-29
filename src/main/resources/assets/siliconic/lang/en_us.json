@@ -60,6 +60,7 @@
   "container.siliconic.conditioner": "Cleanroom Conditioner",
   "screen.siliconic.conditioner.powered": "Running · rescans the room every second",
   "screen.siliconic.conditioner.unpowered": "Stopped: insufficient power · room monitoring continues",
+  "screen.siliconic.conditioner.count": "Linked conditioners: %s",
   "screen.siliconic.conditioner.status.not_scanned": "Room status: not scanned yet",
   "screen.siliconic.conditioner.status.sealed": "Room status: sealed",
   "screen.siliconic.conditioner.status.openable_open": "Room status: an openable block is open",

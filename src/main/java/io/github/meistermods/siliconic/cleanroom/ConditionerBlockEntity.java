@@ -3,7 +3,9 @@ package io.github.meistermods.siliconic.cleanroom;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -39,19 +41,26 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   public static final int CLEANLINESS_DECAY_PER_SCAN = 2;
   public static final int CONTAMINATION_PER_UNPROTECTED_ENTITY = 2;
   private static final String CLAIMED_INTERIOR_TAG = "ClaimedInterior";
+  private static final String LAST_SHARED_UPDATE_TAG = "LastSharedCleanlinessUpdate";
+  private static final String RECOVERY_PROGRESS_TAG = "CleanlinessRecoveryProgress";
+  private static final double LOG_2 = Math.log(2.0D);
 
   private final ConditionerEnergyStorage energy = new ConditionerEnergyStorage();
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
   private boolean powered;
+  private boolean sharedPowered;
   private int scanCooldown;
   private int cleanliness;
   private int cleanlinessLimit = BASE_CLEANLINESS_LIMIT;
   private int coatingCoverage;
   private int unprotectedEntities;
+  private int conditionerCount = 1;
+  private long lastSharedCleanlinessUpdate = -1L;
+  private double cleanlinessRecoveryProgress;
   private RoomScanResult lastScan = RoomScanResult.notScanned();
   private final Set<Long> claimedInteriorPositions = new HashSet<>();
-  private final int[] clientData = new int[7];
+  private final int[] clientData = new int[8];
   private final ContainerData data =
       new ContainerData() {
         @Override
@@ -61,11 +70,12 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
           return switch (index) {
             case 0 -> MenuDataSync.low(energy.getEnergyStored());
             case 1 -> MenuDataSync.high(energy.getEnergyStored());
-            case 2 -> powered ? 1 : 0;
+            case 2 -> sharedPowered ? 1 : 0;
             case 3 -> cleanliness;
             case 4 -> cleanlinessLimit();
             case 5 -> coatingCoverage();
             case 6 -> unprotectedEntities;
+            case 7 -> conditionerCount;
             default -> 0;
           };
         }
@@ -143,29 +153,129 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
         conditioner.claimedInteriorPositions.clear();
         conditioner.claimedInteriorPositions.addAll(conditioner.lastScan.interiorPositions());
       }
-      conditioner.updateCleanliness(level);
-      CleanroomOccupancy.update(
-          level, pos, conditioner.claimedInteriorPositions, conditioner.cleanliness);
+      Set<Long> conditionerGroup =
+          CleanroomOccupancy.update(
+              level, pos, conditioner.claimedInteriorPositions, conditioner.cleanliness);
+      conditioner.synchronizeGroup(level, conditionerGroup);
       conditioner.scanCooldown = SCAN_INTERVAL;
       conditioner.sync();
     } else if (powerChanged) conditioner.sync();
     if (nextPowered) conditioner.setChanged();
   }
 
-  private void updateCleanliness(Level level) {
+  private void synchronizeGroup(Level level, Set<Long> conditionerPositions) {
+    List<ConditionerBlockEntity> conditioners = resolveConditioners(level, conditionerPositions);
+    ConditionerBlockEntity source = sharedStateSource(conditioners);
+    SharedState snapshot = source.sharedState();
+    boolean roomPowered = conditioners.stream().anyMatch(conditioner -> conditioner.powered);
+    int sharedConditionerCount = conditioners.size();
+    Set<ConditionerBlockEntity> changedConditioners = new HashSet<>();
+
+    for (ConditionerBlockEntity conditioner : conditioners)
+      if (conditioner.applySharedState(snapshot, sharedConditionerCount, roomPowered))
+        changedConditioners.add(conditioner);
+
+    long gameTime = level.getGameTime();
+    if (snapshot.updatedAt() < 0L
+        || gameTime < snapshot.updatedAt()
+        || gameTime - snapshot.updatedAt() >= SCAN_INTERVAL) {
+      updateCleanliness(level, roomPowered);
+      lastSharedCleanlinessUpdate = gameTime;
+      snapshot = sharedState();
+      for (ConditionerBlockEntity conditioner : conditioners)
+        if (conditioner.applySharedState(snapshot, sharedConditionerCount, roomPowered))
+          changedConditioners.add(conditioner);
+    }
+
+    CleanroomOccupancy.synchronizeCleanliness(
+        level, conditionerPositions, snapshot.cleanliness());
+    for (ConditionerBlockEntity conditioner : changedConditioners)
+      if (conditioner != this) conditioner.sync();
+  }
+
+  private List<ConditionerBlockEntity> resolveConditioners(
+      Level level, Set<Long> conditionerPositions) {
+    List<ConditionerBlockEntity> conditioners = new ArrayList<>();
+    for (long conditionerPosition : conditionerPositions) {
+      BlockEntity blockEntity = level.getBlockEntity(BlockPos.of(conditionerPosition));
+      if (blockEntity instanceof ConditionerBlockEntity conditioner && !conditioner.isRemoved())
+        conditioners.add(conditioner);
+    }
+    if (!conditioners.contains(this)) conditioners.add(this);
+    return conditioners;
+  }
+
+  private ConditionerBlockEntity sharedStateSource(List<ConditionerBlockEntity> conditioners) {
+    ConditionerBlockEntity source = conditioners.get(0);
+    for (int index = 1; index < conditioners.size(); index++) {
+      ConditionerBlockEntity candidate = conditioners.get(index);
+      if (candidate.lastSharedCleanlinessUpdate > source.lastSharedCleanlinessUpdate
+          || (candidate.lastSharedCleanlinessUpdate == source.lastSharedCleanlinessUpdate
+              && (candidate.cleanliness > source.cleanliness
+                  || (candidate.cleanliness == source.cleanliness
+                      && candidate.worldPosition.asLong() < source.worldPosition.asLong()))))
+        source = candidate;
+    }
+    return source;
+  }
+
+  private SharedState sharedState() {
+    return new SharedState(
+        cleanliness,
+        cleanlinessLimit,
+        coatingCoverage,
+        unprotectedEntities,
+        lastSharedCleanlinessUpdate,
+        cleanlinessRecoveryProgress);
+  }
+
+  private boolean applySharedState(
+      SharedState state, int sharedConditionerCount, boolean roomPowered) {
+    boolean changed =
+        cleanliness != state.cleanliness()
+            || cleanlinessLimit != state.cleanlinessLimit()
+            || coatingCoverage != state.coatingCoverage()
+            || unprotectedEntities != state.unprotectedEntities()
+            || lastSharedCleanlinessUpdate != state.updatedAt()
+            || Double.compare(cleanlinessRecoveryProgress, state.recoveryProgress()) != 0
+            || conditionerCount != sharedConditionerCount
+            || sharedPowered != roomPowered;
+    cleanliness = state.cleanliness();
+    cleanlinessLimit = state.cleanlinessLimit();
+    coatingCoverage = state.coatingCoverage();
+    unprotectedEntities = state.unprotectedEntities();
+    lastSharedCleanlinessUpdate = state.updatedAt();
+    cleanlinessRecoveryProgress = state.recoveryProgress();
+    conditionerCount = sharedConditionerCount;
+    sharedPowered = roomPowered;
+    return changed;
+  }
+
+  private void updateCleanliness(Level level, boolean roomPowered) {
     if (lastScan.isSealed()) {
       updateCleanlinessLimit();
-      if (powered)
-        cleanliness = Math.min(cleanlinessLimit, cleanliness + CLEANLINESS_RECOVERY_PER_SCAN);
-      else cleanliness = Math.min(cleanliness, cleanlinessLimit);
+      if (roomPowered) {
+        cleanlinessRecoveryProgress += recoveryPerScan(conditionerCount);
+        int recovery = (int) Math.floor(cleanlinessRecoveryProgress);
+        cleanlinessRecoveryProgress -= recovery;
+        cleanliness = Math.min(cleanlinessLimit, cleanliness + recovery);
+        if (cleanliness >= cleanlinessLimit) cleanlinessRecoveryProgress = 0.0D;
+      } else cleanliness = Math.min(cleanliness, cleanlinessLimit);
       unprotectedEntities = countUnprotectedEntities(level);
       int contamination =
           Math.min(MAX_CLEANLINESS, unprotectedEntities * CONTAMINATION_PER_UNPROTECTED_ENTITY);
       cleanliness = Math.max(0, cleanliness - contamination);
     } else {
       unprotectedEntities = 0;
+      cleanlinessRecoveryProgress = 0.0D;
       cleanliness = Math.max(0, cleanliness - CLEANLINESS_DECAY_PER_SCAN);
     }
+  }
+
+  private double recoveryPerScan(int conditioners) {
+    // One unit keeps the original rate; doubling the linked units adds one recovery per scan.
+    return CLEANLINESS_RECOVERY_PER_SCAN
+        * (1.0D + Math.log(Math.max(1, conditioners)) / LOG_2);
   }
 
   private int countUnprotectedEntities(Level level) {
@@ -227,6 +337,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     tag.putInt("Cleanliness", cleanliness);
     tag.putInt("CleanlinessLimit", cleanlinessLimit);
     tag.putInt("CoatingCoverage", coatingCoverage);
+    tag.putLong(LAST_SHARED_UPDATE_TAG, lastSharedCleanlinessUpdate);
+    tag.putDouble(RECOVERY_PROGRESS_TAG, cleanlinessRecoveryProgress);
     tag.putLongArray(
         CLAIMED_INTERIOR_TAG,
         claimedInteriorPositions.stream().mapToLong(Long::longValue).toArray());
@@ -244,6 +356,14 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
                 BASE_CLEANLINESS_LIMIT, Math.min(MAX_CLEANLINESS, tag.getInt("CleanlinessLimit")))
             : BASE_CLEANLINESS_LIMIT;
     coatingCoverage = Math.max(0, Math.min(100, tag.getInt("CoatingCoverage")));
+    lastSharedCleanlinessUpdate =
+        tag.contains(LAST_SHARED_UPDATE_TAG, Tag.TAG_LONG)
+            ? tag.getLong(LAST_SHARED_UPDATE_TAG)
+            : -1L;
+    cleanlinessRecoveryProgress =
+        tag.contains(RECOVERY_PROGRESS_TAG, Tag.TAG_DOUBLE)
+            ? Math.max(0.0D, Math.min(1.0D, tag.getDouble(RECOVERY_PROGRESS_TAG)))
+            : 0.0D;
     claimedInteriorPositions.clear();
     for (long claimedPos : tag.getLongArray(CLAIMED_INTERIOR_TAG))
       claimedInteriorPositions.add(claimedPos);
@@ -257,6 +377,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   public CompoundTag getUpdateTag() {
     CompoundTag tag = saveWithoutMetadata();
     tag.remove(CLAIMED_INTERIOR_TAG);
+    tag.remove(LAST_SHARED_UPDATE_TAG);
+    tag.remove(RECOVERY_PROGRESS_TAG);
     return tag;
   }
 
@@ -311,4 +433,12 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
     return new ConditionerMenu(id, inventory, this);
   }
+
+  private record SharedState(
+      int cleanliness,
+      int cleanlinessLimit,
+      int coatingCoverage,
+      int unprotectedEntities,
+      long updatedAt,
+      double recoveryProgress) {}
 }

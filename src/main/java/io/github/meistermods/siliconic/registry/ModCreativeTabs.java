@@ -37,6 +37,10 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.DEEPSLATE_LEAD_ORE.get());
                         output.accept(ModItems.COPPER_NUGGET.get());
                         output.accept(ModItems.COATED_BLOCK.get());
+                        output.accept(ModItems.CLEANROOM_HOOD.get());
+                        output.accept(ModItems.CLEANROOM_CHESTPLATE.get());
+                        output.accept(ModItems.CLEANROOM_LEGGINGS.get());
+                        output.accept(ModItems.CLEANROOM_BOOTS.get());
                       })
                   .build());
   public static final RegistryObject<CreativeModeTab> CIRCUITS =

@@ -53,6 +53,14 @@ public class ConditionerMenu extends AbstractContainerMenu {
     return conditioner.data().get(5);
   }
 
+  public int unprotectedEntities() {
+    return conditioner.data().get(6);
+  }
+
+  public int entityContaminationPerScan() {
+    return unprotectedEntities() * ConditionerBlockEntity.CONTAMINATION_PER_UNPROTECTED_ENTITY;
+  }
+
   public RoomScanResult lastScan() {
     return conditioner.lastScan();
   }

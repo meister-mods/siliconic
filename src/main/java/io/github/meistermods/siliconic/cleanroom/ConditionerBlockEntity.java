@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.cleanroom;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -11,6 +12,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -18,6 +20,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -33,6 +36,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   public static final int MAX_CLEANLINESS = 100;
   public static final int CLEANLINESS_RECOVERY_PER_SCAN = 1;
   public static final int CLEANLINESS_DECAY_PER_SCAN = 2;
+  public static final int CONTAMINATION_PER_UNPROTECTED_ENTITY = 2;
 
   private final ConditionerEnergyStorage energy = new ConditionerEnergyStorage();
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
@@ -42,8 +46,9 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   private int cleanliness;
   private int cleanlinessLimit = BASE_CLEANLINESS_LIMIT;
   private int coatingCoverage;
+  private int unprotectedEntities;
   private RoomScanResult lastScan = RoomScanResult.notScanned();
-  private final int[] clientData = new int[6];
+  private final int[] clientData = new int[7];
   private final ContainerData data =
       new ContainerData() {
         @Override
@@ -57,6 +62,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
             case 3 -> cleanliness;
             case 4 -> cleanlinessLimit();
             case 5 -> coatingCoverage();
+            case 6 -> unprotectedEntities;
             default -> 0;
           };
         }
@@ -130,7 +136,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (conditioner.scanCooldown > 0) conditioner.scanCooldown--;
     if (conditioner.scanCooldown == 0) {
       conditioner.lastScan = RoomScanner.scan(level, pos);
-      conditioner.updateCleanliness();
+      conditioner.updateCleanliness(level);
       CleanroomOccupancy.update(
           level, pos, conditioner.lastScan, conditioner.cleanliness);
       conditioner.scanCooldown = SCAN_INTERVAL;
@@ -139,13 +145,52 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (nextPowered) conditioner.setChanged();
   }
 
-  private void updateCleanliness() {
+  private void updateCleanliness(Level level) {
     if (lastScan.isSealed()) {
       updateCleanlinessLimit();
       if (powered)
         cleanliness = Math.min(cleanlinessLimit, cleanliness + CLEANLINESS_RECOVERY_PER_SCAN);
       else cleanliness = Math.min(cleanliness, cleanlinessLimit);
-    } else cleanliness = Math.max(0, cleanliness - CLEANLINESS_DECAY_PER_SCAN);
+      unprotectedEntities = countUnprotectedEntities(level);
+      int contamination =
+          Math.min(
+              MAX_CLEANLINESS,
+              unprotectedEntities * CONTAMINATION_PER_UNPROTECTED_ENTITY);
+      cleanliness = Math.max(0, cleanliness - contamination);
+    } else {
+      unprotectedEntities = 0;
+      cleanliness = Math.max(0, cleanliness - CLEANLINESS_DECAY_PER_SCAN);
+    }
+  }
+
+  private int countUnprotectedEntities(Level level) {
+    Set<Long> interior = lastScan.interiorPositions();
+    if (interior.isEmpty()) return 0;
+    int minX = Integer.MAX_VALUE;
+    int minY = Integer.MAX_VALUE;
+    int minZ = Integer.MAX_VALUE;
+    int maxX = Integer.MIN_VALUE;
+    int maxY = Integer.MIN_VALUE;
+    int maxZ = Integer.MIN_VALUE;
+    for (long packedPos : interior) {
+      BlockPos interiorPos = BlockPos.of(packedPos);
+      minX = Math.min(minX, interiorPos.getX());
+      minY = Math.min(minY, interiorPos.getY());
+      minZ = Math.min(minZ, interiorPos.getZ());
+      maxX = Math.max(maxX, interiorPos.getX());
+      maxY = Math.max(maxY, interiorPos.getY());
+      maxZ = Math.max(maxZ, interiorPos.getZ());
+    }
+    AABB bounds = new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
+    return level
+        .getEntitiesOfClass(
+            Entity.class,
+            bounds,
+            entity ->
+                !entity.isSpectator()
+                    && interior.contains(entity.blockPosition().asLong())
+                    && !CleanroomSuitItem.isFullyProtected(entity))
+        .size();
   }
 
   private void updateCleanlinessLimit() {

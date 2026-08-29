@@ -90,9 +90,9 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
     g.drawString(
         font,
         Component.translatable(
-            "screen.siliconic.conditioner.volume",
-            result.volume(),
-            result.scannedPositions()),
+            "screen.siliconic.conditioner.contamination",
+            menu.unprotectedEntities(),
+            menu.entityContaminationPerScan()),
         12,
         81,
         0xffd5dce3,
@@ -100,9 +100,9 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
     g.drawString(
         font,
         Component.translatable(
-            "screen.siliconic.conditioner.openables",
-            result.openableCount(),
-            result.openOpenableCount()),
+            "screen.siliconic.conditioner.volume",
+            result.volume(),
+            result.scannedPositions()),
         12,
         91,
         0xffd5dce3,

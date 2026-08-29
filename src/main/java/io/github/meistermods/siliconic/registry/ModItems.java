@@ -1,7 +1,9 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.cleanroom.CleanroomSuitItem;
 import io.github.meistermods.siliconic.wafer.WaferItem;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.registries.DeferredRegister;
@@ -58,6 +60,22 @@ public final class ModItems {
       ITEMS.register("xor_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> BUFFER_GATE =
       ITEMS.register("buffer_gate", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> CLEANROOM_HOOD =
+      ITEMS.register(
+          "cleanroom_hood",
+          () -> new CleanroomSuitItem(ArmorItem.Type.HELMET, new Item.Properties()));
+  public static final RegistryObject<Item> CLEANROOM_CHESTPLATE =
+      ITEMS.register(
+          "cleanroom_chestplate",
+          () -> new CleanroomSuitItem(ArmorItem.Type.CHESTPLATE, new Item.Properties()));
+  public static final RegistryObject<Item> CLEANROOM_LEGGINGS =
+      ITEMS.register(
+          "cleanroom_leggings",
+          () -> new CleanroomSuitItem(ArmorItem.Type.LEGGINGS, new Item.Properties()));
+  public static final RegistryObject<Item> CLEANROOM_BOOTS =
+      ITEMS.register(
+          "cleanroom_boots",
+          () -> new CleanroomSuitItem(ArmorItem.Type.BOOTS, new Item.Properties()));
   public static final RegistryObject<Item> WAFER_STATION =
       ITEMS.register(
           "wafer_station",

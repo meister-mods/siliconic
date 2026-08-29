@@ -1,1 +1,1 @@
-{"parent":"minecraft:block/orientable","textures":{"front":"minecraft:block/quartz_block_side","side":"minecraft:block/iron_block","top":"minecraft:block/quartz_block_top"}}
+{"parent":"minecraft:block/orientable","textures":{"front":"siliconic:block/silicon_purifier","side":"siliconic:block/coated_block","top":"siliconic:block/coated_block"}}

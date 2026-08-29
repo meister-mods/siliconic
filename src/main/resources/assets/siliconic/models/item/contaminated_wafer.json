@@ -1,7 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "siliconic:item/ssi_wafer",
-    "layer1": "minecraft:item/gunpowder"
+    "layer0": "siliconic:item/contaminated_wafer"
   }
 }

@@ -150,6 +150,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private record RuntimeState(
       int[] signals, int[][] wireStrength, int[][] wireRemaining, int[][] chipOutputs) {}
 
+  private record SimulationFrame(
+      int[] signals,
+      int[][] wireStrength,
+      int[][] wireRemaining,
+      int[][] chipOutputs) {}
+
   private record Pulse(int strength, CellType material, int remaining) {
     static final Pulse NONE = new Pulse(0, CellType.EMPTY, 0);
   }
@@ -493,6 +499,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       int containingWaferLevel,
       RuntimeState previous) {
     int count = size * size;
+    boolean hasNestedChips = false;
+    for (int cell = 0; cell < count; cell++)
+      if (cellType(design, size, cell) == CellType.CHIP) {
+        hasNestedChips = true;
+        break;
+      }
     // Seed fixed-point iteration with the prior settled state so feedback circuits retain memory.
     int[] values = previous.signals.clone();
     int[][] wireStrength = copyMatrix(previous.wireStrength);
@@ -501,7 +513,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     // Nested chips are instance-local and only need reevaluation when their inputs change.
     int[][] lastChipInputs = new int[count][];
     int[][] lastNestedOutputs = new int[count][];
+    List<SimulationFrame> history = new ArrayList<>();
+    history.add(captureFrame(values, wireStrength, wireRemaining, chipOutputs));
     for (int pass = 0; pass < count + 8; pass++) {
+      CompoundTag designBeforePass = hasNestedChips ? design.copy() : null;
       int[][] nextChips = new int[count][4];
       for (int cell = 0; cell < count; cell++)
         if (cellType(design, size, cell) == CellType.CHIP) {
@@ -579,11 +594,27 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
               && Arrays.deepEquals(wireStrength, nextWire)
               && Arrays.deepEquals(wireRemaining, nextWireRemaining)
               && Arrays.deepEquals(chipOutputs, nextChips);
+      if (stable) {
+        values = next;
+        wireStrength = nextWire;
+        wireRemaining = nextWireRemaining;
+        chipOutputs = nextChips;
+        break;
+      }
+
+      SimulationFrame nextFrame =
+          captureFrame(next, nextWire, nextWireRemaining, nextChips);
+      if (containsFrame(history, nextFrame)) {
+        // A feedback loop such as T = Q xor D has no fixed point during an active clock edge.
+        // Keep the last unique phase so one external input event advances sequential state once.
+        if (designBeforePass != null) restoreDesign(design, designBeforePass);
+        break;
+      }
       values = next;
       wireStrength = nextWire;
       wireRemaining = nextWireRemaining;
       chipOutputs = nextChips;
-      if (stable) break;
+      history.add(nextFrame);
     }
     int[] resultOutputs = new int[4];
     for (int pin = 0; pin < 4; pin++)
@@ -672,6 +703,32 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     int[][] result = new int[values.length][];
     for (int row = 0; row < values.length; row++) result[row] = values[row].clone();
     return result;
+  }
+
+  private SimulationFrame captureFrame(
+      int[] signals,
+      int[][] wireStrength,
+      int[][] wireRemaining,
+      int[][] chipOutputs) {
+    return new SimulationFrame(
+        signals.clone(),
+        copyMatrix(wireStrength),
+        copyMatrix(wireRemaining),
+        copyMatrix(chipOutputs));
+  }
+
+  private boolean containsFrame(List<SimulationFrame> history, SimulationFrame candidate) {
+    for (SimulationFrame frame : history)
+      if (Arrays.equals(frame.signals, candidate.signals)
+          && Arrays.deepEquals(frame.wireStrength, candidate.wireStrength)
+          && Arrays.deepEquals(frame.wireRemaining, candidate.wireRemaining)
+          && Arrays.deepEquals(frame.chipOutputs, candidate.chipOutputs)) return true;
+    return false;
+  }
+
+  private void restoreDesign(CompoundTag design, CompoundTag snapshot) {
+    for (String key : new ArrayList<>(design.getAllKeys())) design.remove(key);
+    design.merge(snapshot.copy());
   }
 
   private void routeConductor(

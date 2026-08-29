@@ -9,19 +9,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
-/** Runtime index of positions covered by currently sealed conditioner rooms. */
+/** Runtime index of the last sealed positions claimed by each live conditioner. */
 @SuppressWarnings({"null"})
 public final class CleanroomOccupancy {
   private static final Map<Level, LevelClaims> LEVEL_CLAIMS = new WeakHashMap<>();
 
   public static void update(
-      Level level, BlockPos conditionerPos, RoomScanResult scan, int cleanliness) {
+      Level level, BlockPos conditionerPos, Set<Long> claimedPositions, int cleanliness) {
     if (level.isClientSide) return;
     LevelClaims claims = LEVEL_CLAIMS.computeIfAbsent(level, ignored -> new LevelClaims());
-    claims.update(
-        conditionerPos.asLong(),
-        scan.isSealed() ? scan.interiorPositions() : Set.of(),
-        cleanliness);
+    claims.update(conditionerPos.asLong(), claimedPositions, cleanliness);
     if (claims.isEmpty()) LEVEL_CLAIMS.remove(level);
   }
 
@@ -47,7 +44,7 @@ public final class CleanroomOccupancy {
     return false;
   }
 
-  /** Returns the best cleanliness available when multiple sealed rooms cover a machine. */
+  /** Returns the best current cleanliness when multiple live conditioner claims cover a machine. */
   public static int cleanlinessAtMachine(Level level, BlockPos machinePos) {
     if (level == null || level.isClientSide) return 0;
     LevelClaims claims = LEVEL_CLAIMS.get(level);

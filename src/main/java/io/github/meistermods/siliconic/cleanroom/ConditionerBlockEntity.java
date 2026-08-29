@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.cleanroom;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
+import java.util.HashSet;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -37,6 +38,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   public static final int CLEANLINESS_RECOVERY_PER_SCAN = 1;
   public static final int CLEANLINESS_DECAY_PER_SCAN = 2;
   public static final int CONTAMINATION_PER_UNPROTECTED_ENTITY = 2;
+  private static final String CLAIMED_INTERIOR_TAG = "ClaimedInterior";
 
   private final ConditionerEnergyStorage energy = new ConditionerEnergyStorage();
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
@@ -48,6 +50,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   private int coatingCoverage;
   private int unprotectedEntities;
   private RoomScanResult lastScan = RoomScanResult.notScanned();
+  private final Set<Long> claimedInteriorPositions = new HashSet<>();
   private final int[] clientData = new int[7];
   private final ContainerData data =
       new ContainerData() {
@@ -136,8 +139,13 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (conditioner.scanCooldown > 0) conditioner.scanCooldown--;
     if (conditioner.scanCooldown == 0) {
       conditioner.lastScan = RoomScanner.scan(level, pos);
+      if (conditioner.lastScan.isSealed()) {
+        conditioner.claimedInteriorPositions.clear();
+        conditioner.claimedInteriorPositions.addAll(conditioner.lastScan.interiorPositions());
+      }
       conditioner.updateCleanliness(level);
-      CleanroomOccupancy.update(level, pos, conditioner.lastScan, conditioner.cleanliness);
+      CleanroomOccupancy.update(
+          level, pos, conditioner.claimedInteriorPositions, conditioner.cleanliness);
       conditioner.scanCooldown = SCAN_INTERVAL;
       conditioner.sync();
     } else if (powerChanged) conditioner.sync();
@@ -219,6 +227,9 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     tag.putInt("Cleanliness", cleanliness);
     tag.putInt("CleanlinessLimit", cleanlinessLimit);
     tag.putInt("CoatingCoverage", coatingCoverage);
+    tag.putLongArray(
+        CLAIMED_INTERIOR_TAG,
+        claimedInteriorPositions.stream().mapToLong(Long::longValue).toArray());
     tag.put("LastScan", lastScan.save());
   }
 
@@ -233,6 +244,9 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
                 BASE_CLEANLINESS_LIMIT, Math.min(MAX_CLEANLINESS, tag.getInt("CleanlinessLimit")))
             : BASE_CLEANLINESS_LIMIT;
     coatingCoverage = Math.max(0, Math.min(100, tag.getInt("CoatingCoverage")));
+    claimedInteriorPositions.clear();
+    for (long claimedPos : tag.getLongArray(CLAIMED_INTERIOR_TAG))
+      claimedInteriorPositions.add(claimedPos);
     lastScan =
         tag.contains("LastScan", Tag.TAG_COMPOUND)
             ? RoomScanResult.load(tag.getCompound("LastScan"))
@@ -241,7 +255,9 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
 
   @Override
   public CompoundTag getUpdateTag() {
-    return saveWithoutMetadata();
+    CompoundTag tag = saveWithoutMetadata();
+    tag.remove(CLAIMED_INTERIOR_TAG);
+    return tag;
   }
 
   @Nullable

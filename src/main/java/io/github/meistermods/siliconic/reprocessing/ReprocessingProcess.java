@@ -55,7 +55,7 @@ public record ReprocessingProcess(
             new ReprocessingProcess(
                 ModItems.CONTAMINATED_PURE_SILICON.get(),
                 1,
-                List.of(new ItemStack(ModItems.CRUDE_SILICON.get())),
+                List.of(new ItemStack(Items.QUARTZ)),
                 200,
                 40),
             new ReprocessingProcess(

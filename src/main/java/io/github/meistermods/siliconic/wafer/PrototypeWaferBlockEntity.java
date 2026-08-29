@@ -6,7 +6,10 @@ import io.github.meistermods.siliconic.registry.ModItems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -38,6 +41,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public static final int GRID_SIZE = 9;
   public static final String DESIGN_TAG = "SiliconicDesign";
   public static final String COMPLETED_TAG = "SiliconicCompleted";
+  private static final int MAX_CACHED_INPUTS = 64;
   private static final TagKey<Item> REDSTONE_DUSTS = materialTag("dusts/redstone");
   private static final TagKey<Item> COPPER_NUGGETS = materialTag("nuggets/copper");
   private static final TagKey<Item> LEAD_NUGGETS = materialTag("nuggets/lead");
@@ -50,7 +54,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private final StationEnergyStorage energy = new StationEnergyStorage();
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
-  private boolean wasPowered;
+  private boolean powered;
+  private boolean simulationDirty = true;
+  private final LinkedHashMap<Integer, Simulation> simulationCache =
+      new LinkedHashMap<>(16, 0.75f, true);
 
   private final class StationEnergyStorage extends EnergyStorage {
     StationEnergyStorage() {
@@ -137,6 +144,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private record Simulation(
       int[] signals, int[] horizontalSignals, int[] verticalSignals, int[] outputs) {}
 
+  private record SimulationKey(CompoundTag design, int size, int waferLevel, int packedInputs) {}
+
   private record Pulse(int strength, CellType material, int remaining) {
     static final Pulse NONE = new Pulse(0, CellType.EMPTY, 0);
   }
@@ -218,32 +227,33 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public boolean isPowered() {
-    return hasWafer() && energy.getEnergyStored() >= getOperationCost();
+    return hasWafer() && powered;
   }
 
   public int addEnergy(int amount) {
     int accepted = energy.receiveEnergy(amount, false);
-    if (accepted > 0) changedAndSync();
+    if (accepted > 0) sync();
     return accepted;
   }
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, PrototypeWaferBlockEntity station) {
-    boolean powered = false;
+    boolean nextPowered = false;
     if (station.hasWafer()) {
       int cost = station.getOperationCost();
-      powered = station.energy.consumeInternal(cost);
+      nextPowered = station.energy.consumeInternal(cost);
     }
-    if (powered != station.wasPowered) {
-      station.wasPowered = powered;
+    if (nextPowered != station.powered) {
+      station.powered = nextPowered;
       station.refreshSignals();
     }
-    if (powered) station.setChanged();
+    if (nextPowered) station.setChanged();
   }
 
   public void insertWafer(ItemStack held) {
     if (!hasWafer() && isWafer(held)) {
       wafer = held.copyWithCount(1);
+      powered = false;
       held.shrink(1);
       signals = new int[getGridSize() * getGridSize()];
       horizontalSignals = new int[signals.length];
@@ -255,6 +265,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public ItemStack removeWafer() {
     ItemStack result = wafer;
     wafer = ItemStack.EMPTY;
+    powered = false;
     Arrays.fill(inputs, 0);
     Arrays.fill(outputs, 0);
     signals = new int[0];
@@ -267,6 +278,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public ItemStack takeWaferOnBreak() {
     ItemStack result = wafer;
     wafer = ItemStack.EMPTY;
+    powered = false;
     setChanged();
     return result;
   }
@@ -409,6 +421,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (level == null || level.isClientSide || !hasWafer()) return false;
     int[] old = outputs.clone();
     if (!isPowered()) {
+      simulationDirty = true;
       Arrays.fill(outputs, 0);
       Arrays.fill(signals, 0);
       Arrays.fill(horizontalSignals, 0);
@@ -418,15 +431,26 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       return true;
     }
     Direction[] dirs = directions();
+    int[] nextInputs = new int[4];
     for (int i = 0; i < 4; i++)
-      inputs[i] =
+      nextInputs[i] =
           getPinMode(i) == PinMode.INPUT
               ? level.getSignal(worldPosition.relative(dirs[i]), dirs[i].getOpposite())
               : 0;
-    Simulation result = simulate(design(), getGridSize(), inputs, getWaferLevel());
-    signals = result.signals;
-    horizontalSignals = result.horizontalSignals;
-    verticalSignals = result.verticalSignals;
+    if (!simulationDirty && Arrays.equals(inputs, nextInputs)) return false;
+    System.arraycopy(nextInputs, 0, inputs, 0, inputs.length);
+    int inputKey = packInputs(inputs);
+    Simulation result = simulationCache.get(inputKey);
+    if (result == null) {
+      result = simulate(design(), getGridSize(), inputs, getWaferLevel(), new HashMap<>());
+      simulationCache.put(inputKey, result);
+      if (simulationCache.size() > MAX_CACHED_INPUTS)
+        simulationCache.remove(simulationCache.keySet().iterator().next());
+    }
+    simulationDirty = false;
+    signals = result.signals.clone();
+    horizontalSignals = result.horizontalSignals.clone();
+    verticalSignals = result.verticalSignals.clone();
     System.arraycopy(result.outputs, 0, outputs, 0, 4);
     if (!Arrays.equals(old, outputs))
       level.updateNeighborsAt(worldPosition, getBlockState().getBlock());
@@ -434,7 +458,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private Simulation simulate(
-      CompoundTag design, int size, int[] externalInputs, int containingWaferLevel) {
+      CompoundTag design,
+      int size,
+      int[] externalInputs,
+      int containingWaferLevel,
+      Map<SimulationKey, int[]> nestedCache) {
     int count = size * size;
     int[] values = new int[count];
     int[][] wireStrength = new int[count][4], wireRemaining = new int[count][4];
@@ -464,10 +492,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
                       cell,
                       world);
             }
-          Simulation nested = simulate(child, sizeOf(chip), childInputs, childLevel);
+          int[] nestedOutputs =
+              simulateNested(child, sizeOf(chip), childInputs, childLevel, nestedCache);
           for (int local = 0; local < 4; local++)
             if (pinMode(child, local) == PinMode.OUTPUT)
-              nextChips[cell][(local + rotation) & 3] = nested.outputs[local];
+              nextChips[cell][(local + rotation) & 3] = nestedOutputs[local];
         }
       int[] next = new int[count];
       int[][] nextWire = new int[count][4], nextWireRemaining = new int[count][4];
@@ -540,6 +569,29 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       }
     }
     return new Simulation(values, horizontal, vertical, resultOutputs);
+  }
+
+  private int[] simulateNested(
+      CompoundTag design,
+      int size,
+      int[] externalInputs,
+      int waferLevel,
+      Map<SimulationKey, int[]> nestedCache) {
+    // Legacy designs are normalized before becoming map keys so their hash remains stable.
+    cells(design, size);
+    SimulationKey key = new SimulationKey(design, size, waferLevel, packInputs(externalInputs));
+    int[] cached = nestedCache.get(key);
+    if (cached != null) return cached;
+    int[] outputs = simulate(design, size, externalInputs, waferLevel, nestedCache).outputs.clone();
+    nestedCache.put(key, outputs);
+    return outputs;
+  }
+
+  private static int packInputs(int[] inputs) {
+    int packed = 0;
+    for (int pin = 0; pin < Math.min(4, inputs.length); pin++)
+      packed |= (inputs[pin] & 15) << (pin * 4);
+    return packed;
   }
 
   private void routeConductor(
@@ -948,6 +1000,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private void changedAndSync() {
+    simulationDirty = true;
+    simulationCache.clear();
     setChanged();
     recalculateSignals();
     updateBlockState();
@@ -982,6 +1036,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
+    simulationDirty = true;
+    simulationCache.clear();
     wafer = ItemStack.of(tag.getCompound("Wafer"));
     copy(tag.getIntArray("Inputs"), inputs);
     copy(tag.getIntArray("Outputs"), outputs);

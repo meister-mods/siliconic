@@ -41,6 +41,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public static final String COMPLETED_TAG = "SiliconicCompleted";
   public static final String RUNTIME_TAG = "SiliconicRuntime";
   private static final int MAX_SIGNAL_STRENGTH = 15;
+  private static final int MAX_DROP_AMOUNT = 16;
   private static final int MAX_CONDUCTOR_ATTENUATION_INTERVAL = 6;
   private static final TagKey<Item> REDSTONE_DUSTS = materialTag("dusts/redstone");
   private static final TagKey<Item> COPPER_NUGGETS = materialTag("nuggets/copper");
@@ -103,10 +104,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     LEAD,
     SILVER,
     GOLD,
-    BUFFER;
+    BUFFER,
+    DROP;
 
     public boolean isGate() {
-      return (ordinal() >= NOT.ordinal() && ordinal() <= XOR.ordinal()) || this == BUFFER;
+      return (ordinal() >= NOT.ordinal() && ordinal() <= XOR.ordinal())
+          || this == BUFFER
+          || this == DROP;
     }
 
     public boolean isConductor() {
@@ -204,6 +208,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
         ? ConductorMode.values()[
             Math.min(Byte.toUnsignedInt(modes[cell]), ConductorMode.values().length - 1)]
         : ConductorMode.PLUS;
+  }
+
+  public int getDropAmount(int cell) {
+    if (!valid(cell) || getCellType(cell) != CellType.DROP) return 0;
+    return Math.min(
+        MAX_DROP_AMOUNT, Byte.toUnsignedInt(dropAmounts(design(), getGridSize())[cell]));
   }
 
   public boolean hasTrace(int cell) {
@@ -328,8 +338,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public void interactCell(int cell, boolean rotate, ServerPlayer player) {
     if (!isInsideCleanroom() || !valid(cell)) return;
     CellType old = getCellType(cell);
+    ItemStack carried = player.containerMenu.getCarried();
     if (rotate) {
-      if (old.isConductor()) {
+      if (old == CellType.DROP
+          && (carried.is(REDSTONE_DUSTS)
+              || player.getMainHandItem().is(REDSTONE_DUSTS)
+              || player.getOffhandItem().is(REDSTONE_DUSTS))) {
+        cycleDropAmount(cell);
+      } else if (old.isConductor()) {
         markUnfinished();
         clearRuntimeState(wafer);
         byte[] modes = conductorModes(design(), getGridSize());
@@ -346,7 +362,6 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       }
       return;
     }
-    ItemStack carried = player.containerMenu.getCarried();
     if (carried.isEmpty()) {
       if (old != CellType.EMPTY) {
         ItemStack returned = old == CellType.CHIP ? removeChip(cell) : new ItemStack(itemFor(old));
@@ -381,12 +396,25 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     int size = getGridSize();
     byte[] cells = cells(design(), size), rots = rotations(design(), size);
     byte[] conductorModes = conductorModes(design(), size);
+    byte[] dropAmounts = dropAmounts(design(), size);
     cells[cell] = (byte) type.ordinal();
     rots[cell] = 0;
     conductorModes[cell] = 0;
+    dropAmounts[cell] = 0;
     design().putByteArray("Cells", cells);
     design().putByteArray("Rotations", rots);
     design().putByteArray("ConductorModes", conductorModes);
+    design().putByteArray("DropAmounts", dropAmounts);
+    changedAndSync();
+  }
+
+  private void cycleDropAmount(int cell) {
+    markUnfinished();
+    clearRuntimeState(wafer);
+    byte[] values = dropAmounts(design(), getGridSize());
+    values[cell] =
+        (byte) ((Byte.toUnsignedInt(values[cell]) + 1) % (MAX_DROP_AMOUNT + 1));
+    design().putByteArray("DropAmounts", values);
     changedAndSync();
   }
 
@@ -401,6 +429,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (stack.is(ModItems.OR_GATE.get())) return CellType.OR;
     if (stack.is(ModItems.XOR_GATE.get())) return CellType.XOR;
     if (stack.is(ModItems.BUFFER_GATE.get())) return CellType.BUFFER;
+    if (stack.is(ModItems.DROP_GATE.get())) return CellType.DROP;
     if (isWafer(stack)) return CellType.CHIP;
     return CellType.EMPTY;
   }
@@ -421,6 +450,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       case OR -> ModItems.OR_GATE.get();
       case XOR -> ModItems.XOR_GATE.get();
       case BUFFER -> ModItems.BUFFER_GATE.get();
+      case DROP -> ModItems.DROP_GATE.get();
       default -> ModItems.COPPER_NUGGET.get();
     };
   }
@@ -868,11 +898,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       int cell,
       CellType type) {
     int facing = rotation(d, size, cell), a, b;
-    if (type == CellType.NOT || type == CellType.BUFFER) {
+    if (type == CellType.NOT || type == CellType.BUFFER || type == CellType.DROP) {
       a =
           readFrom(
               d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 2) & 3);
-      return type == CellType.NOT ? (a == 0 ? 15 : 0) : (a > 0 ? 15 : 0);
+      if (type == CellType.NOT) return a == 0 ? 15 : 0;
+      if (type == CellType.BUFFER) return a > 0 ? 15 : 0;
+      return Math.max(0, a - dropAmount(d, size, cell));
     }
     a = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 3) & 3);
     b = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 1) & 3);
@@ -1049,7 +1081,9 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     byte[] oldCells = design.getByteArray("Cells");
     byte[] oldRotations = design.getByteArray("Rotations");
     byte[] oldModes = design.getByteArray("ConductorModes");
+    byte[] oldDropAmounts = design.getByteArray("DropAmounts");
     byte[] newCells = new byte[count], newRotations = new byte[count], newModes = new byte[count];
+    byte[] newDropAmounts = new byte[count];
     for (int oldCell = 0; oldCell < count; oldCell++) {
       int newCell = mirroredCell(oldCell);
       if (oldCells.length == count) newCells[newCell] = oldCells[oldCell];
@@ -1064,10 +1098,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
                                 Byte.toUnsignedInt(oldModes[oldCell]),
                                 ConductorMode.values().length - 1)])
                     .ordinal();
+      if (oldDropAmounts.length == count) newDropAmounts[newCell] = oldDropAmounts[oldCell];
     }
     if (oldCells.length == count) design.putByteArray("Cells", newCells);
     if (oldRotations.length == count) design.putByteArray("Rotations", newRotations);
     if (oldModes.length == count) design.putByteArray("ConductorModes", newModes);
+    if (oldDropAmounts.length == count)
+      design.putByteArray("DropAmounts", newDropAmounts);
     int[] pinModes = design.getIntArray("PinModes");
     if (pinModes.length == 4) {
       int west = pinModes[3];
@@ -1119,8 +1156,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (oldCells.length != oldSize * oldSize) return;
     byte[] oldRotations = design.getByteArray("Rotations");
     byte[] oldModes = design.getByteArray("ConductorModes");
+    byte[] oldDropAmounts = design.getByteArray("DropAmounts");
     byte[] cells = new byte[GRID_SIZE * GRID_SIZE];
     byte[] rotations = new byte[cells.length], modes = new byte[cells.length];
+    byte[] dropAmounts = new byte[cells.length];
     CompoundTag oldChips = design.getCompound("Chips"), chips = new CompoundTag();
     for (int y = 0; y < GRID_SIZE; y++)
       for (int x = 0; x < GRID_SIZE; x++) {
@@ -1129,6 +1168,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
         cells[cell] = oldCells[oldCell];
         if (oldRotations.length == oldCells.length) rotations[cell] = oldRotations[oldCell];
         if (oldModes.length == oldCells.length) modes[cell] = oldModes[oldCell];
+        if (oldDropAmounts.length == oldCells.length)
+          dropAmounts[cell] = oldDropAmounts[oldCell];
         String oldKey = Integer.toString(oldCell);
         if (oldChips.contains(oldKey))
           chips.put(Integer.toString(cell), oldChips.get(oldKey).copy());
@@ -1136,6 +1177,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     design.putByteArray("Cells", cells);
     design.putByteArray("Rotations", rotations);
     design.putByteArray("ConductorModes", modes);
+    design.putByteArray("DropAmounts", dropAmounts);
     design.put("Chips", chips);
   }
 
@@ -1201,6 +1243,15 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private byte[] conductorModes(CompoundTag d, int size) {
     byte[] value = d.getByteArray("ConductorModes");
     return value.length == size * size ? value : new byte[size * size];
+  }
+
+  private byte[] dropAmounts(CompoundTag d, int size) {
+    byte[] value = d.getByteArray("DropAmounts");
+    return value.length == size * size ? value : new byte[size * size];
+  }
+
+  private int dropAmount(CompoundTag d, int size, int cell) {
+    return Math.min(MAX_DROP_AMOUNT, Byte.toUnsignedInt(dropAmounts(d, size)[cell]));
   }
 
   private ConductorMode conductorMode(CompoundTag d, int size, int cell) {

@@ -89,6 +89,7 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
               case OR -> 0xff4fa9df;
               case XOR -> 0xffe667a0;
               case BUFFER -> 0xff55d9d2;
+              case DROP -> 0xffe0a84f;
               case CHIP -> signal > 0 ? 0xffffd24f : 0xffd6b437;
             };
         int x1 = gridX + x * CELL, y1 = gridY + y * CELL;
@@ -103,7 +104,11 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
               conductorColor(type, menu.wafer().getVerticalSignal(cell) > 0));
         } else if (type.isGate() || type == CellType.CHIP) {
           g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
-          g.drawCenteredString(font, gateSymbol(type), x1 + CELL / 2, y1 + 3, 0xffffffff);
+          String symbol =
+              type == CellType.DROP
+                  ? Integer.toString(menu.wafer().getDropAmount(cell))
+                  : gateSymbol(type);
+          g.drawCenteredString(font, symbol, x1 + CELL / 2, y1 + 3, 0xffffffff);
           g.drawString(font, arrow(menu.wafer().getRotation(cell)), x1, y1, 0xff202020, false);
         } else {
           g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
@@ -240,6 +245,10 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
                 Component.translatable(
                     "conductor_mode.siliconic."
                         + menu.wafer().getConductorMode(cell).name().toLowerCase())));
+      if (type == CellType.DROP)
+        lines.add(
+            Component.translatable(
+                "screen.siliconic.wafer.drop_amount", menu.wafer().getDropAmount(cell)));
       if (type.isGate() || type == CellType.CHIP)
         lines.add(
             Component.translatable(
@@ -333,6 +342,7 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       case OR -> "+";
       case XOR -> "⊕";
       case BUFFER -> ">>";
+      case DROP -> "-";
       case CHIP -> "C";
       default -> "";
     };

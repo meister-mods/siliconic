@@ -46,7 +46,8 @@ public final class CleanroomContamination {
         || intended.is(ModItems.AND_GATE.get())
         || intended.is(ModItems.OR_GATE.get())
         || intended.is(ModItems.XOR_GATE.get())
-        || intended.is(ModItems.BUFFER_GATE.get())) return ModItems.CONTAMINATED_GATE.get();
+        || intended.is(ModItems.BUFFER_GATE.get())
+        || intended.is(ModItems.DROP_GATE.get())) return ModItems.CONTAMINATED_GATE.get();
     return null;
   }
 

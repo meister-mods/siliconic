@@ -157,6 +157,15 @@ public final class ModBlocks {
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()
                       .lightLevel(state -> state.getValue(ConditionerBlock.ACTIVE) ? 7 : 0)));
+  public static final RegistryObject<Block> COATED_BLOCK =
+      BLOCKS.register(
+          "coated_block",
+          () ->
+              new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.QUARTZ)
+                      .strength(3.5f, 6.0f)
+                      .requiresCorrectToolForDrops()));
 
   private ModBlocks() {}
 }

@@ -107,6 +107,7 @@ public final class RoomScanner {
       Map<ResourceLocation, Integer> surfaces,
       Map<ResourceLocation, MutableOpenableStats> openables,
       ScanFlags flags) {
+    if (candidate.equals(origin)) return;
     if (level.isOutsideBuildHeight(candidate)) {
       flags.worldOpen = true;
       return;
@@ -117,9 +118,9 @@ public final class RoomScanner {
     }
     BlockState state = level.getBlockState(candidate);
     if (!isPassable(level, candidate, state)) {
-      recordSurface(state, surfaces);
       if (isOpenable(state))
         recordOpenable(level, candidate, state, countedOpenables, openables);
+      else recordSurface(state, surfaces);
       return;
     }
     if (distance(origin, candidate) > limits.maxDistance()) {

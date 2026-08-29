@@ -22,19 +22,32 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
 
   public ConditionerScreen(ConditionerMenu menu, Inventory inventory, Component title) {
     super(menu, inventory, title);
-    imageWidth = 250;
-    imageHeight = 220;
+    imageWidth = 270;
+    imageHeight = 250;
     inventoryLabelY = 1_000;
   }
 
   @Override
   protected void renderBg(GuiGraphics g, float partial, int mouseX, int mouseY) {
     g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xff17191c);
-    g.fill(leftPos + 7, topPos + 18, leftPos + 243, topPos + 66, 0xff20252a);
-    g.fill(leftPos + 7, topPos + 91, leftPos + 243, topPos + 211, 0xff20252a);
-    int energyWidth = menu.capacity() == 0 ? 0 : 236 * menu.energy() / menu.capacity();
-    g.fill(leftPos + 7, topPos + 82, leftPos + 243, topPos + 87, 0xff2b3035);
-    g.fill(leftPos + 7, topPos + 82, leftPos + 7 + energyWidth, topPos + 87, 0xff5db7e8);
+    int contentRight = leftPos + imageWidth - 7;
+    int contentWidth = imageWidth - 14;
+    int insetBarWidth = imageWidth - 24;
+    g.fill(leftPos + 7, topPos + 18, contentRight, topPos + 98, 0xff20252a);
+    g.fill(leftPos + 7, topPos + 126, contentRight, topPos + 241, 0xff20252a);
+
+    int cleanlinessWidth = insetBarWidth * menu.cleanliness() / 100;
+    g.fill(leftPos + 12, topPos + 59, leftPos + 12 + insetBarWidth, topPos + 64, 0xff2b3035);
+    g.fill(
+        leftPos + 12,
+        topPos + 59,
+        leftPos + 12 + cleanlinessWidth,
+        topPos + 64,
+        0xff66e69a);
+
+    int energyWidth = menu.capacity() == 0 ? 0 : contentWidth * menu.energy() / menu.capacity();
+    g.fill(leftPos + 7, topPos + 116, contentRight, topPos + 121, 0xff2b3035);
+    g.fill(leftPos + 7, topPos + 116, leftPos + 7 + energyWidth, topPos + 121, 0xff5db7e8);
   }
 
   @Override
@@ -59,11 +72,29 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
     g.drawString(
         font,
         Component.translatable(
+            "screen.siliconic.conditioner.cleanliness",
+            menu.cleanliness(),
+            menu.cleanlinessLimit()),
+        12,
+        47,
+        0xffd5dce3,
+        false);
+    g.drawString(
+        font,
+        Component.translatable(
+            "screen.siliconic.conditioner.coating", menu.coatingCoverage()),
+        12,
+        69,
+        0xffd5dce3,
+        false);
+    g.drawString(
+        font,
+        Component.translatable(
             "screen.siliconic.conditioner.volume",
             result.volume(),
             result.scannedPositions()),
         12,
-        47,
+        81,
         0xffd5dce3,
         false);
     g.drawString(
@@ -73,7 +104,7 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
             result.openableCount(),
             result.openOpenableCount()),
         12,
-        57,
+        91,
         0xffd5dce3,
         false);
     g.drawString(
@@ -84,14 +115,14 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
             menu.capacity(),
             menu.energyPerTick()),
         8,
-        70,
+        104,
         0xff8bcff3,
         false);
     g.drawString(
         font,
         Component.translatable("screen.siliconic.conditioner.details"),
         12,
-        95,
+        130,
         0xffaeb7c0,
         false);
 
@@ -99,14 +130,14 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
     int maxScroll = Math.max(0, rows.size() - VISIBLE_ROWS);
     scrollOffset = Mth.clamp(scrollOffset, 0, maxScroll);
     for (int row = 0; row < VISIBLE_ROWS && row + scrollOffset < rows.size(); row++)
-      g.drawString(font, rows.get(row + scrollOffset), 14, 108 + row * 12, 0xffd5dce3, false);
+      g.drawString(font, rows.get(row + scrollOffset), 14, 143 + row * 12, 0xffd5dce3, false);
     if (maxScroll > 0)
       g.drawString(
           font,
           Component.translatable(
               "screen.siliconic.conditioner.scroll", scrollOffset + 1, maxScroll + 1),
-          188,
-          198,
+          208,
+          228,
           0xff89939c,
           false);
   }

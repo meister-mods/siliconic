@@ -41,6 +41,18 @@ public class ConditionerMenu extends AbstractContainerMenu {
     return conditioner.data().get(2) != 0;
   }
 
+  public int cleanliness() {
+    return conditioner.data().get(3);
+  }
+
+  public int cleanlinessLimit() {
+    return conditioner.data().get(4);
+  }
+
+  public int coatingCoverage() {
+    return conditioner.data().get(5);
+  }
+
   public RoomScanResult lastScan() {
     return conditioner.lastScan();
   }

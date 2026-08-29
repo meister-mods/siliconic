@@ -109,6 +109,10 @@ public final class ModItems {
   public static final RegistryObject<Item> CONDITIONER =
       ITEMS.register(
           "conditioner", () -> new BlockItem(ModBlocks.CONDITIONER.get(), new Item.Properties()));
+  public static final RegistryObject<Item> COATED_BLOCK =
+      ITEMS.register(
+          "coated_block",
+          () -> new BlockItem(ModBlocks.COATED_BLOCK.get(), new Item.Properties()));
 
   private ModItems() {}
 }

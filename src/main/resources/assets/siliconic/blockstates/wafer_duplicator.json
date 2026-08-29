@@ -1,1 +1,1 @@
-{"variants":{"":{"model":"siliconic:block/wafer_duplicator"}}}
+{"variants":{"facing=north":{"model":"siliconic:block/wafer_duplicator"},"facing=east":{"model":"siliconic:block/wafer_duplicator","y":90},"facing=south":{"model":"siliconic:block/wafer_duplicator","y":180},"facing=west":{"model":"siliconic:block/wafer_duplicator","y":270}}}

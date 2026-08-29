@@ -1,1 +1,1 @@
-{"variants":{"":{"model":"siliconic:block/wafer_inverter"}}}
+{"variants":{"facing=north":{"model":"siliconic:block/wafer_inverter"},"facing=east":{"model":"siliconic:block/wafer_inverter","y":90},"facing=south":{"model":"siliconic:block/wafer_inverter","y":180},"facing=west":{"model":"siliconic:block/wafer_inverter","y":270}}}

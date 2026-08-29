@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.fabrication;
 
+import io.github.meistermods.siliconic.machine.HorizontalFacingEntityBlock;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -9,7 +10,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -20,7 +20,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
-public class FabricationStationBlock extends BaseEntityBlock {
+public class FabricationStationBlock extends HorizontalFacingEntityBlock {
   public FabricationStationBlock(Properties properties) {
     super(properties);
   }

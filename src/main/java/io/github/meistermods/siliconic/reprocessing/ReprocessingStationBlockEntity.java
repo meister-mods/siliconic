@@ -1,6 +1,5 @@
 package io.github.meistermods.siliconic.reprocessing;
 
-import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayList;
@@ -122,7 +121,6 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
   }
 
   private int status(@Nullable ReprocessingProcess process) {
-    if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 4;
     if (process == null) return 0;
     if (!canFitOutputs(process.outputs())) return 1;
     if (energy.getEnergyStored() < process.energyPerTick()) return 2;
@@ -131,7 +129,6 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, ReprocessingStationBlockEntity station) {
-    if (!CleanroomOccupancy.isMachineInside(level, pos)) return;
     ReprocessingProcess process = station.currentProcess();
     if (process == null) {
       station.resetProgress();

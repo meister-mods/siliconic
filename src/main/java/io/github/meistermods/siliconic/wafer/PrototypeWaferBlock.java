@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.machine.HorizontalFacingEntityBlock;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -11,7 +12,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -26,7 +26,7 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
-public class PrototypeWaferBlock extends BaseEntityBlock {
+public class PrototypeWaferBlock extends HorizontalFacingEntityBlock {
   public static final BooleanProperty HAS_WAFER = BooleanProperty.create("has_wafer");
   private static final VoxelShape WAFER_GUARD_SHAPE = box(0, 0, 0, 16, 3, 16);
   private final boolean editable;
@@ -38,7 +38,7 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
   public PrototypeWaferBlock(Properties properties, boolean editable) {
     super(properties);
     this.editable = editable;
-    registerDefaultState(stateDefinition.any().setValue(HAS_WAFER, false));
+    registerDefaultState(defaultBlockState().setValue(HAS_WAFER, false));
   }
 
   @Override
@@ -115,6 +115,7 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
   @Override
   protected void createBlockStateDefinition(
       StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
+    super.createBlockStateDefinition(builder);
     builder.add(HAS_WAFER);
   }
 

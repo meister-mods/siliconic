@@ -9,7 +9,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 
-@SuppressWarnings({"null", "deprecated"})
+@SuppressWarnings({"null"})
 public final class RoomScanResult {
   public enum Status {
     NOT_SCANNED,

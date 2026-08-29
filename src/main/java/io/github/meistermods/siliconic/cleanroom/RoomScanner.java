@@ -13,13 +13,13 @@ import io.github.meistermods.siliconic.cleanroom.RoomScanResult.OpenableStats;
 import io.github.meistermods.siliconic.cleanroom.RoomScanResult.Status;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraftforge.registries.ForgeRegistries;
 
 @SuppressWarnings({"null"})
 public final class RoomScanner {
@@ -111,7 +111,7 @@ public final class RoomScanner {
       flags.worldOpen = true;
       return;
     }
-    if (!level.hasChunkAt(candidate)) {
+    if (!level.isLoaded(candidate)) {
       flags.unloaded = true;
       return;
     }
@@ -147,8 +147,8 @@ public final class RoomScanner {
 
   private static void recordSurface(
       BlockState state, Map<ResourceLocation, Integer> surfaces) {
-    ResourceLocation id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
-    surfaces.merge(id, 1, Integer::sum);
+    ResourceLocation id = ForgeRegistries.BLOCKS.getKey(state.getBlock());
+    if (id != null) surfaces.merge(id, 1, Integer::sum);
   }
 
   private static void recordOpenable(
@@ -160,7 +160,8 @@ public final class RoomScanner {
     BlockPos normalized = normalizeOpenablePosition(pos, state);
     if (!counted.add(normalized.asLong())) return;
     BlockState normalizedState = level.getBlockState(normalized);
-    ResourceLocation id = BuiltInRegistries.BLOCK.getKey(normalizedState.getBlock());
+    ResourceLocation id = ForgeRegistries.BLOCKS.getKey(normalizedState.getBlock());
+    if (id == null) return;
     MutableOpenableStats stats = openables.computeIfAbsent(id, ignored -> new MutableOpenableStats());
     stats.total++;
     if (normalizedState.hasProperty(BlockStateProperties.OPEN)

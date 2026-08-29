@@ -8,12 +8,12 @@ import io.github.meistermods.siliconic.cleanroom.ConditionerMenu;
 import io.github.meistermods.siliconic.cleanroom.RoomScanResult;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.block.Block;
+import net.minecraftforge.registries.ForgeRegistries;
 
 @SuppressWarnings({"null"})
 public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> {
@@ -142,10 +142,8 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
   }
 
   private Component blockName(ResourceLocation id) {
-    return BuiltInRegistries.BLOCK
-        .getOptional(id)
-        .map(Block::getName)
-        .orElse(Component.literal(id.toString()));
+    Block block = ForgeRegistries.BLOCKS.getValue(id);
+    return block == null ? Component.literal(id.toString()) : block.getName();
   }
 
   @Override

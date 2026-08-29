@@ -50,6 +50,8 @@ public final class ModItems {
       ITEMS.register("raw_lead", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> COPPER_NUGGET =
       ITEMS.register("copper_nugget", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> ANTISTATIC_FABRIC =
+      ITEMS.register("antistatic_fabric", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> NOT_GATE =
       ITEMS.register("not_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> AND_GATE =
@@ -125,6 +127,12 @@ public final class ModItems {
       ITEMS.register(
           "deepslate_lead_ore",
           () -> new BlockItem(ModBlocks.DEEPSLATE_LEAD_ORE.get(), new Item.Properties()));
+  public static final RegistryObject<Item> SILVER_BLOCK =
+      ITEMS.register(
+          "silver_block", () -> new BlockItem(ModBlocks.SILVER_BLOCK.get(), new Item.Properties()));
+  public static final RegistryObject<Item> LEAD_BLOCK =
+      ITEMS.register(
+          "lead_block", () -> new BlockItem(ModBlocks.LEAD_BLOCK.get(), new Item.Properties()));
   public static final RegistryObject<Item> COAL_GENERATOR =
       ITEMS.register(
           "coal_generator",

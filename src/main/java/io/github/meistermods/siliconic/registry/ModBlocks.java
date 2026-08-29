@@ -12,6 +12,7 @@ import io.github.meistermods.siliconic.wafer.PrototypeWaferBlock;
 import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlock;
 import io.github.meistermods.siliconic.wafer.WaferInverterBlock;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.registries.DeferredRegister;
@@ -130,6 +131,26 @@ public final class ModBlocks {
                   BlockBehaviour.Properties.of()
                       .mapColor(MapColor.DEEPSLATE)
                       .strength(4.5f, 3.0f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> SILVER_BLOCK =
+      BLOCKS.register(
+          "silver_block",
+          () ->
+              new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(5.0f, 6.0f)
+                      .sound(SoundType.METAL)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> LEAD_BLOCK =
+      BLOCKS.register(
+          "lead_block",
+          () ->
+              new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.COLOR_GRAY)
+                      .strength(5.0f, 6.0f)
+                      .sound(SoundType.METAL)
                       .requiresCorrectToolForDrops()));
   public static final RegistryObject<Block> COAL_GENERATOR =
       BLOCKS.register(

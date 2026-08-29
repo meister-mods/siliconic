@@ -481,12 +481,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     int size = sizeOf(stack);
     CompoundTag design = stack.getOrCreateTagElement(DESIGN_TAG);
     Simulation result =
-        simulate(
-            design,
-            size,
-            externalInputs,
-            containingWaferLevel,
-            readRuntimeState(stack, size));
+        simulate(design, size, externalInputs, containingWaferLevel, readRuntimeState(stack, size));
     writeRuntimeState(stack, result);
     return result;
   }
@@ -615,13 +610,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       }
     }
     return new Simulation(
-        values,
-        horizontal,
-        vertical,
-        resultOutputs,
-        wireStrength,
-        wireRemaining,
-        chipOutputs);
+        values, horizontal, vertical, resultOutputs, wireStrength, wireRemaining, chipOutputs);
   }
 
   private RuntimeState readRuntimeState(ItemStack stack, int size) {
@@ -641,8 +630,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     byte[] stored = tag.getByteArray(key);
     int[] result = new int[length];
     if (stored.length != length) return result;
-    for (int index = 0; index < length; index++)
-      result[index] = Byte.toUnsignedInt(stored[index]);
+    for (int index = 0; index < length; index++) result[index] = Byte.toUnsignedInt(stored[index]);
     return result;
   }
 
@@ -676,8 +664,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     byte[] result = new byte[values.length * 4];
     for (int row = 0; row < values.length; row++)
       for (int column = 0; column < 4; column++)
-        result[row * 4 + column] =
-            (byte) Math.max(0, Math.min(255, values[row][column]));
+        result[row * 4 + column] = (byte) Math.max(0, Math.min(255, values[row][column]));
     return result;
   }
 

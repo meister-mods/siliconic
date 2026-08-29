@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -144,8 +143,7 @@ public final class RoomScanResult {
       CompoundTag entry = openableList.getCompound(i);
       ResourceLocation id = ResourceLocation.tryParse(entry.getString("Block"));
       if (id != null)
-        openables.put(
-            id, new OpenableStats(entry.getInt("Total"), entry.getInt("Open")));
+        openables.put(id, new OpenableStats(entry.getInt("Total"), entry.getInt("Open")));
     }
     return new RoomScanResult(
         status,

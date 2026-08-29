@@ -167,8 +167,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
     if (!station.energy.consumeInternal(process.energyPerTick())) return;
     station.progress++;
     if (station.progress >= process.ticks()) {
-      ItemStack result =
-          CleanroomContamination.processResult(level, pos, process.result());
+      ItemStack result = CleanroomContamination.processResult(level, pos, process.result());
       if (station.canFitOutput(result)) station.finishProcess(process, result);
       else station.pendingResult = result;
     }
@@ -192,13 +191,10 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   }
 
   private boolean canFitPossibleOutput(ItemStack intended) {
-    int contaminationChance =
-        CleanroomContamination.contaminationChance(level, worldPosition);
+    int contaminationChance = CleanroomContamination.contaminationChance(level, worldPosition);
     ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
     return (contaminationChance < 100 && canFitOutput(intended))
-        || (contaminationChance > 0
-            && !contaminated.isEmpty()
-            && canFitOutput(contaminated));
+        || (contaminationChance > 0 && !contaminated.isEmpty() && canFitOutput(contaminated));
   }
 
   private int findOutputSlot(ItemStack result) {

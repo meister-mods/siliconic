@@ -60,8 +60,7 @@ public final class ModBlocks {
                       .mapColor(MapColor.METAL)
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()
-                      .lightLevel(
-                          state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 10 : 0)));
+                      .lightLevel(state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 10 : 0)));
   public static final RegistryObject<Block> SILICON_PURIFIER =
       BLOCKS.register(
           "silicon_purifier",
@@ -71,8 +70,7 @@ public final class ModBlocks {
                       .mapColor(MapColor.QUARTZ)
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()
-                      .lightLevel(
-                          state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 6 : 0)));
+                      .lightLevel(state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 6 : 0)));
   public static final RegistryObject<Block> WAFER_FABRICATOR =
       BLOCKS.register(
           "wafer_fabricator",

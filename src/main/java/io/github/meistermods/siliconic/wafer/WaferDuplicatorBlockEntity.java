@@ -156,9 +156,7 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
     if (!hasMaterials(requirements)) return;
     ItemStack result = pendingResult;
     if (result.isEmpty()) {
-      result =
-          CleanroomContamination.processResult(
-              level, worldPosition, source.copyWithCount(1));
+      result = CleanroomContamination.processResult(level, worldPosition, source.copyWithCount(1));
       pendingResult = result;
     }
     int outputSlot = findOutputSlot(result);
@@ -189,13 +187,10 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
   }
 
   private boolean canFitPossibleOutput(ItemStack intended) {
-    int contaminationChance =
-        CleanroomContamination.contaminationChance(level, worldPosition);
+    int contaminationChance = CleanroomContamination.contaminationChance(level, worldPosition);
     ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
     return (contaminationChance < 100 && canFitOutput(intended))
-        || (contaminationChance > 0
-            && !contaminated.isEmpty()
-            && canFitOutput(contaminated));
+        || (contaminationChance > 0 && !contaminated.isEmpty() && canFitOutput(contaminated));
   }
 
   private int findOutputSlot(ItemStack result) {

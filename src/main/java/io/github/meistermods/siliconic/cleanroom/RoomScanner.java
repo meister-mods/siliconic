@@ -1,5 +1,7 @@
 package io.github.meistermods.siliconic.cleanroom;
 
+import io.github.meistermods.siliconic.cleanroom.RoomScanResult.OpenableStats;
+import io.github.meistermods.siliconic.cleanroom.RoomScanResult.Status;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,9 +10,6 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
-
-import io.github.meistermods.siliconic.cleanroom.RoomScanResult.OpenableStats;
-import io.github.meistermods.siliconic.cleanroom.RoomScanResult.Status;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -37,8 +36,8 @@ public final class RoomScanner {
   }
 
   /**
-   * Scans traversable space around an origin without loading chunks. The origin itself is treated as
-   * part of the room boundary, so scanners are intended to be placed inside the room rather than
+   * Scans traversable space around an origin without loading chunks. The origin itself is treated
+   * as part of the room boundary, so scanners are intended to be placed inside the room rather than
    * embedded between the room and the outdoors.
    */
   public static RoomScanResult scan(Level level, BlockPos origin, Limits limits) {
@@ -87,11 +86,9 @@ public final class RoomScanner {
     Map<ResourceLocation, OpenableStats> sortedOpenables = new LinkedHashMap<>();
     new TreeMap<>(openables)
         .forEach(
-            (id, stats) ->
-                sortedOpenables.put(id, new OpenableStats(stats.total, stats.open)));
+            (id, stats) -> sortedOpenables.put(id, new OpenableStats(stats.total, stats.open)));
     int openCount = sortedOpenables.values().stream().mapToInt(OpenableStats::open).sum();
-    Status status =
-        determineStatus(flags, discovered.isEmpty(), openCount);
+    Status status = determineStatus(flags, discovered.isEmpty(), openCount);
     return new RoomScanResult(
         status, volume, discovered.size(), sortedSurfaces, sortedOpenables, discovered);
   }
@@ -118,8 +115,7 @@ public final class RoomScanner {
     }
     BlockState state = level.getBlockState(candidate);
     if (!isPassable(level, candidate, state)) {
-      if (isOpenable(state))
-        recordOpenable(level, candidate, state, countedOpenables, openables);
+      if (isOpenable(state)) recordOpenable(level, candidate, state, countedOpenables, openables);
       else recordSurface(state, surfaces);
       return;
     }
@@ -146,8 +142,7 @@ public final class RoomScanner {
     return state.hasProperty(BlockStateProperties.OPEN);
   }
 
-  private static void recordSurface(
-      BlockState state, Map<ResourceLocation, Integer> surfaces) {
+  private static void recordSurface(BlockState state, Map<ResourceLocation, Integer> surfaces) {
     ResourceLocation id = ForgeRegistries.BLOCKS.getKey(state.getBlock());
     if (id != null) surfaces.merge(id, 1, Integer::sum);
   }
@@ -163,7 +158,8 @@ public final class RoomScanner {
     BlockState normalizedState = level.getBlockState(normalized);
     ResourceLocation id = ForgeRegistries.BLOCKS.getKey(normalizedState.getBlock());
     if (id == null) return;
-    MutableOpenableStats stats = openables.computeIfAbsent(id, ignored -> new MutableOpenableStats());
+    MutableOpenableStats stats =
+        openables.computeIfAbsent(id, ignored -> new MutableOpenableStats());
     stats.total++;
     if (normalizedState.hasProperty(BlockStateProperties.OPEN)
         && normalizedState.getValue(BlockStateProperties.OPEN)) stats.open++;

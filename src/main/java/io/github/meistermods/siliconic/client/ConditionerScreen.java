@@ -1,11 +1,10 @@
 package io.github.meistermods.siliconic.client;
 
+import io.github.meistermods.siliconic.cleanroom.ConditionerMenu;
+import io.github.meistermods.siliconic.cleanroom.RoomScanResult;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import io.github.meistermods.siliconic.cleanroom.ConditionerMenu;
-import io.github.meistermods.siliconic.cleanroom.RoomScanResult;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -38,12 +37,7 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
 
     int cleanlinessWidth = insetBarWidth * menu.cleanliness() / 100;
     g.fill(leftPos + 12, topPos + 59, leftPos + 12 + insetBarWidth, topPos + 64, 0xff2b3035);
-    g.fill(
-        leftPos + 12,
-        topPos + 59,
-        leftPos + 12 + cleanlinessWidth,
-        topPos + 64,
-        0xff66e69a);
+    g.fill(leftPos + 12, topPos + 59, leftPos + 12 + cleanlinessWidth, topPos + 64, 0xff66e69a);
 
     int energyWidth = menu.capacity() == 0 ? 0 : contentWidth * menu.energy() / menu.capacity();
     g.fill(leftPos + 7, topPos + 116, contentRight, topPos + 121, 0xff2b3035);
@@ -81,8 +75,7 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
         false);
     g.drawString(
         font,
-        Component.translatable(
-            "screen.siliconic.conditioner.coating", menu.coatingCoverage()),
+        Component.translatable("screen.siliconic.conditioner.coating", menu.coatingCoverage()),
         12,
         69,
         0xffd5dce3,
@@ -100,9 +93,7 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
     g.drawString(
         font,
         Component.translatable(
-            "screen.siliconic.conditioner.volume",
-            result.volume(),
-            result.scannedPositions()),
+            "screen.siliconic.conditioner.volume", result.volume(), result.scannedPositions()),
         12,
         91,
         0xffd5dce3,

@@ -181,8 +181,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     }
     processor.progress++;
     if (processor.progress >= process.ticks()) {
-      ItemStack result =
-          CleanroomContamination.processResult(level, pos, process.result());
+      ItemStack result = CleanroomContamination.processResult(level, pos, process.result());
       if (processor.canFitOutput(result)) processor.finishProcess(process, result);
       else processor.pendingResult = result;
     }
@@ -217,13 +216,10 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   }
 
   private boolean canFitPossibleOutput(ItemStack intended) {
-    int contaminationChance =
-        CleanroomContamination.contaminationChance(level, worldPosition);
+    int contaminationChance = CleanroomContamination.contaminationChance(level, worldPosition);
     ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
     return (contaminationChance < 100 && canFitOutput(intended))
-        || (contaminationChance > 0
-            && !contaminated.isEmpty()
-            && canFitOutput(contaminated));
+        || (contaminationChance > 0 && !contaminated.isEmpty() && canFitOutput(contaminated));
   }
 
   private int findOutputSlot(ItemStack result) {

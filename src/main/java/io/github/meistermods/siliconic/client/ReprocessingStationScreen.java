@@ -7,8 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 @SuppressWarnings({"null"})
-public class ReprocessingStationScreen
-    extends AbstractContainerScreen<ReprocessingStationMenu> {
+public class ReprocessingStationScreen extends AbstractContainerScreen<ReprocessingStationMenu> {
   public ReprocessingStationScreen(
       ReprocessingStationMenu menu, Inventory inventory, Component title) {
     super(menu, inventory, title);
@@ -29,8 +28,7 @@ public class ReprocessingStationScreen
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         slotBox(g, leftPos + 8 + column * 18, topPos + 137 + row * 18);
-    for (int column = 0; column < 9; column++)
-      slotBox(g, leftPos + 8 + column * 18, topPos + 195);
+    for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 195);
 
     g.drawString(font, "→", leftPos + 98, topPos + 56, 0xffe8edf2, false);
     int progressWidth = menu.maxProgress() == 0 ? 0 : 24 * menu.progress() / menu.maxProgress();
@@ -52,11 +50,7 @@ public class ReprocessingStationScreen
     g.drawCenteredString(
         font, Component.translatable("screen.siliconic.reprocessor.input"), 46, 22, 0xffaeb7c0);
     g.drawCenteredString(
-        font,
-        Component.translatable("screen.siliconic.reprocessor.output"),
-        140,
-        22,
-        0xffaeb7c0);
+        font, Component.translatable("screen.siliconic.reprocessor.output"), 140, 22, 0xffaeb7c0);
     g.drawString(
         font, Component.translatable("container.inventory"), 8, inventoryLabelY, 0xffaeb7c0, false);
     drawFittedString(

@@ -35,8 +35,7 @@ public record ReprocessingProcess(
   }
 
   public static boolean accepts(ItemStack stack) {
-    for (ReprocessingProcess process : Holder.PROCESSES)
-      if (stack.is(process.input())) return true;
+    for (ReprocessingProcess process : Holder.PROCESSES) if (stack.is(process.input())) return true;
     return false;
   }
 
@@ -63,8 +62,7 @@ public record ReprocessingProcess(
                 ModItems.CONTAMINATED_WAFER.get(),
                 1,
                 List.of(
-                    new ItemStack(ModItems.PURE_SILICON.get(), 2),
-                    new ItemStack(Items.REDSTONE)),
+                    new ItemStack(ModItems.PURE_SILICON.get(), 2), new ItemStack(Items.REDSTONE)),
                 300,
                 60),
             new ReprocessingProcess(

@@ -26,9 +26,7 @@ public final class CleanroomContamination {
     ItemStack contaminated = contaminatedVersion(intended);
     if (contaminated.isEmpty()) return intended;
     int chance = contaminationChance(level, machinePos);
-    return chance > 0 && level.random.nextInt(100) < chance
-        ? contaminated
-        : intended;
+    return chance > 0 && level.random.nextInt(100) < chance ? contaminated : intended;
   }
 
   /** Returns the waste counterpart of a process result, or an empty stack if none exists. */
@@ -41,10 +39,8 @@ public final class CleanroomContamination {
 
   @Nullable
   private static Item contaminatedItemFor(ItemStack intended) {
-    if (intended.is(ModItems.CRUDE_SILICON.get()))
-      return ModItems.CONTAMINATED_CRUDE_SILICON.get();
-    if (intended.is(ModItems.PURE_SILICON.get()))
-      return ModItems.CONTAMINATED_PURE_SILICON.get();
+    if (intended.is(ModItems.CRUDE_SILICON.get())) return ModItems.CONTAMINATED_CRUDE_SILICON.get();
+    if (intended.is(ModItems.PURE_SILICON.get())) return ModItems.CONTAMINATED_PURE_SILICON.get();
     if (intended.getItem() instanceof WaferItem) return ModItems.CONTAMINATED_WAFER.get();
     if (intended.is(ModItems.NOT_GATE.get())
         || intended.is(ModItems.AND_GATE.get())

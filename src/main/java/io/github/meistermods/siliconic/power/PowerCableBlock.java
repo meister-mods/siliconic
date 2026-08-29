@@ -222,10 +222,7 @@ public class PowerCableBlock extends Block {
   private BlockState connections(BlockState state, LevelAccessor level, BlockPos pos) {
     Attachment attachment = state.getValue(ATTACHMENT);
     Direction[] supports = attachment.faces();
-    state =
-        state
-            .setValue(SHARED_POSITIVE_SECOND, false)
-            .setValue(SHARED_NEGATIVE_SECOND, false);
+    state = state.setValue(SHARED_POSITIVE_SECOND, false).setValue(SHARED_NEGATIVE_SECOND, false);
     for (Direction direction : Direction.values()) {
       boolean connected = attachment.faceCount() == 2 && attachment.contains(direction);
       boolean sharedDirection = isSharedDirection(attachment, direction);

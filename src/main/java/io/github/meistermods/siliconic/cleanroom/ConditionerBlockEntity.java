@@ -137,8 +137,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (conditioner.scanCooldown == 0) {
       conditioner.lastScan = RoomScanner.scan(level, pos);
       conditioner.updateCleanliness(level);
-      CleanroomOccupancy.update(
-          level, pos, conditioner.lastScan, conditioner.cleanliness);
+      CleanroomOccupancy.update(level, pos, conditioner.lastScan, conditioner.cleanliness);
       conditioner.scanCooldown = SCAN_INTERVAL;
       conditioner.sync();
     } else if (powerChanged) conditioner.sync();
@@ -153,9 +152,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
       else cleanliness = Math.min(cleanliness, cleanlinessLimit);
       unprotectedEntities = countUnprotectedEntities(level);
       int contamination =
-          Math.min(
-              MAX_CLEANLINESS,
-              unprotectedEntities * CONTAMINATION_PER_UNPROTECTED_ENTITY);
+          Math.min(MAX_CLEANLINESS, unprotectedEntities * CONTAMINATION_PER_UNPROTECTED_ENTITY);
       cleanliness = Math.max(0, cleanliness - contamination);
     } else {
       unprotectedEntities = 0;
@@ -203,8 +200,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     }
     coatingCoverage = (100 * coatedFaces + totalFaces / 2) / totalFaces;
     int bonus =
-        ((MAX_CLEANLINESS - BASE_CLEANLINESS_LIMIT) * coatedFaces + totalFaces / 2)
-            / totalFaces;
+        ((MAX_CLEANLINESS - BASE_CLEANLINESS_LIMIT) * coatedFaces + totalFaces / 2) / totalFaces;
     cleanlinessLimit = BASE_CLEANLINESS_LIMIT + bonus;
   }
 
@@ -234,8 +230,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     cleanlinessLimit =
         tag.contains("CleanlinessLimit", Tag.TAG_INT)
             ? Math.max(
-                BASE_CLEANLINESS_LIMIT,
-                Math.min(MAX_CLEANLINESS, tag.getInt("CleanlinessLimit")))
+                BASE_CLEANLINESS_LIMIT, Math.min(MAX_CLEANLINESS, tag.getInt("CleanlinessLimit")))
             : BASE_CLEANLINESS_LIMIT;
     coatingCoverage = Math.max(0, Math.min(100, tag.getInt("CoatingCoverage")));
     lastScan =

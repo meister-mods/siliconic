@@ -149,8 +149,7 @@ public final class ModItems {
           "conditioner", () -> new BlockItem(ModBlocks.CONDITIONER.get(), new Item.Properties()));
   public static final RegistryObject<Item> COATED_BLOCK =
       ITEMS.register(
-          "coated_block",
-          () -> new BlockItem(ModBlocks.COATED_BLOCK.get(), new Item.Properties()));
+          "coated_block", () -> new BlockItem(ModBlocks.COATED_BLOCK.get(), new Item.Properties()));
 
   private ModItems() {}
 }

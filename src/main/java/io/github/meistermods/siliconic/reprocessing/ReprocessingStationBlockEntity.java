@@ -159,8 +159,7 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
     List<ItemStack> simulated = new ArrayList<>(OUTPUT_SLOTS);
     for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_SLOTS; slot++)
       simulated.add(items.getStackInSlot(slot).copy());
-    for (ItemStack result : results)
-      if (!insertSimulated(simulated, result)) return false;
+    for (ItemStack result : results) if (!insertSimulated(simulated, result)) return false;
     return true;
   }
 
@@ -191,9 +190,7 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
 
   private void consumeInput(ReprocessingProcess process) {
     int remaining = process.inputCount();
-    for (int slot = INPUT_START;
-        slot < INPUT_START + INPUT_SLOTS && remaining > 0;
-        slot++) {
+    for (int slot = INPUT_START; slot < INPUT_START + INPUT_SLOTS && remaining > 0; slot++) {
       ItemStack stack = items.getStackInSlot(slot);
       if (!stack.is(process.input())) continue;
       int extracted = Math.min(remaining, stack.getCount());
@@ -212,9 +209,7 @@ public class ReprocessingStationBlockEntity extends BlockEntity implements MenuP
       remaining -= moved;
       if (remaining == 0) return;
     }
-    for (int slot = OUTPUT_START;
-        slot < OUTPUT_START + OUTPUT_SLOTS && remaining > 0;
-        slot++) {
+    for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_SLOTS && remaining > 0; slot++) {
       if (!items.getStackInSlot(slot).isEmpty()) continue;
       int moved = Math.min(remaining, result.getMaxStackSize());
       items.setStackInSlot(slot, result.copyWithCount(moved));

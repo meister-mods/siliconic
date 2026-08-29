@@ -1,1 +1,1 @@
-{"parent":"minecraft:block/cube_bottom_top","textures":{"top":"minecraft:block/smithing_table_top","bottom":"minecraft:block/iron_block","side":"minecraft:block/smithing_table_side"}}
+{"parent":"minecraft:block/orientable","textures":{"front":"minecraft:block/smithing_table_top","side":"siliconic:block/fabrication_frame_side","top":"siliconic:block/fabrication_frame_cap"}}

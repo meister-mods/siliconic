@@ -1,1 +1,1 @@
-{"parent":"minecraft:block/cube_bottom_top","textures":{"top":"minecraft:block/smooth_stone","bottom":"minecraft:block/iron_block","side":"minecraft:block/deepslate_tiles"}}
+{"parent":"minecraft:block/orientable","textures":{"front":"minecraft:block/smooth_stone","side":"siliconic:block/fabrication_frame_side","top":"siliconic:block/fabrication_frame_cap"}}

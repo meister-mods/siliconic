@@ -44,6 +44,10 @@ public class PowerCableBlock extends Block {
   public static final BooleanProperty WEST = BooleanProperty.create("west");
   public static final BooleanProperty UP = BooleanProperty.create("up");
   public static final BooleanProperty DOWN = BooleanProperty.create("down");
+  public static final BooleanProperty SHARED_POSITIVE_SECOND =
+      BooleanProperty.create("shared_positive_second");
+  public static final BooleanProperty SHARED_NEGATIVE_SECOND =
+      BooleanProperty.create("shared_negative_second");
   private static final Map<Direction, BooleanProperty> CONNECTIONS = new EnumMap<>(Direction.class);
 
   static {
@@ -66,7 +70,9 @@ public class PowerCableBlock extends Block {
             .setValue(SOUTH, false)
             .setValue(WEST, false)
             .setValue(UP, false)
-            .setValue(DOWN, false));
+            .setValue(DOWN, false)
+            .setValue(SHARED_POSITIVE_SECOND, false)
+            .setValue(SHARED_NEGATIVE_SECOND, false));
   }
 
   @Nullable
@@ -157,7 +163,16 @@ public class PowerCableBlock extends Block {
 
   @Override
   protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-    builder.add(ATTACHMENT, NORTH, EAST, SOUTH, WEST, UP, DOWN);
+    builder.add(
+        ATTACHMENT,
+        NORTH,
+        EAST,
+        SOUTH,
+        WEST,
+        UP,
+        DOWN,
+        SHARED_POSITIVE_SECOND,
+        SHARED_NEGATIVE_SECOND);
   }
 
   @Override
@@ -165,10 +180,13 @@ public class PowerCableBlock extends Block {
       BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
     VoxelShape shape = Shapes.empty();
     Attachment attachment = state.getValue(ATTACHMENT);
-    for (Direction support : attachment.faces()) {
+    Direction[] supports = attachment.faces();
+    for (int supportIndex = 0; supportIndex < supports.length; supportIndex++) {
+      Direction support = supports[supportIndex];
       shape = Shapes.or(shape, dotShape(support));
       for (Direction direction : tangentDirections(support))
-        if (state.getValue(property(direction)))
+        if (state.getValue(property(direction))
+            && usesSurface(state, attachment, direction, supportIndex))
           shape = Shapes.or(shape, armShape(support, direction));
     }
     return shape;
@@ -203,66 +221,52 @@ public class PowerCableBlock extends Block {
 
   private BlockState connections(BlockState state, LevelAccessor level, BlockPos pos) {
     Attachment attachment = state.getValue(ATTACHMENT);
+    Direction[] supports = attachment.faces();
+    state =
+        state
+            .setValue(SHARED_POSITIVE_SECOND, false)
+            .setValue(SHARED_NEGATIVE_SECOND, false);
     for (Direction direction : Direction.values()) {
       boolean connected = attachment.faceCount() == 2 && attachment.contains(direction);
-      boolean hasTangentFace = false;
-      if (!connected) {
-        connected = true;
-        for (Direction support : attachment.faces()) {
-          if (direction.getAxis() == support.getAxis()) continue;
-          hasTangentFace = true;
-          if (!connectsDirectly(level, pos, support, direction)
-              && !connectsAroundCorner(level, pos, support, direction)) {
-            connected = false;
-            break;
-          }
-        }
-        connected &= hasTangentFace;
+      boolean sharedDirection = isSharedDirection(attachment, direction);
+      boolean useSecondSurface = false;
+      for (int supportIndex = 0; supportIndex < supports.length; supportIndex++) {
+        Direction support = supports[supportIndex];
+        if (direction.getAxis() == support.getAxis()) continue;
+        boolean faceConnected =
+            connectsDirectly(level, pos, support, direction)
+                || connectsAroundCorner(level, pos, support, direction);
+        connected |= faceConnected;
+        if (sharedDirection && supportIndex == 1 && faceConnected) useSecondSurface = true;
       }
+      if (sharedDirection)
+        state = state.setValue(sharedSurfaceProperty(direction), useSecondSurface);
       state = state.setValue(property(direction), connected);
     }
     return state;
   }
 
+  private static boolean usesSurface(
+      BlockState state, Attachment attachment, Direction direction, int supportIndex) {
+    if (!isSharedDirection(attachment, direction)) return true;
+    boolean useSecond = state.getValue(sharedSurfaceProperty(direction));
+    return supportIndex == (useSecond ? 1 : 0);
+  }
+
+  private static boolean isSharedDirection(Attachment attachment, Direction direction) {
+    if (attachment.faceCount() != 2) return false;
+    for (Direction support : attachment.faces())
+      if (direction.getAxis() == support.getAxis()) return false;
+    return true;
+  }
+
+  private static BooleanProperty sharedSurfaceProperty(Direction direction) {
+    return direction.getAxisDirection() == Direction.AxisDirection.POSITIVE
+        ? SHARED_POSITIVE_SECOND
+        : SHARED_NEGATIVE_SECOND;
+  }
+
   private boolean connectsDirectly(
-      LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
-    BlockPos neighborPos = pos.relative(direction);
-    BlockState neighbor = level.getBlockState(neighborPos);
-    if (neighbor.getBlock() instanceof PowerCableBlock) {
-      Attachment neighborAttachment = neighbor.getValue(ATTACHMENT);
-      return neighborAttachment.contains(support)
-          && hasRawConnection(
-              level, neighborPos, neighborAttachment, direction.getOpposite());
-    }
-    BlockEntity blockEntity = level.getBlockEntity(neighborPos);
-    return blockEntity != null
-        && blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).isPresent();
-  }
-
-  private boolean connectsAroundCorner(
-      LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
-    BlockPos cornerPos = pos.relative(direction).relative(support);
-    BlockState corner = level.getBlockState(cornerPos);
-    if (!(corner.getBlock() instanceof PowerCableBlock)) return false;
-    Attachment cornerAttachment = corner.getValue(ATTACHMENT);
-    return cornerAttachment.contains(direction.getOpposite())
-        && hasRawConnection(level, cornerPos, cornerAttachment, support.getOpposite());
-  }
-
-  private boolean hasRawConnection(
-      LevelAccessor level, BlockPos pos, Attachment attachment, Direction direction) {
-    if (attachment.faceCount() == 2 && attachment.contains(direction)) return true;
-    boolean hasTangentFace = false;
-    for (Direction support : attachment.faces()) {
-      if (direction.getAxis() == support.getAxis()) continue;
-      hasTangentFace = true;
-      if (!connectsDirectlyRaw(level, pos, support, direction)
-          && !connectsAroundCornerRaw(level, pos, support, direction)) return false;
-    }
-    return hasTangentFace;
-  }
-
-  private boolean connectsDirectlyRaw(
       LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
     BlockPos neighborPos = pos.relative(direction);
     BlockState neighbor = level.getBlockState(neighborPos);
@@ -273,7 +277,7 @@ public class PowerCableBlock extends Block {
         && blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).isPresent();
   }
 
-  private boolean connectsAroundCornerRaw(
+  private boolean connectsAroundCorner(
       LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
     BlockState corner = level.getBlockState(pos.relative(direction).relative(support));
     return corner.getBlock() instanceof PowerCableBlock

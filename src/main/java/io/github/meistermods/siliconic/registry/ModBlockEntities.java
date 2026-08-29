@@ -72,8 +72,7 @@ public final class ModBlockEntities {
       BLOCK_ENTITIES.register(
           "reprocessor",
           () ->
-              BlockEntityType.Builder.of(
-                      ReprocessorBlockEntity::new, ModBlocks.REPROCESSOR.get())
+              BlockEntityType.Builder.of(ReprocessorBlockEntity::new, ModBlocks.REPROCESSOR.get())
                   .build(null));
   public static final RegistryObject<BlockEntityType<ConditionerBlockEntity>> CONDITIONER =
       BLOCK_ENTITIES.register(

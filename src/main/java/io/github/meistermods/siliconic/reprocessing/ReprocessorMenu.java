@@ -19,8 +19,7 @@ public class ReprocessorMenu extends AbstractContainerMenu {
     this(
         id,
         inventory,
-        (ReprocessorBlockEntity)
-            inventory.player.level().getBlockEntity(data.readBlockPos()));
+        (ReprocessorBlockEntity) inventory.player.level().getBlockEntity(data.readBlockPos()));
   }
 
   public ReprocessorMenu(int id, Inventory inventory, ReprocessorBlockEntity reprocessor) {

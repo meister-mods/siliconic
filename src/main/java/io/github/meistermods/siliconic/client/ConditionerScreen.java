@@ -49,8 +49,7 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
     RoomScanResult result = menu.lastScan();
     g.drawString(font, title, 8, 6, 0xffe8edf2, false);
     Component conditionerCount =
-        Component.translatable(
-            "screen.siliconic.conditioner.count", menu.conditionerCount());
+        Component.translatable("screen.siliconic.conditioner.count", menu.conditionerCount());
     g.drawString(
         font,
         conditionerCount,

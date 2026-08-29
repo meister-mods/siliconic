@@ -58,8 +58,7 @@ public class ReprocessorBlock extends HorizontalFacingEntityBlock {
     return level.isClientSide
         ? null
         : createTickerHelper(
-            type,
-            ModBlockEntities.REPROCESSOR.get(), ReprocessorBlockEntity::serverTick);
+            type, ModBlockEntities.REPROCESSOR.get(), ReprocessorBlockEntity::serverTick);
   }
 
   @Override

@@ -187,8 +187,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
           changedConditioners.add(conditioner);
     }
 
-    CleanroomOccupancy.synchronizeCleanliness(
-        level, conditionerPositions, snapshot.cleanliness());
+    CleanroomOccupancy.synchronizeCleanliness(level, conditionerPositions, snapshot.cleanliness());
     for (ConditionerBlockEntity conditioner : changedConditioners)
       if (conditioner != this) conditioner.sync();
   }
@@ -274,8 +273,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
 
   private double recoveryPerScan(int conditioners) {
     // One unit keeps the original rate; doubling the linked units adds one recovery per scan.
-    return CLEANLINESS_RECOVERY_PER_SCAN
-        * (1.0D + Math.log(Math.max(1, conditioners)) / LOG_2);
+    return CLEANLINESS_RECOVERY_PER_SCAN * (1.0D + Math.log(Math.max(1, conditioners)) / LOG_2);
   }
 
   private int countUnprotectedEntities(Level level) {

@@ -111,8 +111,7 @@ public final class ModItems {
           () -> new BlockItem(ModBlocks.GATE_ASSEMBLER.get(), new Item.Properties()));
   public static final RegistryObject<Item> REPROCESSOR =
       ITEMS.register(
-          "reprocessor",
-          () -> new BlockItem(ModBlocks.REPROCESSOR.get(), new Item.Properties()));
+          "reprocessor", () -> new BlockItem(ModBlocks.REPROCESSOR.get(), new Item.Properties()));
   public static final RegistryObject<Item> SILVER_ORE =
       ITEMS.register(
           "silver_ore", () -> new BlockItem(ModBlocks.SILVER_ORE.get(), new Item.Properties()));

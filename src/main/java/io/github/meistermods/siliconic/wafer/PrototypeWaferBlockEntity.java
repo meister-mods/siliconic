@@ -157,10 +157,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       int[] signals, int[][] wireStrength, int[][] wireRemaining, int[][] chipOutputs) {}
 
   private record SimulationFrame(
-      int[] signals,
-      int[][] wireStrength,
-      int[][] wireRemaining,
-      int[][] chipOutputs) {}
+      int[] signals, int[][] wireStrength, int[][] wireRemaining, int[][] chipOutputs) {}
 
   private record WireState(int[] signals, int[][] strength, int[][] remaining) {}
 
@@ -412,8 +409,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     markUnfinished();
     clearRuntimeState(wafer);
     byte[] values = dropAmounts(design(), getGridSize());
-    values[cell] =
-        (byte) ((Byte.toUnsignedInt(values[cell]) + 1) % (MAX_DROP_AMOUNT + 1));
+    values[cell] = (byte) ((Byte.toUnsignedInt(values[cell]) + 1) % (MAX_DROP_AMOUNT + 1));
     design().putByteArray("DropAmounts", values);
     changedAndSync();
   }
@@ -550,8 +546,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     List<SimulationFrame> history = new ArrayList<>();
     history.add(captureFrame(values, wireStrength, wireRemaining, chipOutputs));
     boolean networkStable = false;
-    int maxSettlePasses =
-        count + MAX_SIGNAL_STRENGTH * MAX_CONDUCTOR_ATTENUATION_INTERVAL + 8;
+    int maxSettlePasses = count + MAX_SIGNAL_STRENGTH * MAX_CONDUCTOR_ATTENUATION_INTERVAL + 8;
     for (int pass = 0; pass < maxSettlePasses; pass++) {
       CompoundTag designBeforePass = hasNestedChips ? design.copy() : null;
       int[][] nextChips = new int[count][4];
@@ -640,8 +635,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
         break;
       }
 
-      SimulationFrame nextFrame =
-          captureFrame(next, nextWire, nextWireRemaining, nextChips);
+      SimulationFrame nextFrame = captureFrame(next, nextWire, nextWireRemaining, nextChips);
       if (containsFrame(history, nextFrame)) {
         // A feedback loop such as T = Q xor D has no fixed point during an active clock edge.
         // Keep the last unique phase so one external input event advances sequential state once.
@@ -656,8 +650,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     }
     if (!networkStable) {
       WireState settledWires =
-          settleWires(
-              design, size, values, chipOutputs, externalInputs, maxSettlePasses);
+          settleWires(design, size, values, chipOutputs, externalInputs, maxSettlePasses);
       values = settledWires.signals;
       wireStrength = settledWires.strength;
       wireRemaining = settledWires.remaining;
@@ -752,10 +745,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private SimulationFrame captureFrame(
-      int[] signals,
-      int[][] wireStrength,
-      int[][] wireRemaining,
-      int[][] chipOutputs) {
+      int[] signals, int[][] wireStrength, int[][] wireRemaining, int[][] chipOutputs) {
     return new SimulationFrame(
         signals.clone(),
         copyMatrix(wireStrength),
@@ -807,8 +797,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
               nextRemaining);
       }
       boolean stable =
-          Arrays.deepEquals(strength, nextStrength)
-              && Arrays.deepEquals(remaining, nextRemaining);
+          Arrays.deepEquals(strength, nextStrength) && Arrays.deepEquals(remaining, nextRemaining);
       strength = nextStrength;
       remaining = nextRemaining;
       if (stable) break;
@@ -1103,8 +1092,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (oldCells.length == count) design.putByteArray("Cells", newCells);
     if (oldRotations.length == count) design.putByteArray("Rotations", newRotations);
     if (oldModes.length == count) design.putByteArray("ConductorModes", newModes);
-    if (oldDropAmounts.length == count)
-      design.putByteArray("DropAmounts", newDropAmounts);
+    if (oldDropAmounts.length == count) design.putByteArray("DropAmounts", newDropAmounts);
     int[] pinModes = design.getIntArray("PinModes");
     if (pinModes.length == 4) {
       int west = pinModes[3];
@@ -1168,8 +1156,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
         cells[cell] = oldCells[oldCell];
         if (oldRotations.length == oldCells.length) rotations[cell] = oldRotations[oldCell];
         if (oldModes.length == oldCells.length) modes[cell] = oldModes[oldCell];
-        if (oldDropAmounts.length == oldCells.length)
-          dropAmounts[cell] = oldDropAmounts[oldCell];
+        if (oldDropAmounts.length == oldCells.length) dropAmounts[cell] = oldDropAmounts[oldCell];
         String oldKey = Integer.toString(oldCell);
         if (oldChips.contains(oldKey))
           chips.put(Integer.toString(cell), oldChips.get(oldKey).copy());

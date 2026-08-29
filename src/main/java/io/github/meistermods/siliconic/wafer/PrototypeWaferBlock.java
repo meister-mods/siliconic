@@ -20,12 +20,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
 public class PrototypeWaferBlock extends BaseEntityBlock {
   public static final BooleanProperty HAS_WAFER = BooleanProperty.create("has_wafer");
+  private static final VoxelShape WAFER_GUARD_SHAPE = box(0, 0, 0, 16, 3, 16);
   private final boolean editable;
 
   public PrototypeWaferBlock(Properties properties) {
@@ -41,6 +44,18 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
   @Override
   public RenderShape getRenderShape(BlockState state) {
     return RenderShape.MODEL;
+  }
+
+  @Override
+  public VoxelShape getShape(
+      BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    return editable ? super.getShape(state, level, pos, context) : WAFER_GUARD_SHAPE;
+  }
+
+  @Override
+  public VoxelShape getCollisionShape(
+      BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    return editable ? super.getCollisionShape(state, level, pos, context) : WAFER_GUARD_SHAPE;
   }
 
   @Nullable
@@ -71,7 +86,7 @@ public class PrototypeWaferBlock extends BaseEntityBlock {
       if (editable && !level.isClientSide && player instanceof ServerPlayer serverPlayer) {
         NetworkHooks.openScreen(serverPlayer, station, pos);
       } else if (!editable && !level.isClientSide) {
-        if (!station.isInsideCleanroom())
+        if (!station.canOperateHere())
           player.displayClientMessage(
               Component.translatable("message.siliconic.machine.outside_cleanroom"), true);
         else

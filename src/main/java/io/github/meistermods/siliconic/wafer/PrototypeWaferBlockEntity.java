@@ -231,13 +231,17 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public boolean isPowered() {
-    return hasWafer() && powered && isInsideCleanroom();
+    return hasWafer() && powered && canOperateHere();
   }
 
   public boolean isInsideCleanroom() {
     return level != null && !level.isClientSide
         ? CleanroomOccupancy.isMachineInside(level, worldPosition)
         : insideCleanroom;
+  }
+
+  public boolean canOperateHere() {
+    return getBlockState().is(ModBlocks.WAFER_GUARD.get()) || isInsideCleanroom();
   }
 
   public int addEnergy(int amount) {
@@ -251,8 +255,9 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     boolean nextInsideCleanroom = CleanroomOccupancy.isMachineInside(level, pos);
     boolean cleanroomChanged = nextInsideCleanroom != station.insideCleanroom;
     station.insideCleanroom = nextInsideCleanroom;
+    boolean canOperate = state.is(ModBlocks.WAFER_GUARD.get()) || nextInsideCleanroom;
     boolean nextPowered = false;
-    if (nextInsideCleanroom && station.hasWafer()) {
+    if (canOperate && station.hasWafer()) {
       int cost = station.getOperationCost();
       nextPowered = station.energy.consumeInternal(cost);
     }

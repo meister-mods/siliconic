@@ -184,15 +184,19 @@ public class PowerCableBlock extends Block {
     Attachment attachment = state.getValue(ATTACHMENT);
     for (Direction support : attachment.faces())
       for (Direction tangent : tangentDirections(support)) {
+        if (!state.getValue(property(tangent))) continue;
+
         BlockPos directPos = pos.relative(tangent);
         BlockState direct = level.getBlockState(directPos);
         if (direct.getBlock() instanceof PowerCableBlock
-            && direct.getValue(ATTACHMENT).contains(support)) result.add(directPos);
+            && direct.getValue(ATTACHMENT).contains(support)
+            && direct.getValue(property(tangent.getOpposite()))) result.add(directPos);
 
         BlockPos cornerPos = directPos.relative(support);
         BlockState corner = level.getBlockState(cornerPos);
         if (corner.getBlock() instanceof PowerCableBlock
-            && corner.getValue(ATTACHMENT).contains(tangent.getOpposite())) result.add(cornerPos);
+            && corner.getValue(ATTACHMENT).contains(tangent.getOpposite())
+            && corner.getValue(property(support.getOpposite()))) result.add(cornerPos);
       }
     return new ArrayList<>(result);
   }
@@ -201,20 +205,64 @@ public class PowerCableBlock extends Block {
     Attachment attachment = state.getValue(ATTACHMENT);
     for (Direction direction : Direction.values()) {
       boolean connected = attachment.faceCount() == 2 && attachment.contains(direction);
-      if (!connected)
-        for (Direction support : attachment.faces())
-          if (direction.getAxis() != support.getAxis()
-              && (connectsDirectly(level, pos, support, direction)
-                  || connectsAroundCorner(level, pos, support, direction))) {
-            connected = true;
+      boolean hasTangentFace = false;
+      if (!connected) {
+        connected = true;
+        for (Direction support : attachment.faces()) {
+          if (direction.getAxis() == support.getAxis()) continue;
+          hasTangentFace = true;
+          if (!connectsDirectly(level, pos, support, direction)
+              && !connectsAroundCorner(level, pos, support, direction)) {
+            connected = false;
             break;
           }
+        }
+        connected &= hasTangentFace;
+      }
       state = state.setValue(property(direction), connected);
     }
     return state;
   }
 
   private boolean connectsDirectly(
+      LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
+    BlockPos neighborPos = pos.relative(direction);
+    BlockState neighbor = level.getBlockState(neighborPos);
+    if (neighbor.getBlock() instanceof PowerCableBlock) {
+      Attachment neighborAttachment = neighbor.getValue(ATTACHMENT);
+      return neighborAttachment.contains(support)
+          && hasRawConnection(
+              level, neighborPos, neighborAttachment, direction.getOpposite());
+    }
+    BlockEntity blockEntity = level.getBlockEntity(neighborPos);
+    return blockEntity != null
+        && blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).isPresent();
+  }
+
+  private boolean connectsAroundCorner(
+      LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
+    BlockPos cornerPos = pos.relative(direction).relative(support);
+    BlockState corner = level.getBlockState(cornerPos);
+    if (!(corner.getBlock() instanceof PowerCableBlock)) return false;
+    Attachment cornerAttachment = corner.getValue(ATTACHMENT);
+    return cornerAttachment.contains(direction.getOpposite())
+        && hasRawConnection(level, cornerPos, cornerAttachment, support.getOpposite());
+  }
+
+  private boolean hasRawConnection(
+      LevelAccessor level, BlockPos pos, Attachment attachment, Direction direction) {
+    if (attachment.faceCount() == 2 && attachment.contains(direction)) return true;
+    boolean hasTangentFace = false;
+    for (Direction support : attachment.faces()) {
+      if (direction.getAxis() == support.getAxis()) continue;
+      hasTangentFace = true;
+      if (!connectsDirectlyRaw(level, pos, support, direction)
+          && !connectsAroundCornerRaw(level, pos, support, direction)) return false;
+    }
+    return hasTangentFace;
+  }
+
+  private boolean connectsDirectlyRaw(
       LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
     BlockPos neighborPos = pos.relative(direction);
     BlockState neighbor = level.getBlockState(neighborPos);
@@ -225,7 +273,7 @@ public class PowerCableBlock extends Block {
         && blockEntity.getCapability(ForgeCapabilities.ENERGY, direction.getOpposite()).isPresent();
   }
 
-  private boolean connectsAroundCorner(
+  private boolean connectsAroundCornerRaw(
       LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
     BlockState corner = level.getBlockState(pos.relative(direction).relative(support));
     return corner.getBlock() instanceof PowerCableBlock
@@ -251,7 +299,7 @@ public class PowerCableBlock extends Block {
       for (int dy = -1; dy <= 1; dy++)
         for (int dz = -1; dz <= 1; dz++) {
           int distance = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);
-          if (distance < 1 || distance > 2) continue;
+          if (distance > 2) continue;
           BlockPos candidate = pos.offset(dx, dy, dz);
           if (level.getBlockState(candidate).is(this)) level.scheduleTick(candidate, this, 1);
         }

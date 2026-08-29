@@ -33,7 +33,11 @@ public final class ModBlocks {
           "wafer_guard",
           () ->
               new PrototypeWaferBlock(
-                  BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(2.0f), false));
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(2.0f)
+                      .noOcclusion(),
+                  false));
   public static final RegistryObject<Block> WAFER_INVERTER =
       BLOCKS.register(
           "wafer_inverter",

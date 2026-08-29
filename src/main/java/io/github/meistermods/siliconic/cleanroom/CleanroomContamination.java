@@ -18,14 +18,25 @@ public final class CleanroomContamination {
     return Math.min(100, (100 - clampedCleanliness) * CHANCE_PER_MISSING_PERCENT);
   }
 
+  public static int contaminationChance(Level level, BlockPos machinePos) {
+    return contaminationChance(CleanroomOccupancy.cleanlinessAtMachine(level, machinePos));
+  }
+
   public static ItemStack processResult(Level level, BlockPos machinePos, ItemStack intended) {
-    Item contaminatedItem = contaminatedItemFor(intended);
-    if (contaminatedItem == null) return intended;
-    int cleanliness = CleanroomOccupancy.cleanlinessAtMachine(level, machinePos);
-    int chance = contaminationChance(cleanliness);
+    ItemStack contaminated = contaminatedVersion(intended);
+    if (contaminated.isEmpty()) return intended;
+    int chance = contaminationChance(level, machinePos);
     return chance > 0 && level.random.nextInt(100) < chance
-        ? new ItemStack(contaminatedItem, intended.getCount())
+        ? contaminated
         : intended;
+  }
+
+  /** Returns the waste counterpart of a process result, or an empty stack if none exists. */
+  public static ItemStack contaminatedVersion(ItemStack intended) {
+    Item contaminatedItem = contaminatedItemFor(intended);
+    return contaminatedItem == null
+        ? ItemStack.EMPTY
+        : new ItemStack(contaminatedItem, intended.getCount());
   }
 
   @Nullable

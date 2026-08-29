@@ -19,6 +19,8 @@ Siliconic introduces a technology path that begins with resource gathering and c
   cleanroom-only machine operation (generators excluded)
 - Cleanliness-dependent contamination risk for crude silicon, high-purity silicon, wafers, and
   logic gates
+- 3x3 output storage for silicon processors, wafer fabricators, gate assemblers, and wafer
+  duplicators
 - Support for both singleplayer and multiplayer
 - Optional JEI integration for viewing machine recipes
 

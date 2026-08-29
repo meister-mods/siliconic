@@ -139,8 +139,9 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   private int status(@Nullable MachineProcess process) {
     if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 4;
     if (process == null) return 0;
-    ItemStack expectedResult = pendingResult.isEmpty() ? process.result() : pendingResult;
-    if (!canFitOutput(expectedResult)) return 1;
+    if (pendingResult.isEmpty()) {
+      if (!canFitPossibleOutput(process.result())) return 1;
+    } else if (!canFitOutput(pendingResult)) return 1;
     if (!pendingResult.isEmpty()) return 3;
     if (energy.getEnergyStored() < process.energyPerTick()) return 2;
     return 3;
@@ -159,7 +160,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
         station.finishProcess(process, station.pendingResult);
       return;
     }
-    if (!station.canFitOutput(process.result())) {
+    if (!station.canFitPossibleOutput(process.result())) {
       station.resetProgress();
       return;
     }
@@ -188,6 +189,16 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
 
   private boolean canFitOutput(ItemStack result) {
     return findOutputSlot(result) >= 0;
+  }
+
+  private boolean canFitPossibleOutput(ItemStack intended) {
+    int contaminationChance =
+        CleanroomContamination.contaminationChance(level, worldPosition);
+    ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
+    return (contaminationChance < 100 && canFitOutput(intended))
+        || (contaminationChance > 0
+            && !contaminated.isEmpty()
+            && canFitOutput(contaminated));
   }
 
   private int findOutputSlot(ItemStack result) {

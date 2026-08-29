@@ -32,8 +32,8 @@ public class FabricationStationScreen extends AbstractContainerScreen<Fabricatio
 
     g.drawString(font, "→", leftPos + 98, topPos + 56, 0xffe8edf2, false);
     int progressWidth = menu.maxProgress() == 0 ? 0 : 24 * menu.progress() / menu.maxProgress();
-    g.fill(leftPos + 94, topPos + 70, leftPos + 118, topPos + 74, 0xff2b3035);
-    g.fill(leftPos + 94, topPos + 70, leftPos + 94 + progressWidth, topPos + 74, 0xff66d99a);
+    g.fill(leftPos + 84, topPos + 70, leftPos + 108, topPos + 74, 0xff2b3035);
+    g.fill(leftPos + 84, topPos + 70, leftPos + 84 + progressWidth, topPos + 74, 0xff66d99a);
     int energyWidth = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();
     g.fill(leftPos + 8, topPos + 120, leftPos + 168, topPos + 125, 0xff2b3035);
     g.fill(leftPos + 8, topPos + 120, leftPos + 8 + energyWidth, topPos + 125, 0xffd94f67);

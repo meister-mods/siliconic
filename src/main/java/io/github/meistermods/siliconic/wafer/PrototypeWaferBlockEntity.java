@@ -40,6 +40,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public static final String DESIGN_TAG = "SiliconicDesign";
   public static final String COMPLETED_TAG = "SiliconicCompleted";
   public static final String RUNTIME_TAG = "SiliconicRuntime";
+  private static final int MAX_SIGNAL_STRENGTH = 15;
+  private static final int MAX_CONDUCTOR_ATTENUATION_INTERVAL = 6;
   private static final TagKey<Item> REDSTONE_DUSTS = materialTag("dusts/redstone");
   private static final TagKey<Item> COPPER_NUGGETS = materialTag("nuggets/copper");
   private static final TagKey<Item> LEAD_NUGGETS = materialTag("nuggets/lead");
@@ -155,6 +157,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       int[][] wireStrength,
       int[][] wireRemaining,
       int[][] chipOutputs) {}
+
+  private record WireState(int[] signals, int[][] strength, int[][] remaining) {}
 
   private record Pulse(int strength, CellType material, int remaining) {
     static final Pulse NONE = new Pulse(0, CellType.EMPTY, 0);
@@ -515,7 +519,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     int[][] lastNestedOutputs = new int[count][];
     List<SimulationFrame> history = new ArrayList<>();
     history.add(captureFrame(values, wireStrength, wireRemaining, chipOutputs));
-    for (int pass = 0; pass < count + 8; pass++) {
+    boolean networkStable = false;
+    int maxSettlePasses =
+        count + MAX_SIGNAL_STRENGTH * MAX_CONDUCTOR_ATTENUATION_INTERVAL + 8;
+    for (int pass = 0; pass < maxSettlePasses; pass++) {
       CompoundTag designBeforePass = hasNestedChips ? design.copy() : null;
       int[][] nextChips = new int[count][4];
       for (int cell = 0; cell < count; cell++)
@@ -599,6 +606,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
         wireStrength = nextWire;
         wireRemaining = nextWireRemaining;
         chipOutputs = nextChips;
+        networkStable = true;
         break;
       }
 
@@ -615,6 +623,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       wireRemaining = nextWireRemaining;
       chipOutputs = nextChips;
       history.add(nextFrame);
+    }
+    if (!networkStable) {
+      WireState settledWires =
+          settleWires(
+              design, size, values, chipOutputs, externalInputs, maxSettlePasses);
+      values = settledWires.signals;
+      wireStrength = settledWires.strength;
+      wireRemaining = settledWires.remaining;
     }
     int[] resultOutputs = new int[4];
     for (int pin = 0; pin < 4; pin++)
@@ -729,6 +745,53 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private void restoreDesign(CompoundTag design, CompoundTag snapshot) {
     for (String key : new ArrayList<>(design.getAllKeys())) design.remove(key);
     design.merge(snapshot.copy());
+  }
+
+  private WireState settleWires(
+      CompoundTag design,
+      int size,
+      int[] fixedSignals,
+      int[][] chipOutputs,
+      int[] externalInputs,
+      int maxPasses) {
+    int count = size * size;
+    int[][] strength = new int[count][4];
+    int[][] remaining = new int[count][4];
+    for (int pass = 0; pass < maxPasses; pass++) {
+      int[][] nextStrength = new int[count][4];
+      int[][] nextRemaining = new int[count][4];
+      for (int cell = 0; cell < count; cell++) {
+        CellType type = cellType(design, size, cell);
+        if (type.isConductor())
+          routeConductor(
+              design,
+              size,
+              fixedSignals,
+              strength,
+              remaining,
+              chipOutputs,
+              externalInputs,
+              cell,
+              type,
+              nextStrength,
+              nextRemaining);
+      }
+      boolean stable =
+          Arrays.deepEquals(strength, nextStrength)
+              && Arrays.deepEquals(remaining, nextRemaining);
+      strength = nextStrength;
+      remaining = nextRemaining;
+      if (stable) break;
+    }
+
+    int[] signals = fixedSignals.clone();
+    for (int cell = 0; cell < count; cell++)
+      if (cellType(design, size, cell).isConductor()) {
+        signals[cell] = 0;
+        for (int side = 0; side < 4; side++)
+          signals[cell] = Math.max(signals[cell], strength[cell][side]);
+      }
+    return new WireState(signals, strength, remaining);
   }
 
   private void routeConductor(

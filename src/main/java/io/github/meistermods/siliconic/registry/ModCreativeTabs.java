@@ -38,6 +38,8 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.PURE_SILICON.get());
                         output.accept(ModItems.CONTAMINATED_CRUDE_SILICON.get());
                         output.accept(ModItems.CONTAMINATED_PURE_SILICON.get());
+                        output.accept(ModItems.CONTAMINATED_WAFER.get());
+                        output.accept(ModItems.CONTAMINATED_GATE.get());
                         output.accept(ModItems.COATED_BLOCK.get());
                         output.accept(ModItems.CABLE_COATED_BLOCK.get());
                         output.accept(ModItems.CLEANROOM_HOOD.get());
@@ -68,8 +70,6 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.BUFFER_GATE.get());
                         output.accept(ModItems.DROP_GATE.get());
                         output.accept(ModItems.SWITCH_GATE.get());
-                        output.accept(ModItems.CONTAMINATED_WAFER.get());
-                        output.accept(ModItems.CONTAMINATED_GATE.get());
                       })
                   .build());
   public static final RegistryObject<CreativeModeTab> MACHINES =

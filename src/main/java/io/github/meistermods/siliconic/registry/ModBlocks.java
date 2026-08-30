@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.registry;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.cleanroom.CableCleanroomBlock;
 import io.github.meistermods.siliconic.cleanroom.ConditionerBlock;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlock;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
@@ -200,6 +201,15 @@ public final class ModBlocks {
           "coated_block",
           () ->
               new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.QUARTZ)
+                      .strength(3.5f, 6.0f)
+                      .requiresCorrectToolForDrops()));
+  public static final RegistryObject<Block> CABLE_CLEANROOM_BLOCK =
+      BLOCKS.register(
+          "cable_cleanroom_block",
+          () ->
+              new CableCleanroomBlock(
                   BlockBehaviour.Properties.of()
                       .mapColor(MapColor.QUARTZ)
                       .strength(3.5f, 6.0f)

@@ -13,6 +13,7 @@
   "block.siliconic.reprocessor": "Reprocessor",
   "block.siliconic.conditioner": "Cleanroom Conditioner",
   "block.siliconic.coated_block": "Coated Cleanroom Block",
+  "block.siliconic.cable_cleanroom_block": "Cable Cleanroom Block",
   "block.siliconic.silver_block": "Block of Silver",
   "block.siliconic.lead_block": "Block of Lead",
   "itemGroup.siliconic.materials": "Siliconic: Materials",

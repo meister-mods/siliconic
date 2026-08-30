@@ -1,1 +1,9 @@
-{"parent":"minecraft:block/orientable","textures":{"front":"minecraft:block/dropper_front","side":"minecraft:block/iron_block","top":"minecraft:block/smooth_stone"}}
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "front": "siliconic:block/reprocessor_front",
+    "side": "siliconic:block/reprocessor_side",
+    "top": "siliconic:block/reprocessor_top",
+    "bottom": "siliconic:block/reprocessor_bottom"
+  }
+}

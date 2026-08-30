@@ -1,1 +1,1 @@
-{"parent":"minecraft:block/white_carpet"}
+{"parent":"minecraft:item/generated","textures":{"layer0":"siliconic:item/antistatic_fabric"}}

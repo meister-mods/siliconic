@@ -1,4 +1,5 @@
 {
+  "parent": "minecraft:block/block",
   "textures": {
     "all": "minecraft:block/redstone_block",
     "particle": "minecraft:block/redstone_block"

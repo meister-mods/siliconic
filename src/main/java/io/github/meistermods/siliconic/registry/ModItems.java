@@ -153,10 +153,10 @@ public final class ModItems {
   public static final RegistryObject<Item> COATED_BLOCK =
       ITEMS.register(
           "coated_block", () -> new BlockItem(ModBlocks.COATED_BLOCK.get(), new Item.Properties()));
-  public static final RegistryObject<Item> CABLE_CLEANROOM_BLOCK =
+  public static final RegistryObject<Item> CABLE_COATED_BLOCK =
       ITEMS.register(
-          "cable_cleanroom_block",
-          () -> new BlockItem(ModBlocks.CABLE_CLEANROOM_BLOCK.get(), new Item.Properties()));
+          "cable_coated_block",
+          () -> new BlockItem(ModBlocks.CABLE_COATED_BLOCK.get(), new Item.Properties()));
 
   private ModItems() {}
 }

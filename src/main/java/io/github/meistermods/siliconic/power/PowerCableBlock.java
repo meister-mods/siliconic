@@ -1,6 +1,6 @@
 package io.github.meistermods.siliconic.power;
 
-import io.github.meistermods.siliconic.cleanroom.CableCleanroomBlock;
+import io.github.meistermods.siliconic.cleanroom.CableCoatedBlock;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
@@ -217,15 +217,15 @@ public class PowerCableBlock extends Block {
             && corner.getValue(ATTACHMENT).contains(tangent.getOpposite())
             && corner.getValue(property(support.getOpposite()))) result.add(cornerPos);
       }
-    addCableCleanroomConnections(level, pos, attachment, result);
+    addCableCoatedBlockConnections(level, pos, attachment, result);
     return new ArrayList<>(result);
   }
 
-  private static void addCableCleanroomConnections(
+  private static void addCableCoatedBlockConnections(
       Level level, BlockPos pos, Attachment attachment, Set<BlockPos> result) {
     for (Direction support : attachment.faces()) {
       BlockPos cleanroomBlockPos = pos.relative(support);
-      if (!(level.getBlockState(cleanroomBlockPos).getBlock() instanceof CableCleanroomBlock))
+      if (!(level.getBlockState(cleanroomBlockPos).getBlock() instanceof CableCoatedBlock))
         continue;
 
       for (Direction candidateSupport : Direction.values()) {

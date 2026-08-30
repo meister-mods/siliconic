@@ -40,7 +40,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.COPPER_NUGGET.get());
                         output.accept(ModItems.ANTISTATIC_FABRIC.get());
                         output.accept(ModItems.COATED_BLOCK.get());
-                        output.accept(ModItems.CABLE_CLEANROOM_BLOCK.get());
+                        output.accept(ModItems.CABLE_COATED_BLOCK.get());
                         output.accept(ModItems.CLEANROOM_HOOD.get());
                         output.accept(ModItems.CLEANROOM_CHESTPLATE.get());
                         output.accept(ModItems.CLEANROOM_LEGGINGS.get());

@@ -326,7 +326,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
 
   private int coatedSurfaceFaces() {
     return lastScan.surfaceMaterials().getOrDefault(ModBlocks.COATED_BLOCK.getId(), 0)
-        + lastScan.surfaceMaterials().getOrDefault(ModBlocks.CABLE_CLEANROOM_BLOCK.getId(), 0);
+        + lastScan.surfaceMaterials().getOrDefault(ModBlocks.CABLE_COATED_BLOCK.getId(), 0);
   }
 
   @Override

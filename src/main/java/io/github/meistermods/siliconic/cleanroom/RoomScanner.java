@@ -87,8 +87,7 @@ public final class RoomScanner {
     new TreeMap<>(openables)
         .forEach(
             (id, stats) -> sortedOpenables.put(id, new OpenableStats(stats.total, stats.open)));
-    int openCount = sortedOpenables.values().stream().mapToInt(OpenableStats::open).sum();
-    Status status = determineStatus(flags, discovered.isEmpty(), openCount);
+    Status status = determineStatus(flags, discovered.isEmpty());
     return new RoomScanResult(
         status, volume, discovered.size(), sortedSurfaces, sortedOpenables, discovered);
   }
@@ -177,12 +176,13 @@ public final class RoomScanner {
         Math.abs(origin.getZ() - pos.getZ()));
   }
 
-  private static Status determineStatus(ScanFlags flags, boolean noInterior, int openCount) {
+  private static Status determineStatus(ScanFlags flags, boolean noInterior) {
     if (noInterior) return Status.NO_INTERIOR;
     if (flags.worldOpen) return Status.WORLD_OPEN;
     if (flags.unloaded) return Status.UNLOADED;
     if (flags.limitReached) return Status.LIMIT_REACHED;
-    if (openCount > 0) return Status.OPENABLE_OPEN;
+    // An open door inside the flood-filled boundary joins two sealed volumes. If it actually opens
+    // outdoors, the expanded scan reaches one of the failure conditions above instead.
     return Status.SEALED;
   }
 

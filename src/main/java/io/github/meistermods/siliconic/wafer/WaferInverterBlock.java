@@ -18,7 +18,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings({"null"})
+@SuppressWarnings({"null", "deprecation"})
 public class WaferInverterBlock extends HorizontalFacingEntityBlock {
   public WaferInverterBlock(Properties properties) {
     super(properties);

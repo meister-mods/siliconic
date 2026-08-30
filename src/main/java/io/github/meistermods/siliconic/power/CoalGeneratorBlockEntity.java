@@ -4,8 +4,10 @@ import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -27,6 +29,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
@@ -91,6 +94,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
       };
   private int burnTime;
   private int totalBurnTime;
+  private int distributionCursor;
 
   private static final class GeneratorEnergyStorage extends EnergyStorage {
     GeneratorEnergyStorage() {
@@ -201,22 +205,98 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
       }
     }
 
+    List<IEnergyStorage> targets = new ArrayList<>(receivers.size());
     for (Map.Entry<BlockPos, Direction> receiver : receivers.entrySet()) {
-      if (energy.getEnergyStored() <= 0) break;
       BlockEntity blockEntity = level.getBlockEntity(receiver.getKey());
       if (blockEntity == null) continue;
       blockEntity
           .getCapability(ForgeCapabilities.ENERGY, receiver.getValue())
-          .ifPresent(
-              storage -> {
-                int offered = Math.min(TRANSFER_PER_CONNECTION, energy.getEnergyStored());
-                int accepted = storage.receiveEnergy(offered, false);
-                if (accepted > 0) {
-                  energy.extractEnergy(accepted, false);
-                  setChanged();
-                }
-              });
+          .ifPresent(targets::add);
     }
+    distributeEnergyEvenly(targets);
+  }
+
+  private void distributeEnergyEvenly(List<IEnergyStorage> targets) {
+    if (targets.isEmpty() || energy.getEnergyStored() <= 0) return;
+    int[] demands = new int[targets.size()];
+    int totalDemand = 0;
+    for (int index = 0; index < targets.size(); index++) {
+      demands[index] =
+          Math.max(
+              0,
+              Math.min(
+                  TRANSFER_PER_CONNECTION,
+                  targets.get(index).receiveEnergy(TRANSFER_PER_CONNECTION, true)));
+      totalDemand += demands[index];
+    }
+    int budget = Math.min(energy.getEnergyStored(), totalDemand);
+    if (budget <= 0) return;
+
+    int start = Math.floorMod(distributionCursor, targets.size());
+    int[] allocations = balancedAllocations(demands, budget, start);
+    boolean transferred = false;
+    for (int offset = 0; offset < targets.size(); offset++) {
+      int index = (start + offset) % targets.size();
+      int offered = allocations[index];
+      if (offered <= 0) continue;
+      int accepted = Math.min(offered, targets.get(index).receiveEnergy(offered, false));
+      if (accepted <= 0) continue;
+      energy.extractEnergy(accepted, false);
+      transferred = true;
+    }
+    int advance = budget % targets.size();
+    distributionCursor = (start + Math.max(1, advance)) % targets.size();
+    if (transferred) setChanged();
+  }
+
+  private static int[] balancedAllocations(int[] demands, int budget, int start) {
+    int[] allocations = new int[demands.length];
+    boolean[] active = new boolean[demands.length];
+    int activeCount = 0;
+    for (int index = 0; index < demands.length; index++) {
+      active[index] = demands[index] > 0;
+      if (active[index]) activeCount++;
+    }
+
+    int remaining = budget;
+    while (remaining > 0 && activeCount > 0) {
+      int share = remaining / activeCount;
+      if (share == 0) {
+        for (int offset = 0; offset < demands.length && remaining > 0; offset++) {
+          int index = (start + offset) % demands.length;
+          if (!active[index]) continue;
+          allocations[index]++;
+          remaining--;
+        }
+        break;
+      }
+
+      boolean cappedReceiver = false;
+      for (int index = 0; index < demands.length; index++) {
+        if (!active[index]) continue;
+        int unmetDemand = demands[index] - allocations[index];
+        if (unmetDemand > share) continue;
+        allocations[index] += unmetDemand;
+        remaining -= unmetDemand;
+        active[index] = false;
+        activeCount--;
+        cappedReceiver = true;
+      }
+      if (cappedReceiver) continue;
+
+      for (int index = 0; index < demands.length; index++)
+        if (active[index]) {
+          allocations[index] += share;
+          remaining -= share;
+        }
+      for (int offset = 0; offset < demands.length && remaining > 0; offset++) {
+        int index = (start + offset) % demands.length;
+        if (!active[index]) continue;
+        allocations[index]++;
+        remaining--;
+      }
+    }
+    return allocations;
   }
 
   @Override
@@ -225,6 +305,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
     tag.put("Items", items.serializeNBT());
     tag.putInt("BurnTime", burnTime);
     tag.putInt("TotalBurnTime", totalBurnTime);
+    tag.putInt("DistributionCursor", distributionCursor);
     tag.putInt("Energy", energy.getEnergyStored());
   }
 
@@ -236,6 +317,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
       items.setStackInSlot(FUEL_SLOT, ItemStack.of(tag.getCompound("Fuel")));
     burnTime = Math.max(0, tag.getInt("BurnTime"));
     totalBurnTime = Math.max(burnTime, tag.getInt("TotalBurnTime"));
+    distributionCursor = Math.max(0, tag.getInt("DistributionCursor"));
     energy.setStored(tag.getInt("Energy"));
   }
 

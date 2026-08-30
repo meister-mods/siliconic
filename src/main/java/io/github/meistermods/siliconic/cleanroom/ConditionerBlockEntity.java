@@ -40,6 +40,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   public static final int CLEANLINESS_RECOVERY_PER_SCAN = 1;
   public static final int CLEANLINESS_DECAY_PER_SCAN = 2;
   public static final int CONTAMINATION_PER_UNPROTECTED_ENTITY = 2;
+  public static final int CONTAMINATION_PER_POLLUTION_SOURCE = 4;
   private static final String CLAIMED_INTERIOR_TAG = "ClaimedInterior";
   private static final String LAST_SHARED_UPDATE_TAG = "LastSharedCleanlinessUpdate";
   private static final String RECOVERY_PROGRESS_TAG = "CleanlinessRecoveryProgress";
@@ -55,12 +56,13 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   private int cleanlinessLimit = BASE_CLEANLINESS_LIMIT;
   private int coatingCoverage;
   private int unprotectedEntities;
+  private int pollutionSources;
   private int conditionerCount = 1;
   private long lastSharedCleanlinessUpdate = -1L;
   private double cleanlinessRecoveryProgress;
   private RoomScanResult lastScan = RoomScanResult.notScanned();
   private final Set<Long> claimedInteriorPositions = new HashSet<>();
-  private final int[] clientData = new int[8];
+  private final int[] clientData = new int[9];
   private final ContainerData data =
       new ContainerData() {
         @Override
@@ -76,6 +78,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
             case 5 -> coatingCoverage();
             case 6 -> unprotectedEntities;
             case 7 -> conditionerCount;
+            case 8 -> pollutionSources;
             default -> 0;
           };
         }
@@ -224,6 +227,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
         cleanlinessLimit,
         coatingCoverage,
         unprotectedEntities,
+        pollutionSources,
         lastSharedCleanlinessUpdate,
         cleanlinessRecoveryProgress);
   }
@@ -235,6 +239,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
             || cleanlinessLimit != state.cleanlinessLimit()
             || coatingCoverage != state.coatingCoverage()
             || unprotectedEntities != state.unprotectedEntities()
+            || pollutionSources != state.pollutionSources()
             || lastSharedCleanlinessUpdate != state.updatedAt()
             || Double.compare(cleanlinessRecoveryProgress, state.recoveryProgress()) != 0
             || conditionerCount != sharedConditionerCount
@@ -243,6 +248,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     cleanlinessLimit = state.cleanlinessLimit();
     coatingCoverage = state.coatingCoverage();
     unprotectedEntities = state.unprotectedEntities();
+    pollutionSources = state.pollutionSources();
     lastSharedCleanlinessUpdate = state.updatedAt();
     cleanlinessRecoveryProgress = state.recoveryProgress();
     conditionerCount = sharedConditionerCount;
@@ -261,11 +267,16 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
         if (cleanliness >= cleanlinessLimit) cleanlinessRecoveryProgress = 0.0D;
       } else cleanliness = Math.min(cleanliness, cleanlinessLimit);
       unprotectedEntities = countUnprotectedEntities(level);
+      pollutionSources = CleanroomPollution.countSources(level, lastScan.interiorPositions());
       int contamination =
-          Math.min(MAX_CLEANLINESS, unprotectedEntities * CONTAMINATION_PER_UNPROTECTED_ENTITY);
+          Math.min(
+              MAX_CLEANLINESS,
+              unprotectedEntities * CONTAMINATION_PER_UNPROTECTED_ENTITY
+                  + pollutionSources * CONTAMINATION_PER_POLLUTION_SOURCE);
       cleanliness = Math.max(0, cleanliness - contamination);
     } else {
       unprotectedEntities = 0;
+      pollutionSources = 0;
       cleanlinessRecoveryProgress = 0.0D;
       cleanliness = Math.max(0, cleanliness - CLEANLINESS_DECAY_PER_SCAN);
     }
@@ -438,6 +449,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
       int cleanlinessLimit,
       int coatingCoverage,
       int unprotectedEntities,
+      int pollutionSources,
       long updatedAt,
       double recoveryProgress) {}
 }

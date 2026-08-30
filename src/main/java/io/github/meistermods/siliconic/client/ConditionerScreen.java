@@ -94,7 +94,8 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
         Component.translatable(
             "screen.siliconic.conditioner.contamination",
             menu.unprotectedEntities(),
-            menu.entityContaminationPerScan()),
+            menu.pollutionSources(),
+            menu.totalContaminationPerScan()),
         12,
         81,
         0xffd5dce3,

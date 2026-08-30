@@ -73,7 +73,7 @@
   "screen.siliconic.conditioner.status.no_interior": "공간 상태: 스캔 가능한 내부 공간 없음",
   "screen.siliconic.conditioner.cleanliness": "청정도: %s%% (최대 %s%%)",
   "screen.siliconic.conditioner.coating": "코팅된 내벽 면: %s%%",
-  "screen.siliconic.conditioner.contamination": "비보호 엔티티: %s · 스캔당 청정도 -%s",
+  "screen.siliconic.conditioner.contamination": "오염원: 엔티티 %s · 장비 %s · 스캔당 -%s",
   "screen.siliconic.conditioner.volume": "용적: %s 블록³ · 탐색 위치: %s",
   "screen.siliconic.conditioner.openables": "개폐 블록: %s개 · 열림: %s개",
   "screen.siliconic.conditioner.energy": "전력 %s/%s SE · 소비 %s SE/t",

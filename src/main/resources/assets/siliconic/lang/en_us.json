@@ -73,7 +73,7 @@
   "screen.siliconic.conditioner.status.no_interior": "Room status: no scannable interior space",
   "screen.siliconic.conditioner.cleanliness": "Cleanliness: %s%% (maximum %s%%)",
   "screen.siliconic.conditioner.coating": "Coated interior surfaces: %s%%",
-  "screen.siliconic.conditioner.contamination": "Unprotected entities: %s · cleanliness -%s per scan",
+  "screen.siliconic.conditioner.contamination": "Pollution: entities %s · equipment %s · -%s/scan",
   "screen.siliconic.conditioner.volume": "Volume: %s blocks³ · scanned positions: %s",
   "screen.siliconic.conditioner.openables": "Openable blocks: %s · open: %s",
   "screen.siliconic.conditioner.energy": "Power %s/%s SE · Draw %s SE/t",

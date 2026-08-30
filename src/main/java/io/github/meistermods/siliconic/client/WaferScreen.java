@@ -90,6 +90,7 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
               case XOR -> 0xffe667a0;
               case BUFFER -> 0xff55d9d2;
               case DROP -> 0xffe0a84f;
+              case SWITCH -> 0xff6fcf72;
               case CHIP -> signal > 0 ? 0xffffd24f : 0xffd6b437;
             };
         int x1 = gridX + x * CELL, y1 = gridY + y * CELL;
@@ -343,6 +344,7 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       case XOR -> "⊕";
       case BUFFER -> ">>";
       case DROP -> "-";
+      case SWITCH -> "S";
       case CHIP -> "C";
       default -> "";
     };

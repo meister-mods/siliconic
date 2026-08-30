@@ -64,6 +64,8 @@ public final class ModItems {
       ITEMS.register("buffer_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> DROP_GATE =
       ITEMS.register("drop_gate", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> SWITCH_GATE =
+      ITEMS.register("switch_gate", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> CLEANROOM_HOOD =
       ITEMS.register(
           "cleanroom_hood",

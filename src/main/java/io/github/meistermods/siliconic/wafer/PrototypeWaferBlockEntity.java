@@ -105,12 +105,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     SILVER,
     GOLD,
     BUFFER,
-    DROP;
+    DROP,
+    SWITCH;
 
     public boolean isGate() {
       return (ordinal() >= NOT.ordinal() && ordinal() <= XOR.ordinal())
           || this == BUFFER
-          || this == DROP;
+          || this == DROP
+          || this == SWITCH;
     }
 
     public boolean isConductor() {
@@ -426,6 +428,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     if (stack.is(ModItems.XOR_GATE.get())) return CellType.XOR;
     if (stack.is(ModItems.BUFFER_GATE.get())) return CellType.BUFFER;
     if (stack.is(ModItems.DROP_GATE.get())) return CellType.DROP;
+    if (stack.is(ModItems.SWITCH_GATE.get())) return CellType.SWITCH;
     if (isWafer(stack)) return CellType.CHIP;
     return CellType.EMPTY;
   }
@@ -447,6 +450,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       case XOR -> ModItems.XOR_GATE.get();
       case BUFFER -> ModItems.BUFFER_GATE.get();
       case DROP -> ModItems.DROP_GATE.get();
+      case SWITCH -> ModItems.SWITCH_GATE.get();
       default -> ModItems.COPPER_NUGGET.get();
     };
   }
@@ -894,6 +898,18 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       if (type == CellType.NOT) return a == 0 ? 15 : 0;
       if (type == CellType.BUFFER) return a > 0 ? 15 : 0;
       return Math.max(0, a - dropAmount(d, size, cell));
+    }
+    if (type == CellType.SWITCH) {
+      int input =
+          readFrom(
+              d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 2) & 3);
+      int leftControl =
+          readFrom(
+              d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 3) & 3);
+      int rightControl =
+          readFrom(
+              d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 1) & 3);
+      return leftControl > 0 || rightControl > 0 ? input : 0;
     }
     a = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 3) & 3);
     b = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 1) & 3);

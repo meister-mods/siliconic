@@ -93,7 +93,6 @@
   "screen.siliconic.processor.status.2": "Waiting: make room in the output storage",
   "screen.siliconic.processor.status.3": "Waiting: not enough power",
   "screen.siliconic.processor.status.4": "Processing",
-  "screen.siliconic.processor.status.5": "Stopped: outside a sealed conditioner room",
   "screen.siliconic.fabricator.materials": "Materials",
   "screen.siliconic.fabricator.output": "Output",
   "screen.siliconic.fabricator.energy": "Power %s/%s SE · Draw %s SE/t",

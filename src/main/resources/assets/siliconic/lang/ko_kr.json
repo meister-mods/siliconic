@@ -93,7 +93,6 @@
   "screen.siliconic.processor.status.2": "대기: 출력 공간을 확보해 주세요",
   "screen.siliconic.processor.status.3": "대기: 전력이 부족합니다",
   "screen.siliconic.processor.status.4": "처리 중",
-  "screen.siliconic.processor.status.5": "정지: 밀폐된 컨디셔너 공간 밖에 있음",
   "screen.siliconic.fabricator.materials": "공정 재료",
   "screen.siliconic.fabricator.output": "생산물",
   "screen.siliconic.fabricator.energy": "전력 %s/%s SE · 소비 %s SE/t",

@@ -1,7 +1,7 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "top": "siliconic:block/wafer_fabricator_front",
+    "top": "siliconic:block/wafer_assembler_front_loaded",
     "bottom": "siliconic:block/fabrication_frame_cap",
     "side": "siliconic:block/fabrication_frame_side",
     "particle": "siliconic:block/fabrication_frame_side"

@@ -1,10 +1,9 @@
 package io.github.meistermods.siliconic.cleanroom;
 
+import io.github.meistermods.siliconic.Siliconic;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
-
-import io.github.meistermods.siliconic.Siliconic;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
@@ -30,7 +29,8 @@ public final class CleanroomPollution {
   public static final TagKey<Block> POLLUTION_EXEMPTIONS =
       TagKey.create(
           Registries.BLOCK,
-          ResourceLocation.fromNamespaceAndPath(Siliconic.MOD_ID, "cleanroom_pollution_exemptions"));
+          ResourceLocation.fromNamespaceAndPath(
+              Siliconic.MOD_ID, "cleanroom_pollution_exemptions"));
 
   private static final String[] POLLUTING_EQUIPMENT_NAMES = {
     "furnace",

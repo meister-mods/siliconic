@@ -25,10 +25,8 @@ public class WaferInverterMenu extends AbstractContainerMenu {
   public WaferInverterMenu(int id, Inventory inventory, WaferInverterBlockEntity inverter) {
     super(ModMenus.WAFER_INVERTER.get(), id);
     this.inverter = inverter;
-    addSlot(
-        new SlotItemHandler(inverter.items(), WaferInverterBlockEntity.INPUT_SLOT, 42, 39));
-    addSlot(
-        new SlotItemHandler(inverter.items(), WaferInverterBlockEntity.OUTPUT_SLOT, 116, 39));
+    addSlot(new SlotItemHandler(inverter.items(), WaferInverterBlockEntity.INPUT_SLOT, 42, 39));
+    addSlot(new SlotItemHandler(inverter.items(), WaferInverterBlockEntity.OUTPUT_SLOT, 116, 39));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 107 + row * 18));
@@ -79,7 +77,6 @@ public class WaferInverterMenu extends AbstractContainerMenu {
 
   @Override
   public boolean stillValid(Player player) {
-    return !inverter.isRemoved()
-        && player.distanceToSqr(inverter.getBlockPos().getCenter()) <= 64;
+    return !inverter.isRemoved() && player.distanceToSqr(inverter.getBlockPos().getCenter()) <= 64;
   }
 }

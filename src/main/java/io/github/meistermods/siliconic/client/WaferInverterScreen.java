@@ -23,12 +23,10 @@ public class WaferInverterScreen extends AbstractContainerScreen<WaferInverterMe
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         slotBox(g, leftPos + 8 + column * 18, topPos + 107 + row * 18);
-    for (int column = 0; column < 9; column++)
-      slotBox(g, leftPos + 8 + column * 18, topPos + 165);
+    for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 165);
 
     g.drawString(font, "⇄", leftPos + 82, topPos + 43, 0xffe8edf2, false);
-    int progressWidth =
-        menu.maxProgress() == 0 ? 0 : 38 * menu.progress() / menu.maxProgress();
+    int progressWidth = menu.maxProgress() == 0 ? 0 : 38 * menu.progress() / menu.maxProgress();
     g.fill(leftPos + 69, topPos + 58, leftPos + 107, topPos + 62, 0xff2b3035);
     g.fill(leftPos + 69, topPos + 58, leftPos + 69 + progressWidth, topPos + 62, 0xff66d99a);
     int energyWidth = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();

@@ -179,10 +179,7 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
     drawFittedString(
         g,
         Component.translatable(
-            "screen.siliconic.wafer.energy",
-            menu.energy(),
-            menu.capacity(),
-            menu.operationCost()),
+            "screen.siliconic.wafer.energy", menu.energy(), menu.capacity(), menu.operationCost()),
         WaferMenu.INVENTORY_X,
         139,
         162,

@@ -23,18 +23,11 @@ public class CoalGeneratorScreen extends AbstractContainerScreen<CoalGeneratorMe
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         slotBox(g, leftPos + 8 + column * 18, topPos + 96 + row * 18);
-    for (int column = 0; column < 9; column++)
-      slotBox(g, leftPos + 8 + column * 18, topPos + 154);
+    for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 154);
 
-    int flameHeight =
-        menu.totalBurnTime() == 0 ? 0 : 16 * menu.burnTime() / menu.totalBurnTime();
+    int flameHeight = menu.totalBurnTime() == 0 ? 0 : 16 * menu.burnTime() / menu.totalBurnTime();
     g.fill(leftPos + 66, topPos + 38, leftPos + 78, topPos + 54, 0xff2b3035);
-    g.fill(
-        leftPos + 66,
-        topPos + 54 - flameHeight,
-        leftPos + 78,
-        topPos + 54,
-        0xffff9f43);
+    g.fill(leftPos + 66, topPos + 54 - flameHeight, leftPos + 78, topPos + 54, 0xffff9f43);
     int energyWidth = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();
     g.fill(leftPos + 8, topPos + 76, leftPos + 168, topPos + 81, 0xff2b3035);
     g.fill(leftPos + 8, topPos + 76, leftPos + 8 + energyWidth, topPos + 81, 0xffd94f67);
@@ -62,8 +55,7 @@ public class CoalGeneratorScreen extends AbstractContainerScreen<CoalGeneratorMe
         font, Component.translatable("container.inventory"), 8, inventoryLabelY, 0xffaeb7c0, false);
     drawFittedString(
         g,
-        Component.translatable(
-            "screen.siliconic.generator.energy", menu.energy(), menu.capacity()),
+        Component.translatable("screen.siliconic.generator.energy", menu.energy(), menu.capacity()),
         8,
         65,
         160,

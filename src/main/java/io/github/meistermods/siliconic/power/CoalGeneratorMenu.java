@@ -25,9 +25,7 @@ public class CoalGeneratorMenu extends AbstractContainerMenu {
   public CoalGeneratorMenu(int id, Inventory inventory, CoalGeneratorBlockEntity generator) {
     super(ModMenus.COAL_GENERATOR.get(), id);
     this.generator = generator;
-    addSlot(
-        new SlotItemHandler(
-            generator.items(), CoalGeneratorBlockEntity.FUEL_SLOT, 35, 38));
+    addSlot(new SlotItemHandler(generator.items(), CoalGeneratorBlockEntity.FUEL_SLOT, 35, 38));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 96 + row * 18));

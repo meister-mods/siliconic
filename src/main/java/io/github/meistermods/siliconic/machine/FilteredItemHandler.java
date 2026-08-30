@@ -34,9 +34,7 @@ public final class FilteredItemHandler implements IItemHandler {
 
   @Override
   public ItemStack extractItem(int slot, int amount, boolean simulate) {
-    return extractable.test(slot)
-        ? delegate.extractItem(slot, amount, simulate)
-        : ItemStack.EMPTY;
+    return extractable.test(slot) ? delegate.extractItem(slot, amount, simulate) : ItemStack.EMPTY;
   }
 
   @Override

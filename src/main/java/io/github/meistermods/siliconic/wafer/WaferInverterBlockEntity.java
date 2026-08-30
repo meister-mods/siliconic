@@ -52,8 +52,7 @@ public class WaferInverterBlockEntity extends BlockEntity implements MenuProvide
         }
       };
   private final IItemHandler automationItems =
-      new FilteredItemHandler(
-          items, slot -> slot == INPUT_SLOT, slot -> slot == OUTPUT_SLOT);
+      new FilteredItemHandler(items, slot -> slot == INPUT_SLOT, slot -> slot == OUTPUT_SLOT);
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
   private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> automationItems);

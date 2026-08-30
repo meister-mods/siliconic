@@ -109,7 +109,6 @@
   "screen.siliconic.reprocessor.status.1": "Waiting: make room in the output storage",
   "screen.siliconic.reprocessor.status.2": "Waiting: not enough power",
   "screen.siliconic.reprocessor.status.3": "Reprocessing",
-  "screen.siliconic.reprocessor.status.4": "Stopped: outside a sealed conditioner room",
   "jei.siliconic.process.details": "%s s · %s SE/t · %s SE total",
   "screen.siliconic.wafer.name": "Wafer name",
   "screen.siliconic.wafer.complete": "Finish",

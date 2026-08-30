@@ -33,6 +33,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   public static final int INPUT_SLOT = 0, CATALYST_SLOT = 1;
   public static final int OUTPUT_START = 2, OUTPUT_SLOTS = 9, SLOT_COUNT = 11;
   public static final int ENERGY_CAPACITY = 30_000;
+  public static final int ARC_FURNACE_CONTAMINATION_CHANCE = 20;
 
   private int progress;
   private int clientStatus;
@@ -128,6 +129,10 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     return isArcFurnace() ? MachineKind.SILICON_ARC_FURNACE : MachineKind.SILICON_PURIFIER;
   }
 
+  private boolean requiresCleanroom() {
+    return !isArcFurnace();
+  }
+
   public ItemStackHandler items() {
     return items;
   }
@@ -137,7 +142,8 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   }
 
   public int status() {
-    if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 5;
+    if (requiresCleanroom()
+        && !CleanroomOccupancy.isMachineInside(level, worldPosition)) return 5;
     MachineProcess process = currentProcess();
     if (process == null) {
       if (!ModMachineProcesses.accepts(machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT)))
@@ -154,7 +160,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, SiliconProcessorBlockEntity processor) {
-    if (!CleanroomOccupancy.isMachineInside(level, pos)) {
+    if (processor.requiresCleanroom() && !CleanroomOccupancy.isMachineInside(level, pos)) {
       updateActiveState(level, pos, state, false);
       return;
     }
@@ -181,7 +187,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     }
     processor.progress++;
     if (processor.progress >= process.ticks()) {
-      ItemStack result = CleanroomContamination.processResult(level, pos, process.result());
+      ItemStack result = processor.processResult(level, process.result());
       if (processor.canFitOutput(result)) processor.finishProcess(process, result);
       else processor.pendingResult = result;
     }
@@ -216,10 +222,23 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   }
 
   private boolean canFitPossibleOutput(ItemStack intended) {
-    int contaminationChance = CleanroomContamination.contaminationChance(level, worldPosition);
+    int contaminationChance =
+        isArcFurnace()
+            ? ARC_FURNACE_CONTAMINATION_CHANCE
+            : CleanroomContamination.contaminationChance(level, worldPosition);
     ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
     return (contaminationChance < 100 && canFitOutput(intended))
         || (contaminationChance > 0 && !contaminated.isEmpty() && canFitOutput(contaminated));
+  }
+
+  private ItemStack processResult(Level level, ItemStack intended) {
+    if (!isArcFurnace())
+      return CleanroomContamination.processResult(level, worldPosition, intended);
+    ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
+    if (contaminated.isEmpty()) return intended;
+    return level.random.nextInt(100) < ARC_FURNACE_CONTAMINATION_CHANCE
+        ? contaminated
+        : intended;
   }
 
   private int findOutputSlot(ItemStack result) {

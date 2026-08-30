@@ -109,7 +109,6 @@
   "screen.siliconic.reprocessor.status.1": "대기: 출력 공간을 확보해 주세요",
   "screen.siliconic.reprocessor.status.2": "대기: 전력이 부족합니다",
   "screen.siliconic.reprocessor.status.3": "재처리 중",
-  "screen.siliconic.reprocessor.status.4": "정지: 밀폐된 컨디셔너 공간 밖에 있음",
   "jei.siliconic.process.details": "%s초 · %s SE/t · 총 %s SE",
   "screen.siliconic.wafer.name": "웨이퍼 이름",
   "screen.siliconic.wafer.complete": "완성",

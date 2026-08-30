@@ -86,12 +86,14 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SILICON_PURIFIER.get());
                         output.accept(ModItems.CONDITIONER.get());
                         output.accept(ModItems.WAFER_ASSEMBLER.get());
+                        output.accept(ModItems.CREATIVE_WAFER_ASSEMBLER.get());
                         output.accept(ModItems.GATE_ASSEMBLER.get());
                         output.accept(ModItems.WAFER_FABRICATOR.get());
                         output.accept(ModItems.WAFER_INVERTER.get());
                         output.accept(ModItems.WAFER_DUPLICATOR.get());
                         output.accept(ModItems.REPROCESSOR.get());
                         output.accept(ModItems.WAFER_GUARD.get());
+                        output.accept(ModItems.CREATIVE_WAFER_GUARD.get());
                         output.accept(ModItems.REDSTONE_CLOCK.get());
                         output.accept(ModItems.POWER_CABLE.get());
                       })

@@ -30,9 +30,25 @@ public final class ModBlocks {
           () ->
               new PrototypeWaferBlock(
                   BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(1.5f)));
+  public static final RegistryObject<Block> CREATIVE_WAFER_ASSEMBLER =
+      BLOCKS.register(
+          "creative_wafer_assembler",
+          () ->
+              new PrototypeWaferBlock(
+                  BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_GRAY).strength(1.5f)));
   public static final RegistryObject<Block> WAFER_GUARD =
       BLOCKS.register(
           "wafer_guard",
+          () ->
+              new PrototypeWaferBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(2.0f)
+                      .noOcclusion(),
+                  false));
+  public static final RegistryObject<Block> CREATIVE_WAFER_GUARD =
+      BLOCKS.register(
+          "creative_wafer_guard",
           () ->
               new PrototypeWaferBlock(
                   BlockBehaviour.Properties.of()

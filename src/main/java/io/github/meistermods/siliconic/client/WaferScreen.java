@@ -123,7 +123,10 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
             topPos + WaferMenu.MAIN_INVENTORY_Y + row * 18);
     for (int col = 0; col < 9; col++)
       slotBox(g, leftPos + WaferMenu.INVENTORY_X + col * 18, topPos + WaferMenu.HOTBAR_Y);
-    int energyWidth = menu.capacity() == 0 ? 0 : 162 * menu.energy() / menu.capacity();
+    int energyWidth =
+        menu.isCreativeAssembler()
+            ? 162
+            : menu.capacity() == 0 ? 0 : 162 * menu.energy() / menu.capacity();
     g.fill(
         leftPos + WaferMenu.INVENTORY_X,
         topPos + 153,
@@ -176,15 +179,16 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
         font, eastLabel, GRID_X + grid - font.width(eastLabel) - 3, center, pinColor(1), false);
     g.drawCenteredString(
         font, "S " + pinLabel(2), GRID_X + grid / 2, GRID_Y + grid + 5, pinColor(2));
-    drawFittedString(
-        g,
-        Component.translatable(
-            "screen.siliconic.wafer.energy", menu.energy(), menu.capacity(), menu.operationCost()),
-        WaferMenu.INVENTORY_X,
-        139,
-        162,
-        0xffff8ca0);
-    if (!menu.isInsideCleanroom())
+    Component powerLabel =
+        menu.isCreativeAssembler()
+            ? Component.translatable("screen.siliconic.wafer.creative_power")
+            : Component.translatable(
+                "screen.siliconic.wafer.energy",
+                menu.energy(),
+                menu.capacity(),
+                menu.operationCost());
+    drawFittedString(g, powerLabel, WaferMenu.INVENTORY_X, 139, 162, 0xffff8ca0);
+    if (!menu.canEditHere())
       drawFittedString(
           g,
           Component.translatable("screen.siliconic.machine.outside_cleanroom"),

@@ -89,6 +89,9 @@ public class PrototypeWaferBlock extends HorizontalFacingEntityBlock {
         if (!station.canOperateHere())
           player.displayClientMessage(
               Component.translatable("message.siliconic.machine.outside_cleanroom"), true);
+        else if (station.isCreativeGuard())
+          player.displayClientMessage(
+              Component.translatable("message.siliconic.creative_wafer_guard_status"), true);
         else
           player.displayClientMessage(
               Component.translatable(

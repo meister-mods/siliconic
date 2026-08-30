@@ -65,8 +65,12 @@ public class WaferMenu extends AbstractContainerMenu {
     return wafer.data().get(2);
   }
 
-  public boolean isInsideCleanroom() {
+  public boolean canEditHere() {
     return wafer.data().get(3) != 0;
+  }
+
+  public boolean isCreativeAssembler() {
+    return wafer.isCreativeAssembler();
   }
 
   public boolean tryBeginMutation(ServerPlayer player, BlockPos pos) {
@@ -74,7 +78,7 @@ public class WaferMenu extends AbstractContainerMenu {
         || !position().equals(pos)
         || !stillValid(player)
         || !wafer.isEditable()
-        || !wafer.isInsideCleanroom()) return false;
+        || !wafer.canEditHere()) return false;
     long gameTime = player.level().getGameTime();
     if (mutationTick != gameTime) {
       mutationTick = gameTime;

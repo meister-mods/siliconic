@@ -25,7 +25,9 @@ public final class ModBlockEntities {
               BlockEntityType.Builder.of(
                       PrototypeWaferBlockEntity::new,
                       ModBlocks.WAFER_ASSEMBLER.get(),
-                      ModBlocks.WAFER_GUARD.get())
+                      ModBlocks.CREATIVE_WAFER_ASSEMBLER.get(),
+                      ModBlocks.WAFER_GUARD.get(),
+                      ModBlocks.CREATIVE_WAFER_GUARD.get())
                   .build(null));
   public static final RegistryObject<BlockEntityType<CoalGeneratorBlockEntity>> COAL_GENERATOR =
       BLOCK_ENTITIES.register(

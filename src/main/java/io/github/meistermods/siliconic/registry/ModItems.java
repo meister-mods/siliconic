@@ -86,9 +86,18 @@ public final class ModItems {
       ITEMS.register(
           "wafer_assembler",
           () -> new BlockItem(ModBlocks.WAFER_ASSEMBLER.get(), new Item.Properties()));
+  public static final RegistryObject<Item> CREATIVE_WAFER_ASSEMBLER =
+      ITEMS.register(
+          "creative_wafer_assembler",
+          () ->
+              new BlockItem(ModBlocks.CREATIVE_WAFER_ASSEMBLER.get(), new Item.Properties()));
   public static final RegistryObject<Item> WAFER_GUARD =
       ITEMS.register(
           "wafer_guard", () -> new BlockItem(ModBlocks.WAFER_GUARD.get(), new Item.Properties()));
+  public static final RegistryObject<Item> CREATIVE_WAFER_GUARD =
+      ITEMS.register(
+          "creative_wafer_guard",
+          () -> new BlockItem(ModBlocks.CREATIVE_WAFER_GUARD.get(), new Item.Properties()));
   public static final RegistryObject<Item> WAFER_INVERTER =
       ITEMS.register(
           "wafer_inverter",

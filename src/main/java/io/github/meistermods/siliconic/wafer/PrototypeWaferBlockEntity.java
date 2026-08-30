@@ -114,7 +114,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
             case 0 -> MenuDataSync.low(energy.getEnergyStored());
             case 1 -> MenuDataSync.high(energy.getEnergyStored());
             case 2 -> getOperationCost();
-            case 3 -> isInsideCleanroom() ? 1 : 0;
+            case 3 -> canEditHere() ? 1 : 0;
             default -> 0;
           };
         }
@@ -318,18 +318,30 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public int getOperationCost() {
-    if (!hasWafer()) return 0;
+    if (isCreativeWaferMachine() || !hasWafer()) return 0;
     int level = Math.max(1, getWaferLevel());
     int stationCost = 2 << ((level - 1) * 2);
     return isEditable() ? stationCost : Math.max(1, stationCost / 2);
   }
 
   public boolean isEditable() {
-    return getBlockState().is(ModBlocks.WAFER_ASSEMBLER.get());
+    return getBlockState().is(ModBlocks.WAFER_ASSEMBLER.get()) || isCreativeAssembler();
+  }
+
+  public boolean isCreativeAssembler() {
+    return getBlockState().is(ModBlocks.CREATIVE_WAFER_ASSEMBLER.get());
+  }
+
+  public boolean isCreativeGuard() {
+    return getBlockState().is(ModBlocks.CREATIVE_WAFER_GUARD.get());
+  }
+
+  public boolean isCreativeWaferMachine() {
+    return isCreativeAssembler() || isCreativeGuard();
   }
 
   public boolean isPowered() {
-    return hasWafer() && powered && canOperateHere();
+    return hasWafer() && canOperateHere() && (isCreativeWaferMachine() || powered);
   }
 
   public boolean isInsideCleanroom() {
@@ -339,10 +351,17 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public boolean canOperateHere() {
-    return getBlockState().is(ModBlocks.WAFER_GUARD.get()) || isInsideCleanroom();
+    return isCreativeWaferMachine()
+        || getBlockState().is(ModBlocks.WAFER_GUARD.get())
+        || isInsideCleanroom();
+  }
+
+  public boolean canEditHere() {
+    return isCreativeAssembler() || isInsideCleanroom();
   }
 
   public int addEnergy(int amount) {
+    if (isCreativeWaferMachine()) return 0;
     int accepted = energy.receiveEnergy(amount, false);
     if (accepted > 0) sync();
     return accepted;
@@ -353,11 +372,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     boolean nextInsideCleanroom = CleanroomOccupancy.isMachineInside(level, pos);
     boolean cleanroomChanged = nextInsideCleanroom != station.insideCleanroom;
     station.insideCleanroom = nextInsideCleanroom;
-    boolean canOperate = state.is(ModBlocks.WAFER_GUARD.get()) || nextInsideCleanroom;
+    boolean canOperate =
+        station.isCreativeWaferMachine()
+            || state.is(ModBlocks.WAFER_GUARD.get())
+            || nextInsideCleanroom;
     boolean nextPowered = false;
     if (canOperate && station.hasWafer()) {
       int cost = station.getOperationCost();
-      nextPowered = station.energy.consumeInternal(cost);
+      nextPowered = station.isCreativeWaferMachine() || station.energy.consumeInternal(cost);
     }
     if (nextPowered != station.powered) {
       station.powered = nextPowered;
@@ -413,7 +435,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public void cyclePinMode(int pin) {
-    if (!isInsideCleanroom() || !hasWafer() || pin < 0 || pin >= 4) return;
+    if (!canEditHere() || !hasWafer() || pin < 0 || pin >= 4) return;
     markUnfinished();
     clearRuntimeState(wafer);
     int[] modes = modes(design());
@@ -423,7 +445,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public void interactCell(int cell, boolean rotate, ServerPlayer player) {
-    if (!isInsideCleanroom() || !valid(cell)) return;
+    if (!canEditHere() || !valid(cell)) return;
     CellType old = getCellType(cell);
     ItemStack carried = player.containerMenu.getCarried();
     if (rotate) {
@@ -1281,7 +1303,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public void completeWafer(String name) {
-    if (!isInsideCleanroom() || !hasWafer()) return;
+    if (!canEditHere() || !hasWafer()) return;
     String trimmed = name == null ? "" : name.strip();
     if (trimmed.length() > 50) trimmed = trimmed.substring(0, 50);
     if (trimmed.isEmpty()) wafer.resetHoverName();
@@ -1443,7 +1465,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   @Override
   public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction side) {
-    if (capability == ForgeCapabilities.ENERGY) return energyCapability.cast();
+    if (capability == ForgeCapabilities.ENERGY && !isCreativeWaferMachine())
+      return energyCapability.cast();
     if (capability == ForgeCapabilities.ITEM_HANDLER) return itemCapability.cast();
     return super.getCapability(capability, side);
   }
@@ -1464,7 +1487,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   @Override
   public Component getDisplayName() {
-    return Component.translatable("container.siliconic.wafer_assembler");
+    return Component.translatable(
+        isCreativeAssembler()
+            ? "container.siliconic.creative_wafer_assembler"
+            : "container.siliconic.wafer_assembler");
   }
 
   @Nullable

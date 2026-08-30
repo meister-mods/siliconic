@@ -17,8 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 @SuppressWarnings({"null"})
-public final class ReprocessingProcessCategory
-    extends AbstractRecipeCategory<ReprocessingProcess> {
+public final class ReprocessingProcessCategory extends AbstractRecipeCategory<ReprocessingProcess> {
   private static final int WIDTH = 176;
   private static final int HEIGHT = 78;
   private static final int OUTPUT_CENTER_X = 126;

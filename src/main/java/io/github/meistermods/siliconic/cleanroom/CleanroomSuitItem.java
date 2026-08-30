@@ -17,8 +17,7 @@ public final class CleanroomSuitItem extends ArmorItem {
   }
 
   @Override
-  public String getArmorTexture(
-      ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
+  public String getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
     int layer = slot == EquipmentSlot.LEGS ? 2 : 1;
     return Siliconic.MOD_ID + ":textures/models/armor/cleanroom_suit_layer_" + layer + ".png";
   }

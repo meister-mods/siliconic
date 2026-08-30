@@ -1,26 +1,26 @@
 package io.github.meistermods.siliconic.cleanroom;
 
+import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.registry.ModItems;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterials;
-import net.minecraft.world.item.DyeableArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 @SuppressWarnings({"null"})
-public final class CleanroomSuitItem extends DyeableArmorItem {
-  public static final int DEFAULT_COLOR = 0xE9F4F6;
-
+public final class CleanroomSuitItem extends ArmorItem {
   public CleanroomSuitItem(ArmorItem.Type type, Item.Properties properties) {
     super(ArmorMaterials.LEATHER, type, properties.stacksTo(1));
   }
 
   @Override
-  public int getColor(ItemStack stack) {
-    return DEFAULT_COLOR;
+  public String getArmorTexture(
+      ItemStack stack, Entity entity, EquipmentSlot slot, String type) {
+    int layer = slot == EquipmentSlot.LEGS ? 2 : 1;
+    return Siliconic.MOD_ID + ":textures/models/armor/cleanroom_suit_layer_" + layer + ".png";
   }
 
   public static boolean isFullyProtected(Entity entity) {

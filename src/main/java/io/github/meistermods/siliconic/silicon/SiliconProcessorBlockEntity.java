@@ -142,8 +142,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   }
 
   public int status() {
-    if (requiresCleanroom()
-        && !CleanroomOccupancy.isMachineInside(level, worldPosition)) return 5;
+    if (requiresCleanroom() && !CleanroomOccupancy.isMachineInside(level, worldPosition)) return 5;
     MachineProcess process = currentProcess();
     if (process == null) {
       if (!ModMachineProcesses.accepts(machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT)))
@@ -236,9 +235,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       return CleanroomContamination.processResult(level, worldPosition, intended);
     ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
     if (contaminated.isEmpty()) return intended;
-    return level.random.nextInt(100) < ARC_FURNACE_CONTAMINATION_CHANCE
-        ? contaminated
-        : intended;
+    return level.random.nextInt(100) < ARC_FURNACE_CONTAMINATION_CHANCE ? contaminated : intended;
   }
 
   private int findOutputSlot(ItemStack result) {

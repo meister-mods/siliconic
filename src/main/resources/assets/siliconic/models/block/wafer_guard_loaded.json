@@ -1,10 +1,10 @@
 {
   "parent": "minecraft:block/block",
   "textures": {
-    "top": "minecraft:block/copper_block",
-    "bottom": "minecraft:block/iron_block",
-    "side": "minecraft:block/smooth_stone",
-    "particle": "minecraft:block/smooth_stone"
+    "top": "siliconic:block/wafer_fabricator_front",
+    "bottom": "siliconic:block/fabrication_frame_cap",
+    "side": "siliconic:block/fabrication_frame_side",
+    "particle": "siliconic:block/fabrication_frame_side"
   },
   "elements": [
     {

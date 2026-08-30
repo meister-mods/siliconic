@@ -1,16 +1,21 @@
 package io.github.meistermods.siliconic.wafer;
 
 import io.github.meistermods.siliconic.machine.HorizontalFacingEntityBlock;
+import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
@@ -38,41 +43,33 @@ public class WaferInverterBlock extends HorizontalFacingEntityBlock {
       Player player,
       InteractionHand hand,
       BlockHitResult hit) {
-    if (!(level.getBlockEntity(pos) instanceof WaferInverterBlockEntity inverter))
-      return InteractionResult.PASS;
-    var held = player.getItemInHand(hand);
-    if (PrototypeWaferBlockEntity.levelOf(held) > 0) {
-      if (!level.isClientSide) {
-        if (!inverter.isInsideCleanroom())
-          player.displayClientMessage(
-              Component.translatable("message.siliconic.machine.outside_cleanroom"), true);
-        else if (!PrototypeWaferBlockEntity.isCompleted(held))
-          player.displayClientMessage(
-              Component.translatable("message.siliconic.wafer_inverter.require_completed"), true);
-        else {
-          boolean success = inverter.invert(held);
-          if (success) player.getInventory().setChanged();
-          player.displayClientMessage(
-              Component.translatable(
-                  success
-                      ? "message.siliconic.wafer_inverter.success"
-                      : "message.siliconic.wafer_inverter.no_energy",
-                  inverter.costFor(held)),
-              true);
-        }
-      }
-      return InteractionResult.sidedSuccess(level.isClientSide);
-    }
-    if (!level.isClientSide) {
-      if (!inverter.isInsideCleanroom())
-        player.displayClientMessage(
-            Component.translatable("message.siliconic.machine.outside_cleanroom"), true);
-      else
-        player.displayClientMessage(
-            Component.translatable(
-                "message.siliconic.wafer_inverter.status", inverter.getEnergyStored(), 50_000),
-            true);
-    }
+    if (!level.isClientSide
+        && player instanceof ServerPlayer serverPlayer
+        && level.getBlockEntity(pos) instanceof WaferInverterBlockEntity inverter)
+      NetworkHooks.openScreen(serverPlayer, inverter, pos);
     return InteractionResult.sidedSuccess(level.isClientSide);
+  }
+
+  @Nullable
+  @Override
+  public <T extends BlockEntity> BlockEntityTicker<T> getTicker(
+      Level level, BlockState state, BlockEntityType<T> type) {
+    return level.isClientSide
+        ? null
+        : createTickerHelper(
+            type, ModBlockEntities.WAFER_INVERTER.get(), WaferInverterBlockEntity::serverTick);
+  }
+
+  @Override
+  public void onRemove(
+      BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
+    if (!state.is(newState.getBlock())
+        && level.getBlockEntity(pos) instanceof WaferInverterBlockEntity inverter)
+      for (int slot = 0; slot < WaferInverterBlockEntity.SLOT_COUNT; slot++) {
+        var stack = inverter.items().getStackInSlot(slot);
+        if (!stack.isEmpty())
+          Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), stack);
+      }
+    super.onRemove(state, level, pos, newState, moving);
   }
 }

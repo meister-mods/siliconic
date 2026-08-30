@@ -2,6 +2,7 @@ package io.github.meistermods.siliconic.wafer;
 
 import io.github.meistermods.siliconic.cleanroom.CleanroomContamination;
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
+import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.List;
@@ -51,7 +52,15 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
       };
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
-  private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> items);
+  private final IItemHandler automationItems =
+      new FilteredItemHandler(
+          items,
+          slot ->
+              slot == SOURCE_SLOT
+                  || slot == BLANK_SLOT
+                  || (slot >= MATERIAL_START && slot < MATERIAL_START + MATERIAL_SLOTS),
+          WaferDuplicatorBlockEntity::isOutputSlot);
+  private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> automationItems);
   private final int[] clientData = new int[5];
   private final ContainerData data =
       new ContainerData() {
@@ -276,7 +285,7 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
   public void reviveCaps() {
     super.reviveCaps();
     energyCapability = LazyOptional.of(() -> energy);
-    itemCapability = LazyOptional.of(() -> items);
+    itemCapability = LazyOptional.of(() -> automationItems);
   }
 
   @Override

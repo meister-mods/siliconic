@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.wafer;
 
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
 import io.github.meistermods.siliconic.registry.ModItems;
@@ -22,6 +23,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -32,6 +34,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
+import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
@@ -55,6 +58,77 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private final StationEnergyStorage energy = new StationEnergyStorage();
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
+  private final IItemHandler waferItems =
+      new IItemHandler() {
+        @Override
+        public int getSlots() {
+          return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+          checkWaferSlot(slot);
+          return wafer;
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+          checkWaferSlot(slot);
+          if (stack.isEmpty() || hasWafer() || !isWafer(stack)) return stack;
+          if (!simulate) mountWafer(stack);
+          ItemStack remainder = stack.copy();
+          remainder.shrink(1);
+          return remainder;
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+          checkWaferSlot(slot);
+          if (amount <= 0 || !isCompleted(wafer)) return ItemStack.EMPTY;
+          ItemStack result = wafer.copyWithCount(1);
+          if (!simulate) removeWafer();
+          return result;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+          checkWaferSlot(slot);
+          return 1;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+          checkWaferSlot(slot);
+          return isWafer(stack);
+        }
+      };
+  private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> waferItems);
+  private final int[] clientData = new int[4];
+  private final ContainerData data =
+      new ContainerData() {
+        @Override
+        public int get(int index) {
+          if (level != null && level.isClientSide)
+            return index >= 0 && index < clientData.length ? clientData[index] : 0;
+          return switch (index) {
+            case 0 -> MenuDataSync.low(energy.getEnergyStored());
+            case 1 -> MenuDataSync.high(energy.getEnergyStored());
+            case 2 -> getOperationCost();
+            case 3 -> isInsideCleanroom() ? 1 : 0;
+            default -> 0;
+          };
+        }
+
+        @Override
+        public void set(int index, int value) {
+          if (index >= 0 && index < clientData.length) clientData[index] = value;
+        }
+
+        @Override
+        public int getCount() {
+          return clientData.length;
+        }
+      };
   private boolean powered;
   private boolean insideCleanroom;
   private boolean simulationDirty = true;
@@ -239,7 +313,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     return energy.getMaxEnergyStored();
   }
 
+  public ContainerData data() {
+    return data;
+  }
+
   public int getOperationCost() {
+    if (!hasWafer()) return 0;
     int level = Math.max(1, getWaferLevel());
     int stationCost = 2 << ((level - 1) * 2);
     return isEditable() ? stationCost : Math.max(1, stationCost / 2);
@@ -289,14 +368,23 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
 
   public void insertWafer(ItemStack held) {
     if (!hasWafer() && isWafer(held)) {
-      wafer = held.copyWithCount(1);
-      powered = false;
+      mountWafer(held);
       held.shrink(1);
-      signals = new int[getGridSize() * getGridSize()];
-      horizontalSignals = new int[signals.length];
-      verticalSignals = new int[signals.length];
-      changedAndSync();
     }
+  }
+
+  private void mountWafer(ItemStack stack) {
+    wafer = stack.copyWithCount(1);
+    powered = false;
+    signals = new int[getGridSize() * getGridSize()];
+    horizontalSignals = new int[signals.length];
+    verticalSignals = new int[signals.length];
+    changedAndSync();
+  }
+
+  private static void checkWaferSlot(int slot) {
+    if (slot != 0)
+      throw new IndexOutOfBoundsException("Slot " + slot + " not in valid range - [0,1)");
   }
 
   public ItemStack removeWafer() {
@@ -1356,6 +1444,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   @Override
   public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction side) {
     if (capability == ForgeCapabilities.ENERGY) return energyCapability.cast();
+    if (capability == ForgeCapabilities.ITEM_HANDLER) return itemCapability.cast();
     return super.getCapability(capability, side);
   }
 
@@ -1363,12 +1452,14 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public void invalidateCaps() {
     super.invalidateCaps();
     energyCapability.invalidate();
+    itemCapability.invalidate();
   }
 
   @Override
   public void reviveCaps() {
     super.reviveCaps();
     energyCapability = LazyOptional.of(() -> energy);
+    itemCapability = LazyOptional.of(() -> waferItems);
   }
 
   @Override

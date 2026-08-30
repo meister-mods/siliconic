@@ -1,5 +1,7 @@
 package io.github.meistermods.siliconic.power;
 
+import io.github.meistermods.siliconic.machine.FilteredItemHandler;
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayDeque;
 import java.util.HashSet;
@@ -9,6 +11,12 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -19,22 +27,74 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
-public class CoalGeneratorBlockEntity extends BlockEntity {
+public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvider {
+  public static final int FUEL_SLOT = 0;
+  public static final int ENERGY_CAPACITY = 40_000;
   public static final int GENERATION_PER_TICK = 40;
   private static final int TRANSFER_PER_CONNECTION = 200;
   private static final int MAX_CABLES_PER_NETWORK = 4_096;
+
   private final GeneratorEnergyStorage energy = new GeneratorEnergyStorage();
+  private final ItemStackHandler items =
+      new ItemStackHandler(1) {
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+          return slot == FUEL_SLOT && burnDuration(stack) > 0;
+        }
+
+        @Override
+        protected void onContentsChanged(int slot) {
+          setChanged();
+        }
+      };
+  private final IItemHandler automationItems =
+      new FilteredItemHandler(
+          items,
+          slot -> slot == FUEL_SLOT,
+          slot -> slot == FUEL_SLOT && burnDuration(items.getStackInSlot(slot)) <= 0);
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
-  private ItemStack fuel = ItemStack.EMPTY;
+  private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> automationItems);
+  private final int[] clientData = new int[7];
+  private final ContainerData data =
+      new ContainerData() {
+        @Override
+        public int get(int index) {
+          if (level != null && level.isClientSide)
+            return index >= 0 && index < clientData.length ? clientData[index] : 0;
+          return switch (index) {
+            case 0 -> MenuDataSync.low(energy.getEnergyStored());
+            case 1 -> MenuDataSync.high(energy.getEnergyStored());
+            case 2 -> MenuDataSync.low(burnTime);
+            case 3 -> MenuDataSync.high(burnTime);
+            case 4 -> MenuDataSync.low(totalBurnTime);
+            case 5 -> MenuDataSync.high(totalBurnTime);
+            case 6 -> status();
+            default -> 0;
+          };
+        }
+
+        @Override
+        public void set(int index, int value) {
+          if (index >= 0 && index < clientData.length) clientData[index] = value;
+        }
+
+        @Override
+        public int getCount() {
+          return clientData.length;
+        }
+      };
   private int burnTime;
+  private int totalBurnTime;
 
   private static final class GeneratorEnergyStorage extends EnergyStorage {
     GeneratorEnergyStorage() {
-      super(40_000, 0, 200);
+      super(ENERGY_CAPACITY, 0, 200);
     }
 
     void addInternal(int amount) {
@@ -50,12 +110,12 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
     super(ModBlockEntities.COAL_GENERATOR.get(), pos, state);
   }
 
-  public boolean hasFuel() {
-    return !fuel.isEmpty();
+  public ItemStackHandler items() {
+    return items;
   }
 
-  public int getFuelCount() {
-    return fuel.getCount();
+  public ContainerData data() {
+    return data;
   }
 
   public int getBurnTime() {
@@ -70,36 +130,28 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
     return energy.getMaxEnergyStored();
   }
 
-  public boolean canInsertFuel(ItemStack stack) {
-    return fuel.isEmpty()
-        || (ItemStack.isSameItemSameTags(fuel, stack) && fuel.getCount() < fuel.getMaxStackSize());
-  }
-
-  public void insertFuel(ItemStack stack) {
-    if (fuel.isEmpty()) fuel = stack.copyWithCount(1);
-    else fuel.grow(1);
-    setChanged();
-  }
-
-  public ItemStack removeFuel() {
-    ItemStack result = fuel;
-    fuel = ItemStack.EMPTY;
-    setChanged();
-    return result;
+  private int status() {
+    if (energy.getEnergyStored() >= energy.getMaxEnergyStored()
+        && (burnTime > 0 || burnDuration(items.getStackInSlot(FUEL_SLOT)) > 0)) return 2;
+    if (burnTime > 0) return 1;
+    return 0;
   }
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, CoalGeneratorBlockEntity generator) {
     boolean wasLit = state.getValue(CoalGeneratorBlock.LIT);
     generator.pushEnergy(level, pos);
+    ItemStack fuel = generator.items.getStackInSlot(FUEL_SLOT);
     if (generator.burnTime <= 0
-        && !generator.fuel.isEmpty()
+        && !fuel.isEmpty()
         && generator.energy.getEnergyStored() < generator.energy.getMaxEnergyStored()) {
-      int duration = ForgeHooks.getBurnTime(generator.fuel, RecipeType.SMELTING);
+      int duration = burnDuration(fuel);
       if (duration > 0) {
         generator.burnTime = duration;
-        generator.fuel.shrink(1);
-        if (generator.fuel.isEmpty()) generator.fuel = ItemStack.EMPTY;
+        generator.totalBurnTime = duration;
+        ItemStack consumed = generator.items.extractItem(FUEL_SLOT, 1, false);
+        ItemStack remainder = consumed.getCraftingRemainingItem();
+        if (!remainder.isEmpty()) generator.items.setStackInSlot(FUEL_SLOT, remainder);
       }
     }
     if (generator.burnTime > 0
@@ -108,8 +160,14 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
       generator.energy.addInternal(GENERATION_PER_TICK);
       generator.setChanged();
     }
-    boolean lit = generator.burnTime > 0;
+    boolean lit =
+        generator.burnTime > 0
+            && generator.energy.getEnergyStored() < generator.energy.getMaxEnergyStored();
     if (lit != wasLit) level.setBlock(pos, state.setValue(CoalGeneratorBlock.LIT, lit), 3);
+  }
+
+  private static int burnDuration(ItemStack stack) {
+    return ForgeHooks.getBurnTime(stack, RecipeType.SMELTING);
   }
 
   private void pushEnergy(Level level, BlockPos pos) {
@@ -153,7 +211,10 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
               storage -> {
                 int offered = Math.min(TRANSFER_PER_CONNECTION, energy.getEnergyStored());
                 int accepted = storage.receiveEnergy(offered, false);
-                if (accepted > 0) energy.extractEnergy(accepted, false);
+                if (accepted > 0) {
+                  energy.extractEnergy(accepted, false);
+                  setChanged();
+                }
               });
     }
   }
@@ -161,22 +222,27 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
   @Override
   protected void saveAdditional(CompoundTag tag) {
     super.saveAdditional(tag);
-    tag.put("Fuel", fuel.save(new CompoundTag()));
+    tag.put("Items", items.serializeNBT());
     tag.putInt("BurnTime", burnTime);
+    tag.putInt("TotalBurnTime", totalBurnTime);
     tag.putInt("Energy", energy.getEnergyStored());
   }
 
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
-    fuel = ItemStack.of(tag.getCompound("Fuel"));
-    burnTime = tag.getInt("BurnTime");
+    if (tag.contains("Items")) items.deserializeNBT(tag.getCompound("Items"));
+    else if (tag.contains("Fuel"))
+      items.setStackInSlot(FUEL_SLOT, ItemStack.of(tag.getCompound("Fuel")));
+    burnTime = Math.max(0, tag.getInt("BurnTime"));
+    totalBurnTime = Math.max(burnTime, tag.getInt("TotalBurnTime"));
     energy.setStored(tag.getInt("Energy"));
   }
 
   @Override
   public <T> LazyOptional<T> getCapability(Capability<T> capability, @Nullable Direction side) {
     if (capability == ForgeCapabilities.ENERGY) return energyCapability.cast();
+    if (capability == ForgeCapabilities.ITEM_HANDLER) return itemCapability.cast();
     return super.getCapability(capability, side);
   }
 
@@ -184,11 +250,24 @@ public class CoalGeneratorBlockEntity extends BlockEntity {
   public void invalidateCaps() {
     super.invalidateCaps();
     energyCapability.invalidate();
+    itemCapability.invalidate();
   }
 
   @Override
   public void reviveCaps() {
     super.reviveCaps();
     energyCapability = LazyOptional.of(() -> energy);
+    itemCapability = LazyOptional.of(() -> automationItems);
+  }
+
+  @Override
+  public Component getDisplayName() {
+    return Component.translatable("container.siliconic.coal_generator");
+  }
+
+  @Nullable
+  @Override
+  public AbstractContainerMenu createMenu(int id, Inventory inventory, Player player) {
+    return new CoalGeneratorMenu(id, inventory, this);
   }
 }

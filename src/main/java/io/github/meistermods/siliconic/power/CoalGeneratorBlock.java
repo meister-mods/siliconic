@@ -2,13 +2,11 @@ package io.github.meistermods.siliconic.power;
 
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
@@ -19,7 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
@@ -56,30 +54,10 @@ public class CoalGeneratorBlock extends BaseEntityBlock {
       Player player,
       InteractionHand hand,
       BlockHitResult hit) {
-    if (!(level.getBlockEntity(pos) instanceof CoalGeneratorBlockEntity generator))
-      return InteractionResult.PASS;
-    ItemStack held = player.getItemInHand(hand);
-    if (ForgeHooks.getBurnTime(held, RecipeType.SMELTING) > 0 && generator.canInsertFuel(held)) {
-      if (!level.isClientSide) {
-        generator.insertFuel(held);
-        if (!player.getAbilities().instabuild) held.shrink(1);
-      }
-      return InteractionResult.sidedSuccess(level.isClientSide);
-    }
-    if (player.isShiftKeyDown() && held.isEmpty() && generator.hasFuel()) {
-      if (!level.isClientSide)
-        player.getInventory().placeItemBackInInventory(generator.removeFuel());
-      return InteractionResult.sidedSuccess(level.isClientSide);
-    }
-    if (!level.isClientSide)
-      player.displayClientMessage(
-          Component.translatable(
-              "message.siliconic.generator_status",
-              generator.getEnergyStored(),
-              generator.getEnergyCapacity(),
-              generator.getBurnTime(),
-              generator.getFuelCount()),
-          true);
+    if (!level.isClientSide
+        && player instanceof ServerPlayer serverPlayer
+        && level.getBlockEntity(pos) instanceof CoalGeneratorBlockEntity generator)
+      NetworkHooks.openScreen(serverPlayer, generator, pos);
     return InteractionResult.sidedSuccess(level.isClientSide);
   }
 
@@ -87,9 +65,11 @@ public class CoalGeneratorBlock extends BaseEntityBlock {
   public void onRemove(
       BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
     if (!state.is(newState.getBlock())
-        && level.getBlockEntity(pos) instanceof CoalGeneratorBlockEntity generator
-        && generator.hasFuel())
-      Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), generator.removeFuel());
+        && level.getBlockEntity(pos) instanceof CoalGeneratorBlockEntity generator) {
+      var fuel = generator.items().getStackInSlot(CoalGeneratorBlockEntity.FUEL_SLOT);
+      if (!fuel.isEmpty())
+        Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), fuel);
+    }
     super.onRemove(state, level, pos, newState, moving);
   }
 

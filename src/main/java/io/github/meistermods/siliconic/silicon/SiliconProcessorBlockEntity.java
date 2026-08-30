@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.silicon;
 
 import io.github.meistermods.siliconic.cleanroom.CleanroomContamination;
+import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
@@ -58,7 +59,12 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       };
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
-  private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> items);
+  private final IItemHandler automationItems =
+      new FilteredItemHandler(
+          items,
+          slot -> slot == INPUT_SLOT || slot == CATALYST_SLOT,
+          slot -> slot >= OUTPUT_START && slot < OUTPUT_START + OUTPUT_SLOTS);
+  private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> automationItems);
   private final ContainerData data =
       new ContainerData() {
         @Override
@@ -289,7 +295,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   public void reviveCaps() {
     super.reviveCaps();
     energyCapability = LazyOptional.of(() -> energy);
-    itemCapability = LazyOptional.of(() -> items);
+    itemCapability = LazyOptional.of(() -> automationItems);
   }
 
   @Override

@@ -20,6 +20,10 @@ public final class ClientEvents {
     event.enqueueWork(
         () -> MenuScreens.register(ModMenus.WAFER_DUPLICATOR.get(), WaferDuplicatorScreen::new));
     event.enqueueWork(
+        () -> MenuScreens.register(ModMenus.WAFER_INVERTER.get(), WaferInverterScreen::new));
+    event.enqueueWork(
+        () -> MenuScreens.register(ModMenus.COAL_GENERATOR.get(), CoalGeneratorScreen::new));
+    event.enqueueWork(
         () -> MenuScreens.register(ModMenus.SILICON_PROCESSOR.get(), SiliconProcessorScreen::new));
     event.enqueueWork(
         () ->

@@ -3,9 +3,11 @@ package io.github.meistermods.siliconic.registry;
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.cleanroom.ConditionerMenu;
 import io.github.meistermods.siliconic.fabrication.FabricationStationMenu;
+import io.github.meistermods.siliconic.power.CoalGeneratorMenu;
 import io.github.meistermods.siliconic.reprocessing.ReprocessorMenu;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorMenu;
 import io.github.meistermods.siliconic.wafer.WaferDuplicatorMenu;
+import io.github.meistermods.siliconic.wafer.WaferInverterMenu;
 import io.github.meistermods.siliconic.wafer.WaferMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraftforge.common.extensions.IForgeMenuType;
@@ -20,6 +22,10 @@ public final class ModMenus {
       MENUS.register("wafer", () -> IForgeMenuType.create(WaferMenu::new));
   public static final RegistryObject<MenuType<WaferDuplicatorMenu>> WAFER_DUPLICATOR =
       MENUS.register("wafer_duplicator", () -> IForgeMenuType.create(WaferDuplicatorMenu::new));
+  public static final RegistryObject<MenuType<WaferInverterMenu>> WAFER_INVERTER =
+      MENUS.register("wafer_inverter", () -> IForgeMenuType.create(WaferInverterMenu::new));
+  public static final RegistryObject<MenuType<CoalGeneratorMenu>> COAL_GENERATOR =
+      MENUS.register("coal_generator", () -> IForgeMenuType.create(CoalGeneratorMenu::new));
   public static final RegistryObject<MenuType<SiliconProcessorMenu>> SILICON_PROCESSOR =
       MENUS.register("silicon_processor", () -> IForgeMenuType.create(SiliconProcessorMenu::new));
   public static final RegistryObject<MenuType<FabricationStationMenu>> FABRICATION_STATION =

@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModMenus;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -41,6 +42,7 @@ public class WaferMenu extends AbstractContainerMenu {
                 MAIN_INVENTORY_Y + row * 18));
     for (int column = 0; column < 9; column++)
       addSlot(new Slot(inventory, column, INVENTORY_X + column * 18, HOTBAR_Y));
+    addDataSlots(wafer.data());
   }
 
   public PrototypeWaferBlockEntity wafer() {
@@ -49,6 +51,22 @@ public class WaferMenu extends AbstractContainerMenu {
 
   public BlockPos position() {
     return wafer.getBlockPos();
+  }
+
+  public int energy() {
+    return MenuDataSync.combine(wafer.data().get(0), wafer.data().get(1));
+  }
+
+  public int capacity() {
+    return wafer.getEnergyCapacity();
+  }
+
+  public int operationCost() {
+    return wafer.data().get(2);
+  }
+
+  public boolean isInsideCleanroom() {
+    return wafer.data().get(3) != 0;
   }
 
   public boolean tryBeginMutation(ServerPlayer player, BlockPos pos) {

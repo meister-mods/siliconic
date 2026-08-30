@@ -1,1 +1,1 @@
-{"parent":"minecraft:block/cube_bottom_top","textures":{"top":"minecraft:block/blast_furnace_top","bottom":"minecraft:block/iron_block","side":"minecraft:block/blast_furnace_side"}}
+{"parent":"minecraft:block/cube_bottom_top","textures":{"top":"siliconic:block/coal_generator_top","bottom":"siliconic:block/coal_generator_bottom","side":"siliconic:block/coal_generator_side"}}

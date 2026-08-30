@@ -1,1 +1,29 @@
-{"type":"minecraft:crafting_shaped","pattern":["CRC","IFI","LLL"],"key":{"C":{"item":"minecraft:copper_ingot"},"R":{"item":"minecraft:redstone_block"},"I":{"item":"minecraft:iron_ingot"},"F":{"item":"minecraft:furnace"},"L":{"tag":"forge:ingots/lead"}},"result":{"item":"siliconic:coal_generator"}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CRC",
+    "IFI",
+    "LLL"
+  ],
+  "key": {
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "R": {
+      "item": "minecraft:redstone_block"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "F": {
+      "item": "minecraft:furnace"
+    },
+    "L": {
+      "tag": "forge:ingots/lead"
+    }
+  },
+  "result": {
+    "item": "siliconic:coal_generator"
+  }
+}

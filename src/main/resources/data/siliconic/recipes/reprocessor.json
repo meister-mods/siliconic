@@ -1,13 +1,32 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["SRS", "IHI", "LCL"],
+  "category": "redstone",
+  "pattern": [
+    "SRS",
+    "IHI",
+    "LCL"
+  ],
   "key": {
-    "S": {"tag": "forge:ingots/silver"},
-    "R": {"item": "minecraft:redstone"},
-    "I": {"item": "minecraft:iron_ingot"},
-    "H": {"item": "minecraft:hopper"},
-    "L": {"tag": "forge:ingots/lead"},
-    "C": {"item": "minecraft:comparator"}
+    "S": {
+      "tag": "forge:ingots/silver"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "L": {
+      "tag": "forge:ingots/lead"
+    },
+    "C": {
+      "item": "minecraft:comparator"
+    }
   },
-  "result": {"item": "siliconic:reprocessor"}
+  "result": {
+    "item": "siliconic:reprocessor"
+  }
 }

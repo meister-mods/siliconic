@@ -40,7 +40,7 @@ public record MachineProcess(
         ItemStack actual = inventory.getStackInSlot(inputStart + relativeSlot);
         if (expected == null) {
           if (!actual.isEmpty()) return false;
-        } else if (!actual.is(expected.item()) || actual.getCount() < expected.count()) {
+        } else if (!expected.matches(actual) || actual.getCount() < expected.count()) {
           return false;
         }
       }
@@ -51,13 +51,13 @@ public record MachineProcess(
       int available = 0;
       for (int slot = inputStart; slot < inputStart + inputSlots; slot++) {
         ItemStack stack = inventory.getStackInSlot(slot);
-        if (stack.is(input.item())) available += stack.getCount();
+        if (input.matches(stack)) available += stack.getCount();
       }
       if (available < input.count()) return false;
     }
     for (int slot = inputStart; slot < inputStart + inputSlots; slot++) {
       ItemStack stack = inventory.getStackInSlot(slot);
-      if (!stack.isEmpty() && inputs.stream().noneMatch(input -> stack.is(input.item())))
+      if (!stack.isEmpty() && inputs.stream().noneMatch(input -> input.matches(stack)))
         return false;
     }
     return true;
@@ -66,9 +66,9 @@ public record MachineProcess(
   public boolean accepts(int relativeSlot, ItemStack stack) {
     if (shaped) {
       ProcessInput input = inputAt(relativeSlot);
-      return input != null && stack.is(input.item());
+      return input != null && input.matches(stack);
     }
-    return inputs.stream().anyMatch(input -> stack.is(input.item()));
+    return inputs.stream().anyMatch(input -> input.matches(stack));
   }
 
   public void consume(ItemStackHandler inventory, int inputStart, int inputSlots) {
@@ -81,7 +81,7 @@ public record MachineProcess(
       int remaining = input.count();
       for (int slot = inputStart; slot < inputStart + inputSlots && remaining > 0; slot++) {
         ItemStack stack = inventory.getStackInSlot(slot);
-        if (!stack.is(input.item())) continue;
+        if (!input.matches(stack)) continue;
         int extracted = Math.min(remaining, stack.getCount());
         inventory.extractItem(slot, extracted, false);
         remaining -= extracted;

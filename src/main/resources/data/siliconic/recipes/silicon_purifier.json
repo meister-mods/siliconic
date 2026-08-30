@@ -1,13 +1,32 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["SQS", "IBI", "GRG"],
+  "category": "redstone",
+  "pattern": [
+    "SQS",
+    "IBI",
+    "GRG"
+  ],
   "key": {
-    "S": {"tag": "forge:ingots/silver"},
-    "Q": {"item": "minecraft:quartz_block"},
-    "I": {"item": "minecraft:iron_ingot"},
-    "B": {"item": "minecraft:blast_furnace"},
-    "G": {"item": "minecraft:glass_pane"},
-    "R": {"item": "minecraft:redstone"}
+    "S": {
+      "tag": "forge:ingots/silver"
+    },
+    "Q": {
+      "item": "minecraft:quartz_block"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "B": {
+      "item": "minecraft:blast_furnace"
+    },
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
   },
-  "result": {"item": "siliconic:silicon_purifier"}
+  "result": {
+    "item": "siliconic:silicon_purifier"
+  }
 }

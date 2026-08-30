@@ -3,10 +3,13 @@ package io.github.meistermods.siliconic.recipe;
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.registry.ModItems;
 import java.util.List;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,6 +20,9 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings({"null"})
 public final class ModMachineProcesses {
   private static final int SHAPELESS_SLOT = -1;
+  private static final TagKey<Item> COPPER_NUGGETS =
+      TagKey.create(
+          Registries.ITEM, ResourceLocation.fromNamespaceAndPath("forge", "nuggets/copper"));
 
   public static List<MachineProcess> all() {
     return Holder.ALL;
@@ -150,15 +156,15 @@ public final class ModMachineProcesses {
             1,
             200,
             40,
-            input(0, ModItems.COPPER_NUGGET.get()),
+            input(0, COPPER_NUGGETS),
             input(1, Items.REDSTONE),
-            input(2, ModItems.COPPER_NUGGET.get()),
+            input(2, COPPER_NUGGETS),
             input(3, Items.AMETHYST_SHARD),
             input(4, ModItems.PURE_SILICON.get()),
             input(5, Items.AMETHYST_SHARD),
-            input(6, ModItems.COPPER_NUGGET.get()),
+            input(6, COPPER_NUGGETS),
             input(7, Items.REDSTONE),
-            input(8, ModItems.COPPER_NUGGET.get())),
+            input(8, COPPER_NUGGETS)),
         shaped(
             "gate_assembler/buffer_gate",
             MachineKind.GATE_ASSEMBLER,
@@ -166,12 +172,12 @@ public final class ModMachineProcesses {
             1,
             160,
             40,
-            input(1, ModItems.COPPER_NUGGET.get()),
+            input(1, COPPER_NUGGETS),
             input(3, Items.REDSTONE_TORCH),
             input(4, ModItems.PURE_SILICON.get()),
             input(5, Items.REDSTONE_TORCH),
             input(6, ModItems.PURE_SILICON.get()),
-            input(7, ModItems.COPPER_NUGGET.get()),
+            input(7, COPPER_NUGGETS),
             input(8, Items.REDSTONE)),
         shaped(
             "gate_assembler/drop_gate",
@@ -180,15 +186,15 @@ public final class ModMachineProcesses {
             1,
             200,
             40,
-            input(0, ModItems.COPPER_NUGGET.get()),
+            input(0, COPPER_NUGGETS),
             input(1, Items.REDSTONE),
-            input(2, ModItems.COPPER_NUGGET.get()),
+            input(2, COPPER_NUGGETS),
             input(3, Items.REDSTONE),
             input(4, ModItems.PURE_SILICON.get()),
             input(5, Items.COMPARATOR),
-            input(6, ModItems.COPPER_NUGGET.get()),
+            input(6, COPPER_NUGGETS),
             input(7, Items.REDSTONE),
-            input(8, ModItems.COPPER_NUGGET.get())),
+            input(8, COPPER_NUGGETS)),
         shaped(
             "gate_assembler/switch_gate",
             MachineKind.GATE_ASSEMBLER,
@@ -196,15 +202,15 @@ public final class ModMachineProcesses {
             1,
             200,
             40,
-            input(0, ModItems.COPPER_NUGGET.get()),
+            input(0, COPPER_NUGGETS),
             input(1, Items.REDSTONE),
-            input(2, ModItems.COPPER_NUGGET.get()),
+            input(2, COPPER_NUGGETS),
             input(3, Items.REDSTONE_TORCH),
             input(4, ModItems.PURE_SILICON.get()),
             input(5, Items.REDSTONE_TORCH),
-            input(6, ModItems.COPPER_NUGGET.get()),
+            input(6, COPPER_NUGGETS),
             input(7, Items.REPEATER),
-            input(8, ModItems.COPPER_NUGGET.get())),
+            input(8, COPPER_NUGGETS)),
         shaped(
             "gate_assembler/not_gate",
             MachineKind.GATE_ASSEMBLER,
@@ -213,11 +219,11 @@ public final class ModMachineProcesses {
             160,
             40,
             input(1, Items.REDSTONE_TORCH),
-            input(3, ModItems.COPPER_NUGGET.get()),
+            input(3, COPPER_NUGGETS),
             input(4, ModItems.PURE_SILICON.get()),
-            input(5, ModItems.COPPER_NUGGET.get()),
+            input(5, COPPER_NUGGETS),
             input(6, ModItems.PURE_SILICON.get()),
-            input(7, ModItems.COPPER_NUGGET.get()),
+            input(7, COPPER_NUGGETS),
             input(8, Items.REDSTONE)),
         shaped(
             "gate_assembler/and_gate",
@@ -226,15 +232,15 @@ public final class ModMachineProcesses {
             1,
             180,
             40,
-            input(0, ModItems.COPPER_NUGGET.get()),
+            input(0, COPPER_NUGGETS),
             input(1, ModItems.PURE_SILICON.get()),
-            input(2, ModItems.COPPER_NUGGET.get()),
+            input(2, COPPER_NUGGETS),
             input(3, Items.REDSTONE),
             input(4, ModItems.PURE_SILICON.get()),
             input(5, Items.REDSTONE),
-            input(6, ModItems.COPPER_NUGGET.get()),
+            input(6, COPPER_NUGGETS),
             input(7, Items.REDSTONE),
-            input(8, ModItems.COPPER_NUGGET.get())),
+            input(8, COPPER_NUGGETS)),
         shaped(
             "gate_assembler/or_gate",
             MachineKind.GATE_ASSEMBLER,
@@ -243,11 +249,11 @@ public final class ModMachineProcesses {
             180,
             40,
             input(0, Items.REDSTONE),
-            input(1, ModItems.COPPER_NUGGET.get()),
+            input(1, COPPER_NUGGETS),
             input(2, Items.REDSTONE),
-            input(3, ModItems.COPPER_NUGGET.get()),
+            input(3, COPPER_NUGGETS),
             input(4, ModItems.PURE_SILICON.get()),
-            input(5, ModItems.COPPER_NUGGET.get()),
+            input(5, COPPER_NUGGETS),
             input(7, Items.REDSTONE),
             input(8, ModItems.PURE_SILICON.get())));
   }
@@ -295,11 +301,15 @@ public final class ModMachineProcesses {
   }
 
   private static ProcessInput input(int slot, Item item) {
-    return new ProcessInput(slot, item, 1);
+    return new ProcessInput(slot, Ingredient.of(item), 1);
   }
 
   private static ProcessInput input(int slot, Item item, int count) {
-    return new ProcessInput(slot, item, count);
+    return new ProcessInput(slot, Ingredient.of(item), count);
+  }
+
+  private static ProcessInput input(int slot, TagKey<Item> tag) {
+    return new ProcessInput(slot, Ingredient.of(tag), 1);
   }
 
   private ModMachineProcesses() {}

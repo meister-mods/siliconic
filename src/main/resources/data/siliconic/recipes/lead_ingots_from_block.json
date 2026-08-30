@@ -1,1 +1,14 @@
-{"type":"minecraft:crafting_shapeless","ingredients":[{"tag":"forge:storage_blocks/lead"}],"result":{"item":"siliconic:lead_ingot","count":9}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "siliconic:lead_ingot",
+  "ingredients": [
+    {
+      "tag": "forge:storage_blocks/lead"
+    }
+  ],
+  "result": {
+    "item": "siliconic:lead_ingot",
+    "count": 9
+  }
+}

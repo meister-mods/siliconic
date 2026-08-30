@@ -1,1 +1,19 @@
-{"type":"minecraft:crafting_shaped","pattern":["CRC"],"key":{"C":{"item":"siliconic:copper_nugget"},"R":{"item":"minecraft:redstone"}},"result":{"item":"siliconic:power_cable","count":8}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    "CRC"
+  ],
+  "key": {
+    "C": {
+      "tag": "forge:nuggets/copper"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    }
+  },
+  "result": {
+    "item": "siliconic:power_cable",
+    "count": 8
+  }
+}

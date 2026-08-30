@@ -1,12 +1,29 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["CRC", "IPI", "LLL"],
+  "category": "redstone",
+  "pattern": [
+    "CRC",
+    "IPI",
+    "LLL"
+  ],
   "key": {
-    "C": {"item": "minecraft:copper_ingot"},
-    "R": {"item": "minecraft:redstone"},
-    "I": {"item": "minecraft:iron_ingot"},
-    "P": {"item": "minecraft:piston"},
-    "L": {"tag": "forge:ingots/lead"}
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "L": {
+      "tag": "forge:ingots/lead"
+    }
   },
-  "result": {"item": "siliconic:gate_assembler"}
+  "result": {
+    "item": "siliconic:gate_assembler"
+  }
 }

@@ -1,1 +1,21 @@
-{"type":"minecraft:crafting_shaped","pattern":["IGI","GIG","IGI"],"key":{"I":{"item":"minecraft:iron_ingot"},"G":{"item":"minecraft:glass"}},"result":{"item":"siliconic:coated_block","count":4}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "pattern": [
+    "IGI",
+    "GIG",
+    "IGI"
+  ],
+  "key": {
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "G": {
+      "item": "minecraft:glass"
+    }
+  },
+  "result": {
+    "item": "siliconic:coated_block",
+    "count": 4
+  }
+}

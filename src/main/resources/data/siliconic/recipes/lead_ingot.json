@@ -1,1 +1,18 @@
-{"type":"minecraft:crafting_shaped","pattern":["NNN","NNN","NNN"],"key":{"N":{"tag":"forge:nuggets/lead"}},"result":{"item":"siliconic:lead_ingot"}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "siliconic:lead_ingot",
+  "pattern": [
+    "NNN",
+    "NNN",
+    "NNN"
+  ],
+  "key": {
+    "N": {
+      "tag": "forge:nuggets/lead"
+    }
+  },
+  "result": {
+    "item": "siliconic:lead_ingot"
+  }
+}

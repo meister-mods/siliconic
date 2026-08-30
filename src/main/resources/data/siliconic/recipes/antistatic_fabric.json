@@ -1,1 +1,24 @@
-{"type":"minecraft:crafting_shaped","pattern":["SWS","WNW","SWS"],"key":{"S":{"item":"minecraft:string"},"W":{"item":"minecraft:white_wool"},"N":{"tag":"forge:nuggets/silver"}},"result":{"item":"siliconic:antistatic_fabric","count":4}}
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SWS",
+    "WNW",
+    "SWS"
+  ],
+  "key": {
+    "S": {
+      "item": "minecraft:string"
+    },
+    "W": {
+      "tag": "minecraft:wool"
+    },
+    "N": {
+      "tag": "forge:nuggets/silver"
+    }
+  },
+  "result": {
+    "item": "siliconic:antistatic_fabric",
+    "count": 4
+  }
+}

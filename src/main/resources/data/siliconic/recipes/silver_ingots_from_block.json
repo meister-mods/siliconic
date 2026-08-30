@@ -1,1 +1,14 @@
-{"type":"minecraft:crafting_shapeless","ingredients":[{"tag":"forge:storage_blocks/silver"}],"result":{"item":"siliconic:silver_ingot","count":9}}
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "siliconic:silver_ingot",
+  "ingredients": [
+    {
+      "tag": "forge:storage_blocks/silver"
+    }
+  ],
+  "result": {
+    "item": "siliconic:silver_ingot",
+    "count": 9
+  }
+}

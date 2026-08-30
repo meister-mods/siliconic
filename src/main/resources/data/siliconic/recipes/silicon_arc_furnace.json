@@ -1,12 +1,29 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["CRC", "IBI", "LLL"],
+  "category": "redstone",
+  "pattern": [
+    "CRC",
+    "IBI",
+    "LLL"
+  ],
   "key": {
-    "C": {"item": "minecraft:copper_ingot"},
-    "R": {"item": "minecraft:redstone"},
-    "I": {"item": "minecraft:iron_ingot"},
-    "B": {"item": "minecraft:blast_furnace"},
-    "L": {"tag": "forge:ingots/lead"}
+    "C": {
+      "tag": "forge:ingots/copper"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    },
+    "B": {
+      "item": "minecraft:blast_furnace"
+    },
+    "L": {
+      "tag": "forge:ingots/lead"
+    }
   },
-  "result": {"item": "siliconic:silicon_arc_furnace"}
+  "result": {
+    "item": "siliconic:silicon_arc_furnace"
+  }
 }

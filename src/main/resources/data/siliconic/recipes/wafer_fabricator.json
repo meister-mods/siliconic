@@ -1,12 +1,29 @@
 {
   "type": "minecraft:crafting_shaped",
-  "pattern": ["GSG", "RPR", "III"],
+  "category": "redstone",
+  "pattern": [
+    "GSG",
+    "RPR",
+    "III"
+  ],
   "key": {
-    "G": {"item": "minecraft:glass_pane"},
-    "S": {"tag": "forge:ingots/silver"},
-    "R": {"item": "minecraft:redstone"},
-    "P": {"item": "minecraft:piston"},
-    "I": {"item": "minecraft:iron_ingot"}
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "S": {
+      "tag": "forge:ingots/silver"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
   },
-  "result": {"item": "siliconic:wafer_fabricator"}
+  "result": {
+    "item": "siliconic:wafer_fabricator"
+  }
 }

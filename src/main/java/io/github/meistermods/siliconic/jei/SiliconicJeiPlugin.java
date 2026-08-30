@@ -5,6 +5,7 @@ import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
 import io.github.meistermods.siliconic.registry.ModItems;
+import io.github.meistermods.siliconic.reprocessing.ReprocessingProcess;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.recipe.RecipeType;
@@ -29,6 +30,8 @@ public final class SiliconicJeiPlugin implements IModPlugin {
       RecipeType.create(Siliconic.MOD_ID, "wafer_fabricator", MachineProcess.class);
   public static final RecipeType<MachineProcess> GATE_ASSEMBLER =
       RecipeType.create(Siliconic.MOD_ID, "gate_assembler", MachineProcess.class);
+  public static final RecipeType<ReprocessingProcess> REPROCESSOR =
+      RecipeType.create(Siliconic.MOD_ID, "reprocessor", ReprocessingProcess.class);
 
   @Override
   public ResourceLocation getPluginUid() {
@@ -46,18 +49,21 @@ public final class SiliconicJeiPlugin implements IModPlugin {
               Component.translatable(titleKey(machine)),
               machineItem(machine),
               guiHelper));
+    registration.addRecipeCategories(new ReprocessingProcessCategory(REPROCESSOR, guiHelper));
   }
 
   @Override
   public void registerRecipes(IRecipeRegistration registration) {
     for (MachineKind machine : MachineKind.values())
       registration.addRecipes(recipeType(machine), ModMachineProcesses.forMachine(machine));
+    registration.addRecipes(REPROCESSOR, ReprocessingProcess.all());
   }
 
   @Override
   public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
     for (MachineKind machine : MachineKind.values())
       registration.addRecipeCatalyst(machineItem(machine), recipeType(machine));
+    registration.addRecipeCatalyst(ModItems.REPROCESSOR.get(), REPROCESSOR);
   }
 
   private static RecipeType<MachineProcess> recipeType(MachineKind machine) {

@@ -45,7 +45,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
           process.inputs().stream()
               .filter(input -> input.slot() == currentSlot)
               .findFirst()
-              .ifPresent(input -> slotBuilder.addItemStack(input.stack()));
+              .ifPresent(input -> slotBuilder.addItemStacks(input.stacks()));
         }
       } else {
         builder.setShapeless(64, 6);
@@ -55,7 +55,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
                   .addInputSlot(8 + slot % 3 * 18, 6 + slot / 3 * 18)
                   .setStandardSlotBackground();
           if (slot < process.inputs().size())
-            slotBuilder.addItemStack(process.inputs().get(slot).stack());
+            slotBuilder.addItemStacks(process.inputs().get(slot).stacks());
         }
       }
     } else {
@@ -64,7 +64,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
         builder
             .addInputSlot(12 + index * 24, 24)
             .setStandardSlotBackground()
-            .addItemStack(input.stack());
+            .addItemStacks(input.stacks());
       }
     }
     builder.addOutputSlot(124, 24).setOutputSlotBackground().addItemStack(process.result());

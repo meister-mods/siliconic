@@ -1,5 +1,7 @@
 package io.github.meistermods.siliconic.recipe;
 
+import java.util.Arrays;
+import java.util.List;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -15,11 +17,14 @@ public record ProcessInput(int slot, Ingredient ingredient, int count) {
     return ingredient.test(candidate);
   }
 
-  public ItemStack stack() {
-    ItemStack[] matches = ingredient.getItems();
-    if (matches.length == 0) return ItemStack.EMPTY;
-    ItemStack display = matches[0].copy();
-    display.setCount(count);
-    return display;
+  public List<ItemStack> stacks() {
+    return Arrays.stream(ingredient.getItems())
+        .map(
+            match -> {
+              ItemStack display = match.copy();
+              display.setCount(count);
+              return display;
+            })
+        .toList();
   }
 }

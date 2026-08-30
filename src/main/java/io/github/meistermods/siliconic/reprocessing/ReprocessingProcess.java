@@ -1,7 +1,9 @@
 package io.github.meistermods.siliconic.reprocessing;
 
+import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.registry.ModItems;
 import java.util.List;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -11,7 +13,12 @@ import org.jetbrains.annotations.Nullable;
 /** Defines deterministic material recovery from contaminated process waste. */
 @SuppressWarnings({"null"})
 public record ReprocessingProcess(
-    Item input, int inputCount, List<ItemStack> outputs, int ticks, int energyPerTick) {
+    ResourceLocation id,
+    Item input,
+    int inputCount,
+    List<ItemStack> outputs,
+    int ticks,
+    int energyPerTick) {
   public ReprocessingProcess {
     if (inputCount < 1) throw new IllegalArgumentException("Input count must be positive");
     if (outputs.isEmpty()) throw new IllegalArgumentException("At least one output is required");
@@ -34,6 +41,10 @@ public record ReprocessingProcess(
     return null;
   }
 
+  public static List<ReprocessingProcess> all() {
+    return Holder.PROCESSES;
+  }
+
   public static boolean accepts(ItemStack stack) {
     for (ReprocessingProcess process : Holder.PROCESSES) if (stack.is(process.input())) return true;
     return false;
@@ -43,29 +54,37 @@ public record ReprocessingProcess(
     return outputs.stream().map(ItemStack::copy).toList();
   }
 
+  public int totalEnergy() {
+    return ticks * energyPerTick;
+  }
+
   private static final class Holder {
     private static final List<ReprocessingProcess> PROCESSES =
         List.of(
-            new ReprocessingProcess(
+            process(
+                "contaminated_crude_silicon",
                 ModItems.CONTAMINATED_CRUDE_SILICON.get(),
                 2,
                 List.of(new ItemStack(Items.QUARTZ)),
                 200,
                 40),
-            new ReprocessingProcess(
+            process(
+                "contaminated_pure_silicon",
                 ModItems.CONTAMINATED_PURE_SILICON.get(),
                 1,
                 List.of(new ItemStack(Items.QUARTZ)),
                 200,
                 40),
-            new ReprocessingProcess(
+            process(
+                "contaminated_wafer",
                 ModItems.CONTAMINATED_WAFER.get(),
                 1,
                 List.of(
                     new ItemStack(ModItems.PURE_SILICON.get(), 2), new ItemStack(Items.REDSTONE)),
                 300,
                 60),
-            new ReprocessingProcess(
+            process(
+                "contaminated_gate",
                 ModItems.CONTAMINATED_GATE.get(),
                 1,
                 List.of(
@@ -74,5 +93,21 @@ public record ReprocessingProcess(
                     new ItemStack(ModItems.COPPER_NUGGET.get(), 2)),
                 240,
                 50));
+  }
+
+  private static ReprocessingProcess process(
+      String id,
+      Item input,
+      int inputCount,
+      List<ItemStack> outputs,
+      int ticks,
+      int energyPerTick) {
+    return new ReprocessingProcess(
+        ResourceLocation.fromNamespaceAndPath(Siliconic.MOD_ID, "reprocessor/" + id),
+        input,
+        inputCount,
+        outputs,
+        ticks,
+        energyPerTick);
   }
 }

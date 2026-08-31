@@ -34,7 +34,8 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 - Synchronize multiple conditioners in the same room for shared monitoring and improved purification efficiency.
 - Build working airlocks: an open doorway can temporarily merge two otherwise sealed spaces without immediately invalidating the cleanroom.
 - Reduce contamination from occupants with cleanroom suits, and keep furnaces, generators, and other polluting equipment outside precision work areas.
-- Keep every front-end silicon machine outside the cleanroom as a pollution source; low cleanroom cleanliness increases risk during wafer and gate fabrication.
+- Autonomous equipment with distinct material input, consumption, and output slots is detected as a cleanroom pollution source, including compatible machines from other mods. Existing furnace, combustion, and generator sources remain included.
+- Crafting and manual workbenches, simple chests, barrels, hoppers, and the wafer assembly workbench are excluded. Data packs can override detection with the `cleanroom_pollution_sources` and `cleanroom_pollution_exemptions` block tags.
 
 ### Power and Automation
 

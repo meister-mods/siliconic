@@ -1,1 +1,23 @@
-{"replace":false,"values":["minecraft:furnace","minecraft:blast_furnace","minecraft:smoker","minecraft:campfire","minecraft:soul_campfire","siliconic:silicon_arc_furnace","siliconic:chlorination_reactor","siliconic:distillation_tower","siliconic:siemens_reactor","siliconic:chemical_recycler","siliconic:coal_generator","siliconic:reprocessor"]}
+{
+  "replace": false,
+  "values": [
+    "minecraft:furnace",
+    "minecraft:blast_furnace",
+    "minecraft:smoker",
+    "minecraft:campfire",
+    "minecraft:soul_campfire",
+    "minecraft:brewing_stand",
+    "minecraft:composter",
+    "siliconic:silicon_arc_furnace",
+    "siliconic:chlorination_reactor",
+    "siliconic:distillation_tower",
+    "siliconic:siemens_reactor",
+    "siliconic:chemical_recycler",
+    "siliconic:wafer_fabricator",
+    "siliconic:gate_assembler",
+    "siliconic:wafer_inverter",
+    "siliconic:wafer_duplicator",
+    "siliconic:coal_generator",
+    "siliconic:reprocessor"
+  ]
+}

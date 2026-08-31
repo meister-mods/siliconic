@@ -212,9 +212,11 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
   @Override
   public void render(GuiGraphics g, int mouseX, int mouseY, float partial) {
     if (controlButton != null) {
-      if (menu.machineKind() == MachineKind.DISTILLATION_TOWER)
+      if (menu.machineKind() == MachineKind.DISTILLATION_TOWER) {
         controlButton.setMessage(modeText());
-      else controlButton.active = menu.progress() > 0;
+        controlButton.active = menu.progress() == 0;
+      } else
+        controlButton.active = menu.progress() > 0 && menu.progress() < menu.maxProgress();
     }
     renderBackground(g);
     super.render(g, mouseX, mouseY, partial);

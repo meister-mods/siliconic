@@ -89,11 +89,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
             : String.format(Locale.ROOT, "%.1f", process.ticks() / 20.0);
     Component details =
         Component.translatable(
-            "jei.siliconic.process.details",
-            seconds,
-            process.energyPerTick(),
-            process.totalEnergy());
-    var font = Minecraft.getInstance().font;
+            "jei.siliconic.process.details", seconds, process.energyPerTick());
     if (!isGridMachine()) {
       Component special = Component.translatable("jei.siliconic.process.special." + machine.id());
       drawCenteredFitted(graphics, special, 56, 0xff505a66);
@@ -106,9 +102,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
               machine.thermalProfile().magmaPerHeatingTick());
       drawCenteredFitted(graphics, magma, 67, 0xffb84b16);
     }
-    int detailsX = (WIDTH - font.width(details)) / 2;
-    graphics.drawString(
-        font, details, detailsX, machine.requiresHeat() ? 78 : 70, 0xff404040, false);
+    drawCenteredFitted(graphics, details, machine.requiresHeat() ? 78 : 70, 0xff404040);
   }
 
   @Override

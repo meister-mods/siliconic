@@ -1,1 +1,16 @@
-{"replace":false,"values":[]}
+{
+  "replace": false,
+  "values": [
+    "minecraft:crafting_table",
+    "minecraft:smithing_table",
+    "minecraft:cartography_table",
+    "minecraft:fletching_table",
+    "minecraft:stonecutter",
+    "minecraft:loom",
+    "minecraft:grindstone",
+    "siliconic:wafer_assembler",
+    "siliconic:creative_wafer_assembler",
+    "siliconic:wafer_guard",
+    "siliconic:creative_wafer_guard"
+  ]
+}

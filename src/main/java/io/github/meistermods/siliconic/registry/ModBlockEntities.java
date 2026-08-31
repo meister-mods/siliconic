@@ -58,7 +58,10 @@ public final class ModBlockEntities {
                   BlockEntityType.Builder.of(
                           SiliconProcessorBlockEntity::new,
                           ModBlocks.SILICON_ARC_FURNACE.get(),
-                          ModBlocks.SILICON_PURIFIER.get())
+                          ModBlocks.CHLORINATION_REACTOR.get(),
+                          ModBlocks.DISTILLATION_TOWER.get(),
+                          ModBlocks.SIEMENS_REACTOR.get(),
+                          ModBlocks.CHEMICAL_RECYCLER.get())
                       .build(null));
   public static final RegistryObject<BlockEntityType<FabricationStationBlockEntity>>
       FABRICATION_STATION =

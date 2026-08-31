@@ -7,6 +7,7 @@ import io.github.meistermods.siliconic.fabrication.FabricationStationBlock;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
 import io.github.meistermods.siliconic.power.PowerCableBlock;
 import io.github.meistermods.siliconic.power.RedstoneClockBlock;
+import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.reprocessing.ReprocessorBlock;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlock;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlock;
@@ -73,21 +74,56 @@ public final class ModBlocks {
           "silicon_arc_furnace",
           () ->
               new SiliconProcessorBlock(
+                  MachineKind.SILICON_ARC_FURNACE,
                   BlockBehaviour.Properties.of()
                       .mapColor(MapColor.METAL)
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()
                       .lightLevel(state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 10 : 0)));
-  public static final RegistryObject<Block> SILICON_PURIFIER =
+  public static final RegistryObject<Block> CHLORINATION_REACTOR =
       BLOCKS.register(
-          "silicon_purifier",
+          "chlorination_reactor",
           () ->
               new SiliconProcessorBlock(
+                  MachineKind.CHLORINATION_REACTOR,
                   BlockBehaviour.Properties.of()
                       .mapColor(MapColor.QUARTZ)
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()
                       .lightLevel(state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 6 : 0)));
+  public static final RegistryObject<Block> DISTILLATION_TOWER =
+      BLOCKS.register(
+          "distillation_tower",
+          () ->
+              new SiliconProcessorBlock(
+                  MachineKind.DISTILLATION_TOWER,
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()
+                      .lightLevel(state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 5 : 0)));
+  public static final RegistryObject<Block> SIEMENS_REACTOR =
+      BLOCKS.register(
+          "siemens_reactor",
+          () ->
+              new SiliconProcessorBlock(
+                  MachineKind.SIEMENS_REACTOR,
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.QUARTZ)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()
+                      .lightLevel(state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 8 : 0)));
+  public static final RegistryObject<Block> CHEMICAL_RECYCLER =
+      BLOCKS.register(
+          "chemical_recycler",
+          () ->
+              new SiliconProcessorBlock(
+                  MachineKind.CHEMICAL_RECYCLER,
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.COLOR_CYAN)
+                      .strength(3.5f)
+                      .requiresCorrectToolForDrops()
+                      .lightLevel(state -> state.getValue(SiliconProcessorBlock.ACTIVE) ? 5 : 0)));
   public static final RegistryObject<Block> WAFER_FABRICATOR =
       BLOCKS.register(
           "wafer_fabricator",

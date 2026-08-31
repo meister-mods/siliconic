@@ -14,14 +14,22 @@ import net.minecraftforge.registries.RegistryObject;
 public final class ModItems {
   public static final DeferredRegister<Item> ITEMS =
       DeferredRegister.create(ForgeRegistries.ITEMS, Siliconic.MOD_ID);
-  public static final RegistryObject<Item> CRUDE_SILICON =
-      ITEMS.register("crude_silicon", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> PURE_SILICON =
-      ITEMS.register("pure_silicon", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> CONTAMINATED_CRUDE_SILICON =
-      ITEMS.register("contaminated_crude_silicon", () -> new Item(new Item.Properties()));
-  public static final RegistryObject<Item> CONTAMINATED_PURE_SILICON =
-      ITEMS.register("contaminated_pure_silicon", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> METALLURGICAL_SILICON =
+      ITEMS.register("metallurgical_silicon", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> CRUDE_TRICHLOROSILANE =
+      ITEMS.register("crude_trichlorosilane", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> PURIFIED_TRICHLOROSILANE =
+      ITEMS.register("purified_trichlorosilane", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> SILICON_TETRACHLORIDE =
+      ITEMS.register("silicon_tetrachloride", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> HYDROGEN_CHLORIDE =
+      ITEMS.register("hydrogen_chloride", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> HYDROGEN =
+      ITEMS.register("hydrogen", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> HIGH_PURITY_SILICON =
+      ITEMS.register("high_purity_silicon", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> SILICON_SLAG =
+      ITEMS.register("silicon_slag", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> CONTAMINATED_WAFER =
       ITEMS.register("contaminated_wafer", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> CONTAMINATED_GATE =
@@ -109,10 +117,22 @@ public final class ModItems {
       ITEMS.register(
           "silicon_arc_furnace",
           () -> new BlockItem(ModBlocks.SILICON_ARC_FURNACE.get(), new Item.Properties()));
-  public static final RegistryObject<Item> SILICON_PURIFIER =
+  public static final RegistryObject<Item> CHLORINATION_REACTOR =
       ITEMS.register(
-          "silicon_purifier",
-          () -> new BlockItem(ModBlocks.SILICON_PURIFIER.get(), new Item.Properties()));
+          "chlorination_reactor",
+          () -> new BlockItem(ModBlocks.CHLORINATION_REACTOR.get(), new Item.Properties()));
+  public static final RegistryObject<Item> DISTILLATION_TOWER =
+      ITEMS.register(
+          "distillation_tower",
+          () -> new BlockItem(ModBlocks.DISTILLATION_TOWER.get(), new Item.Properties()));
+  public static final RegistryObject<Item> SIEMENS_REACTOR =
+      ITEMS.register(
+          "siemens_reactor",
+          () -> new BlockItem(ModBlocks.SIEMENS_REACTOR.get(), new Item.Properties()));
+  public static final RegistryObject<Item> CHEMICAL_RECYCLER =
+      ITEMS.register(
+          "chemical_recycler",
+          () -> new BlockItem(ModBlocks.CHEMICAL_RECYCLER.get(), new Item.Properties()));
   public static final RegistryObject<Item> WAFER_FABRICATOR =
       ITEMS.register(
           "wafer_fabricator",

@@ -39,8 +39,6 @@ public final class CleanroomContamination {
 
   @Nullable
   private static Item contaminatedItemFor(ItemStack intended) {
-    if (intended.is(ModItems.CRUDE_SILICON.get())) return ModItems.CONTAMINATED_CRUDE_SILICON.get();
-    if (intended.is(ModItems.PURE_SILICON.get())) return ModItems.CONTAMINATED_PURE_SILICON.get();
     if (intended.getItem() instanceof WaferItem) return ModItems.CONTAMINATED_WAFER.get();
     if (intended.is(ModItems.NOT_GATE.get())
         || intended.is(ModItems.AND_GATE.get())

@@ -67,7 +67,12 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
             .addItemStacks(input.stacks());
       }
     }
-    builder.addOutputSlot(124, 24).setOutputSlotBackground().addItemStack(process.result());
+    var outputs = process.outputCopies();
+    for (int index = 0; index < outputs.size(); index++) {
+      int x = outputs.size() == 1 ? 124 : 112 + index % 2 * 20;
+      int y = outputs.size() == 1 ? 24 : 6 + index / 2 * 20;
+      builder.addOutputSlot(x, y).setOutputSlotBackground().addItemStack(outputs.get(index));
+    }
   }
 
   @Override
@@ -89,6 +94,13 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
             process.energyPerTick(),
             process.totalEnergy());
     var font = Minecraft.getInstance().font;
+    if (machine.requiresHeat()) {
+      Component magma =
+          Component.translatable(
+              "jei.siliconic.process.magma",
+              io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity.MAGMA_PER_TICK);
+      graphics.drawString(font, magma, (WIDTH - font.width(magma)) / 2, 56, 0xffb84b16, false);
+    }
     int detailsX = (WIDTH - font.width(details)) / 2;
     graphics.drawString(font, details, detailsX, 66, 0xff404040, false);
   }

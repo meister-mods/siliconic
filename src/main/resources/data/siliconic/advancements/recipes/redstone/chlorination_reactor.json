@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {"has_redstone": {"trigger": "minecraft:inventory_changed", "conditions": {"items": [{"items": ["minecraft:redstone"]}]}}},
+  "requirements": [["has_redstone"]],
+  "rewards": {"recipes": ["siliconic:chlorination_reactor"]}
+}

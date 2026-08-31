@@ -10,7 +10,9 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 
 ### Semiconductor Production
 
-- Process quartz and carbon into crude silicon, then refine it into high-purity silicon.
+- Reduce quartz into metallurgical-grade silicon, then chlorinate, distill, and deposit it into high-purity polysilicon through a Siemens-style process.
+- Fill each hot-process machine's magma tank with magma cream, magma blocks, or lava to supply process heat.
+- Recycle silicon tetrachloride, hydrogen, and hydrogen chloride through a closed chemical loop.
 - Manufacture logic gates and five wafer tiers, from SSI through ULSI.
 - Use specialized powered machines for fabrication, purification, duplication, inversion, and material recovery.
 - Reprocess contaminated products into useful raw materials instead of discarding them.
@@ -32,7 +34,7 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 - Synchronize multiple conditioners in the same room for shared monitoring and improved purification efficiency.
 - Build working airlocks: an open doorway can temporarily merge two otherwise sealed spaces without immediately invalidating the cleanroom.
 - Reduce contamination from occupants with cleanroom suits, and keep furnaces, generators, and other polluting equipment outside precision work areas.
-- Contamination can affect silicon processing, while low cleanroom cleanliness increases the risk during wafer and gate fabrication.
+- Keep every front-end silicon machine outside the cleanroom as a pollution source; low cleanroom cleanliness increases risk during wafer and gate fabrication.
 
 ### Power and Automation
 
@@ -45,12 +47,12 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 ## Progression Overview
 
 1. Gather Nether quartz, carbon, silver, lead, copper, and other required resources.
-2. Build a coal generator, silicon arc furnace, and purifier to establish high-purity silicon production.
-3. Construct a sealed cleanroom and power its conditioner.
-4. Fabricate blank wafers and assemble logic-gate components.
-5. Design, test, and name a circuit at the Wafer Assembler.
-6. Operate, duplicate, mirror, or embed completed wafers to create larger systems.
-7. Automate the production line and recover useful materials from contaminated batches.
+2. Reduce quartz and charcoal into metallurgical-grade silicon in the arc furnace and reprocess the slag.
+3. Use the chlorination reactor and distillation tower to produce purified trichlorosilane.
+4. Deposit high-purity polysilicon in the Siemens reactor and recycle silicon tetrachloride, hydrogen, and hydrogen chloride.
+5. Construct a sealed cleanroom outside the polluting front-end line and power its conditioner.
+6. Fabricate wafers and gates, then design and finish circuits at the Wafer Assembler.
+7. Operate, duplicate, mirror, and embed completed wafers while automating the full production line.
 
 Exact crafting layouts and machine processes are best viewed through JEI in game.
 

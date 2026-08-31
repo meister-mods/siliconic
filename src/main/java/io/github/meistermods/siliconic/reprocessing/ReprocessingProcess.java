@@ -62,25 +62,19 @@ public record ReprocessingProcess(
     private static final List<ReprocessingProcess> PROCESSES =
         List.of(
             process(
-                "contaminated_crude_silicon",
-                ModItems.CONTAMINATED_CRUDE_SILICON.get(),
-                2,
-                List.of(new ItemStack(Items.QUARTZ)),
-                200,
-                40),
-            process(
-                "contaminated_pure_silicon",
-                ModItems.CONTAMINATED_PURE_SILICON.get(),
-                1,
-                List.of(new ItemStack(Items.QUARTZ)),
-                200,
+                "silicon_slag",
+                ModItems.SILICON_SLAG.get(),
+                4,
+                List.of(new ItemStack(Items.QUARTZ), new ItemStack(Items.CHARCOAL)),
+                240,
                 40),
             process(
                 "contaminated_wafer",
                 ModItems.CONTAMINATED_WAFER.get(),
                 1,
                 List.of(
-                    new ItemStack(ModItems.PURE_SILICON.get(), 2), new ItemStack(Items.REDSTONE)),
+                    new ItemStack(ModItems.HIGH_PURITY_SILICON.get(), 2),
+                    new ItemStack(Items.REDSTONE)),
                 300,
                 60),
             process(
@@ -88,7 +82,7 @@ public record ReprocessingProcess(
                 ModItems.CONTAMINATED_GATE.get(),
                 1,
                 List.of(
-                    new ItemStack(ModItems.PURE_SILICON.get()),
+                    new ItemStack(ModItems.HIGH_PURITY_SILICON.get()),
                     new ItemStack(Items.REDSTONE),
                     new ItemStack(ModItems.COPPER_NUGGET.get(), 2)),
                 240,

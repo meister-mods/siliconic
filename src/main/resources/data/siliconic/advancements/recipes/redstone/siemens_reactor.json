@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {"has_silver": {"trigger": "minecraft:inventory_changed", "conditions": {"items": [{"tag": "forge:ingots/silver"}]}}},
+  "requirements": [["has_silver"]],
+  "rewards": {"recipes": ["siliconic:siemens_reactor"]}
+}

@@ -18,8 +18,9 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
   @Override
   protected void renderBg(GuiGraphics g, float partial, int mouseX, int mouseY) {
     g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0xff17191c);
-    slotBox(g, leftPos + (menu.isArcFurnace() ? 26 : 44), topPos + 42);
-    if (menu.isArcFurnace()) slotBox(g, leftPos + 53, topPos + 42);
+    slotBox(g, leftPos + (menu.hasSecondaryInput() ? 17 : 35), topPos + 42);
+    if (menu.hasSecondaryInput()) slotBox(g, leftPos + 40, topPos + 42);
+    if (menu.requiresMagma()) slotBox(g, leftPos + 68, topPos + 42);
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 3; column++)
         slotBox(g, leftPos + 110 + column * 18, topPos + 24 + row * 18);
@@ -28,7 +29,8 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
         slotBox(g, leftPos + 8 + column * 18, topPos + 123 + row * 18);
     for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 181);
 
-    if (menu.isArcFurnace()) g.drawString(font, "+", leftPos + 46, topPos + 46, 0xffe8edf2, false);
+    if (menu.hasSecondaryInput())
+      g.drawString(font, "+", leftPos + 34, topPos + 46, 0xffe8edf2, false);
     g.drawString(font, "→", leftPos + 92, topPos + 46, 0xffe8edf2, false);
     int progressWidth = menu.maxProgress() == 0 ? 0 : 20 * menu.progress() / menu.maxProgress();
     g.fill(leftPos + 84, topPos + 59, leftPos + 104, topPos + 63, 0xff2b3035);
@@ -36,6 +38,12 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
     int energyWidth = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();
     g.fill(leftPos + 8, topPos + 102, leftPos + 168, topPos + 107, 0xff2b3035);
     g.fill(leftPos + 8, topPos + 102, leftPos + 8 + energyWidth, topPos + 107, 0xffd94f67);
+    if (menu.requiresMagma()) {
+      int heatHeight = menu.magmaCapacity() == 0 ? 0 : 50 * menu.magmaHeat() / menu.magmaCapacity();
+      g.fill(leftPos + 87, topPos + 24, leftPos + 91, topPos + 76, 0xff2b3035);
+      if (heatHeight > 0)
+        g.fill(leftPos + 87, topPos + 76 - heatHeight, leftPos + 91, topPos + 76, 0xffff8a24);
+    }
   }
 
   private void slotBox(GuiGraphics g, int x, int y) {
@@ -45,27 +53,43 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
 
   @Override
   protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-    g.drawString(font, title, 8, 7, 0xffe8edf2, false);
+    drawFittedString(g, title, 8, 7, 96, 0xffe8edf2);
     g.drawCenteredString(
         font,
         Component.translatable("screen.siliconic.processor.input"),
-        menu.isArcFurnace() ? 34 : 52,
+        menu.hasSecondaryInput() ? 25 : 43,
         29,
         0xffaeb7c0);
-    if (menu.isArcFurnace())
+    if (menu.hasSecondaryInput())
       g.drawCenteredString(
-          font, Component.translatable("screen.siliconic.processor.carbon"), 61, 29, 0xffaeb7c0);
+          font,
+          Component.translatable("screen.siliconic.processor.secondary." + menu.machineKind().id()),
+          48,
+          29,
+          0xffaeb7c0);
+    if (menu.requiresMagma())
+      g.drawCenteredString(
+          font, Component.translatable("screen.siliconic.processor.magma"), 76, 29, 0xffffa85c);
     g.drawCenteredString(
         font, Component.translatable("screen.siliconic.processor.output"), 136, 13, 0xffaeb7c0);
     g.drawString(
         font, Component.translatable("container.inventory"), 8, inventoryLabelY, 0xffaeb7c0, false);
     drawFittedString(
         g,
-        Component.translatable(
-            "screen.siliconic.processor.energy",
-            menu.energy(),
-            menu.capacity(),
-            menu.energyPerTick()),
+        menu.requiresMagma()
+            ? Component.translatable(
+                "screen.siliconic.processor.energy_and_magma",
+                menu.energy(),
+                menu.capacity(),
+                menu.energyPerTick(),
+                menu.magmaHeat(),
+                menu.magmaCapacity(),
+                menu.magmaPerTick())
+            : Component.translatable(
+                "screen.siliconic.processor.energy",
+                menu.energy(),
+                menu.capacity(),
+                menu.energyPerTick()),
         8,
         91,
         160,

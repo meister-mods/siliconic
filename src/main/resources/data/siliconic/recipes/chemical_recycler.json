@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["CHC", "IPI", "LRL"],
+  "key": {
+    "C": {"tag": "forge:ingots/copper"},
+    "H": {"item": "minecraft:hopper"},
+    "I": {"item": "minecraft:iron_ingot"},
+    "P": {"item": "minecraft:piston"},
+    "L": {"tag": "forge:ingots/lead"},
+    "R": {"item": "minecraft:redstone"}
+  },
+  "result": {"item": "siliconic:chemical_recycler"}
+}

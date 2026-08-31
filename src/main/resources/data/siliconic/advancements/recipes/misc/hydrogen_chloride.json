@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {"has_blaze_powder": {"trigger": "minecraft:inventory_changed", "conditions": {"items": [{"items": ["minecraft:blaze_powder"]}]}}},
+  "requirements": [["has_blaze_powder"]],
+  "rewards": {"recipes": ["siliconic:hydrogen_chloride"]}
+}

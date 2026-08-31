@@ -24,8 +24,14 @@ public final class SiliconicJeiPlugin implements IModPlugin {
 
   public static final RecipeType<MachineProcess> SILICON_ARC_FURNACE =
       RecipeType.create(Siliconic.MOD_ID, "silicon_arc_furnace", MachineProcess.class);
-  public static final RecipeType<MachineProcess> SILICON_PURIFIER =
-      RecipeType.create(Siliconic.MOD_ID, "silicon_purifier", MachineProcess.class);
+  public static final RecipeType<MachineProcess> CHLORINATION_REACTOR =
+      RecipeType.create(Siliconic.MOD_ID, "chlorination_reactor", MachineProcess.class);
+  public static final RecipeType<MachineProcess> DISTILLATION_TOWER =
+      RecipeType.create(Siliconic.MOD_ID, "distillation_tower", MachineProcess.class);
+  public static final RecipeType<MachineProcess> SIEMENS_REACTOR =
+      RecipeType.create(Siliconic.MOD_ID, "siemens_reactor", MachineProcess.class);
+  public static final RecipeType<MachineProcess> CHEMICAL_RECYCLER =
+      RecipeType.create(Siliconic.MOD_ID, "chemical_recycler", MachineProcess.class);
   public static final RecipeType<MachineProcess> WAFER_FABRICATOR =
       RecipeType.create(Siliconic.MOD_ID, "wafer_fabricator", MachineProcess.class);
   public static final RecipeType<MachineProcess> GATE_ASSEMBLER =
@@ -69,7 +75,10 @@ public final class SiliconicJeiPlugin implements IModPlugin {
   private static RecipeType<MachineProcess> recipeType(MachineKind machine) {
     return switch (machine) {
       case SILICON_ARC_FURNACE -> SILICON_ARC_FURNACE;
-      case SILICON_PURIFIER -> SILICON_PURIFIER;
+      case CHLORINATION_REACTOR -> CHLORINATION_REACTOR;
+      case DISTILLATION_TOWER -> DISTILLATION_TOWER;
+      case SIEMENS_REACTOR -> SIEMENS_REACTOR;
+      case CHEMICAL_RECYCLER -> CHEMICAL_RECYCLER;
       case WAFER_FABRICATOR -> WAFER_FABRICATOR;
       case GATE_ASSEMBLER -> GATE_ASSEMBLER;
     };
@@ -78,18 +87,16 @@ public final class SiliconicJeiPlugin implements IModPlugin {
   private static ItemLike machineItem(MachineKind machine) {
     return switch (machine) {
       case SILICON_ARC_FURNACE -> ModItems.SILICON_ARC_FURNACE.get();
-      case SILICON_PURIFIER -> ModItems.SILICON_PURIFIER.get();
+      case CHLORINATION_REACTOR -> ModItems.CHLORINATION_REACTOR.get();
+      case DISTILLATION_TOWER -> ModItems.DISTILLATION_TOWER.get();
+      case SIEMENS_REACTOR -> ModItems.SIEMENS_REACTOR.get();
+      case CHEMICAL_RECYCLER -> ModItems.CHEMICAL_RECYCLER.get();
       case WAFER_FABRICATOR -> ModItems.WAFER_FABRICATOR.get();
       case GATE_ASSEMBLER -> ModItems.GATE_ASSEMBLER.get();
     };
   }
 
   private static String titleKey(MachineKind machine) {
-    return switch (machine) {
-      case SILICON_ARC_FURNACE -> "container.siliconic.silicon_arc_furnace";
-      case SILICON_PURIFIER -> "container.siliconic.silicon_purifier";
-      case WAFER_FABRICATOR -> "container.siliconic.wafer_fabricator";
-      case GATE_ASSEMBLER -> "container.siliconic.gate_assembler";
-    };
+    return "container.siliconic." + machine.id();
   }
 }

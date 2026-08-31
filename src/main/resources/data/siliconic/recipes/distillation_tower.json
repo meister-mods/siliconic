@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["GCG", "GBG", "IRI"],
+  "key": {
+    "G": {"item": "minecraft:glass_pane"},
+    "C": {"tag": "forge:ingots/copper"},
+    "B": {"item": "minecraft:brewing_stand"},
+    "I": {"item": "minecraft:iron_ingot"},
+    "R": {"item": "minecraft:redstone"}
+  },
+  "result": {"item": "siliconic:distillation_tower"}
+}

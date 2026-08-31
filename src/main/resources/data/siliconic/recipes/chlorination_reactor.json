@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["GBG", "LFL", "CRC"],
+  "key": {
+    "G": {"item": "minecraft:glass_pane"},
+    "B": {"item": "minecraft:brewing_stand"},
+    "L": {"tag": "forge:ingots/lead"},
+    "F": {"item": "minecraft:blast_furnace"},
+    "C": {"tag": "forge:ingots/copper"},
+    "R": {"item": "minecraft:redstone"}
+  },
+  "result": {"item": "siliconic:chlorination_reactor"}
+}

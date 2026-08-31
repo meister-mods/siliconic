@@ -34,10 +34,14 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.COPPER_NUGGET.get());
                         output.accept(ModItems.LEAD_NUGGET.get());
                         output.accept(ModItems.SILVER_NUGGET.get());
-                        output.accept(ModItems.CRUDE_SILICON.get());
-                        output.accept(ModItems.PURE_SILICON.get());
-                        output.accept(ModItems.CONTAMINATED_CRUDE_SILICON.get());
-                        output.accept(ModItems.CONTAMINATED_PURE_SILICON.get());
+                        output.accept(ModItems.METALLURGICAL_SILICON.get());
+                        output.accept(ModItems.CRUDE_TRICHLOROSILANE.get());
+                        output.accept(ModItems.PURIFIED_TRICHLOROSILANE.get());
+                        output.accept(ModItems.SILICON_TETRACHLORIDE.get());
+                        output.accept(ModItems.HYDROGEN_CHLORIDE.get());
+                        output.accept(ModItems.HYDROGEN.get());
+                        output.accept(ModItems.HIGH_PURITY_SILICON.get());
+                        output.accept(ModItems.SILICON_SLAG.get());
                         output.accept(ModItems.CONTAMINATED_WAFER.get());
                         output.accept(ModItems.CONTAMINATED_GATE.get());
                         output.accept(ModItems.COATED_BLOCK.get());
@@ -83,7 +87,10 @@ public final class ModCreativeTabs {
                       (parameters, output) -> {
                         output.accept(ModItems.COAL_GENERATOR.get());
                         output.accept(ModItems.SILICON_ARC_FURNACE.get());
-                        output.accept(ModItems.SILICON_PURIFIER.get());
+                        output.accept(ModItems.CHLORINATION_REACTOR.get());
+                        output.accept(ModItems.DISTILLATION_TOWER.get());
+                        output.accept(ModItems.SIEMENS_REACTOR.get());
+                        output.accept(ModItems.CHEMICAL_RECYCLER.get());
                         output.accept(ModItems.CONDITIONER.get());
                         output.accept(ModItems.WAFER_ASSEMBLER.get());
                         output.accept(ModItems.CREATIVE_WAFER_ASSEMBLER.get());

@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.recipe;
 
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -13,11 +14,13 @@ public record MachineProcess(
     List<ProcessInput> inputs,
     Item resultItem,
     int resultCount,
+    List<ItemStack> byproducts,
     int ticks,
     int energyPerTick,
     boolean shaped) {
   public MachineProcess {
     inputs = List.copyOf(inputs);
+    byproducts = byproducts.stream().map(ItemStack::copy).toList();
     if (resultCount < 1)
       throw new IllegalArgumentException("Process output count must be positive");
     if (ticks < 1) throw new IllegalArgumentException("Process duration must be positive");
@@ -27,6 +30,14 @@ public record MachineProcess(
 
   public ItemStack result() {
     return new ItemStack(resultItem, resultCount);
+  }
+
+  /** Returns fresh copies of every primary and secondary output produced by one batch. */
+  public List<ItemStack> outputCopies() {
+    List<ItemStack> outputs = new ArrayList<>(1 + byproducts.size());
+    outputs.add(result());
+    byproducts.forEach(output -> outputs.add(output.copy()));
+    return outputs;
   }
 
   public int totalEnergy() {

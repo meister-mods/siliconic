@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.silicon;
 
+import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.registry.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -24,14 +25,20 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
   public SiliconProcessorMenu(int id, Inventory inventory, SiliconProcessorBlockEntity processor) {
     super(ModMenus.SILICON_PROCESSOR.get(), id);
     this.processor = processor;
-    boolean arcFurnace = processor.isArcFurnace();
+    boolean secondaryInput = processor.hasSecondaryInput();
     addSlot(
         new SlotItemHandler(
-            processor.items(), SiliconProcessorBlockEntity.INPUT_SLOT, arcFurnace ? 26 : 44, 42));
-    if (arcFurnace)
+            processor.items(),
+            SiliconProcessorBlockEntity.INPUT_SLOT,
+            secondaryInput ? 17 : 35,
+            42));
+    if (secondaryInput)
       addSlot(
           new SlotItemHandler(
-              processor.items(), SiliconProcessorBlockEntity.CATALYST_SLOT, 53, 42));
+              processor.items(), SiliconProcessorBlockEntity.CATALYST_SLOT, 40, 42));
+    if (processor.requiresMagma())
+      addSlot(
+          new SlotItemHandler(processor.items(), SiliconProcessorBlockEntity.MAGMA_SLOT, 68, 42));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 3; column++)
         addSlot(
@@ -40,7 +47,11 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
                 SiliconProcessorBlockEntity.OUTPUT_START + row * 3 + column,
                 110 + column * 18,
                 24 + row * 18));
-    machineSlots = (arcFurnace ? 2 : 1) + SiliconProcessorBlockEntity.OUTPUT_SLOTS;
+    machineSlots =
+        1
+            + (secondaryInput ? 1 : 0)
+            + (processor.requiresMagma() ? 1 : 0)
+            + SiliconProcessorBlockEntity.OUTPUT_SLOTS;
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 123 + row * 18));
@@ -51,6 +62,18 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
 
   public boolean isArcFurnace() {
     return processor.isArcFurnace();
+  }
+
+  public MachineKind machineKind() {
+    return processor.machineKind();
+  }
+
+  public boolean hasSecondaryInput() {
+    return processor.hasSecondaryInput();
+  }
+
+  public boolean requiresMagma() {
+    return processor.requiresMagma();
   }
 
   public int energy() {
@@ -77,6 +100,18 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
     return processor.data().get(5);
   }
 
+  public int magmaHeat() {
+    return processor.data().get(6);
+  }
+
+  public int magmaCapacity() {
+    return processor.data().get(7);
+  }
+
+  public int magmaPerTick() {
+    return processor.data().get(8);
+  }
+
   @Override
   public ItemStack quickMoveStack(Player player, int index) {
     if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
@@ -86,8 +121,10 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
     if (index < machineSlots) {
       if (!moveItemStackTo(stack, machineSlots, slots.size(), true)) return ItemStack.EMPTY;
     } else {
-      boolean moved = moveItemStackTo(stack, 0, 1, false);
-      if (!moved && isArcFurnace()) moved = moveItemStackTo(stack, 1, 2, false);
+      int inputSlots = 1 + (hasSecondaryInput() ? 1 : 0);
+      boolean moved = moveItemStackTo(stack, 0, inputSlots, false);
+      if (!moved && requiresMagma())
+        moved = moveItemStackTo(stack, inputSlots, inputSlots + 1, false);
       if (!moved) return ItemStack.EMPTY;
     }
     if (stack.isEmpty()) slot.set(ItemStack.EMPTY);

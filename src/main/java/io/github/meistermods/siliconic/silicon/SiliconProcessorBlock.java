@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.silicon;
 
+import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,10 +24,16 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings({"null", "deprecation"})
 public class SiliconProcessorBlock extends BaseEntityBlock {
   public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+  private final MachineKind machineKind;
 
-  public SiliconProcessorBlock(Properties properties) {
+  public SiliconProcessorBlock(MachineKind machineKind, Properties properties) {
     super(properties);
+    this.machineKind = machineKind;
     registerDefaultState(stateDefinition.any().setValue(ACTIVE, false));
+  }
+
+  public MachineKind machineKind() {
+    return machineKind;
   }
 
   @Override

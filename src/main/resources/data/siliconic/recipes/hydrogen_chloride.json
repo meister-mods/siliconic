@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" B ", "PWP", " G "],
+  "key": {
+    "B": {"item": "minecraft:blaze_powder"},
+    "P": {"item": "minecraft:prismarine_crystals"},
+    "W": {"item": "minecraft:water_bucket"},
+    "G": {"item": "minecraft:glass_bottle"}
+  },
+  "result": {"item": "siliconic:hydrogen_chloride", "count": 3}
+}

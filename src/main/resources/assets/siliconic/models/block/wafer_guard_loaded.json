@@ -1,8 +1,3 @@
 {
-  "parent": "siliconic:block/machine_with_interfaces",
-  "render_type": "minecraft:cutout",
-  "textures": {
-    "front_interface": "siliconic:block/wafer_assembler_front",
-    "top_interface": "siliconic:block/wafer_assembler_top"
-  }
+  "parent": "siliconic:block/wafer_guard"
 }

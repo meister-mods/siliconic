@@ -25,17 +25,12 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
   public SiliconProcessorMenu(int id, Inventory inventory, SiliconProcessorBlockEntity processor) {
     super(ModMenus.SILICON_PROCESSOR.get(), id);
     this.processor = processor;
-    boolean secondaryInput = processor.hasSecondaryInput();
-    addSlot(
-        new SlotItemHandler(
-            processor.items(),
-            SiliconProcessorBlockEntity.INPUT_SLOT,
-            secondaryInput ? 17 : 35,
-            42));
-    if (secondaryInput)
-      addSlot(
-          new SlotItemHandler(
-              processor.items(), SiliconProcessorBlockEntity.CATALYST_SLOT, 40, 42));
+    int inputCount = processor.visibleInputSlots();
+    addProcessSlot(SiliconProcessorBlockEntity.INPUT_SLOT, inputX(0, inputCount), 42);
+    if (processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT))
+      addProcessSlot(SiliconProcessorBlockEntity.CATALYST_SLOT, inputX(1, inputCount), 42);
+    if (processor.hasInputSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT))
+      addProcessSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT, inputX(2, inputCount), 42);
     if (processor.requiresMagma())
       addSlot(
           new SlotItemHandler(processor.items(), SiliconProcessorBlockEntity.MAGMA_SLOT, 68, 42));
@@ -49,14 +44,15 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
                 24 + row * 18));
     machineSlots =
         1
-            + (secondaryInput ? 1 : 0)
+            + (processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT) ? 1 : 0)
+            + (processor.hasInputSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT) ? 1 : 0)
             + (processor.requiresMagma() ? 1 : 0)
             + SiliconProcessorBlockEntity.OUTPUT_SLOTS;
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
-        addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 123 + row * 18));
+        addSlot(new Slot(inventory, 9 + row * 9 + column, 8 + column * 18, 139 + row * 18));
     for (int column = 0; column < 9; column++)
-      addSlot(new Slot(inventory, column, 8 + column * 18, 181));
+      addSlot(new Slot(inventory, column, 8 + column * 18, 197));
     addDataSlots(processor.data());
   }
 
@@ -68,8 +64,12 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
     return processor.machineKind();
   }
 
-  public boolean hasSecondaryInput() {
-    return processor.hasSecondaryInput();
+  public boolean hasInputSlot(int relativeSlot) {
+    return processor.hasInputSlot(relativeSlot);
+  }
+
+  public int visibleInputSlots() {
+    return processor.visibleInputSlots();
   }
 
   public boolean requiresMagma() {
@@ -112,6 +112,35 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
     return processor.data().get(8);
   }
 
+  public int temperature() {
+    return processor.data().get(9);
+  }
+
+  public int targetTemperature() {
+    return processor.data().get(10);
+  }
+
+  public int stability() {
+    return processor.data().get(11);
+  }
+
+  public int pressure() {
+    return processor.data().get(12);
+  }
+
+  public int operationMode() {
+    return processor.data().get(13);
+  }
+
+  public int phase() {
+    return processor.data().get(14);
+  }
+
+  @Override
+  public boolean clickMenuButton(Player player, int id) {
+    return processor.handleMenuButton(id);
+  }
+
   @Override
   public ItemStack quickMoveStack(Player player, int index) {
     if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
@@ -121,7 +150,7 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
     if (index < machineSlots) {
       if (!moveItemStackTo(stack, machineSlots, slots.size(), true)) return ItemStack.EMPTY;
     } else {
-      int inputSlots = 1 + (hasSecondaryInput() ? 1 : 0);
+      int inputSlots = visibleInputSlots();
       boolean moved = moveItemStackTo(stack, 0, inputSlots, false);
       if (!moved && requiresMagma())
         moved = moveItemStackTo(stack, inputSlots, inputSlots + 1, false);
@@ -136,5 +165,25 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
   public boolean stillValid(Player player) {
     return !processor.isRemoved()
         && player.distanceToSqr(processor.getBlockPos().getCenter()) <= 64;
+  }
+
+  private void addProcessSlot(int inventorySlot, int x, int y) {
+    addSlot(
+        new SlotItemHandler(processor.items(), inventorySlot, x, y) {
+          @Override
+          public boolean mayPickup(Player player) {
+            return processor.canModifyInputs() && super.mayPickup(player);
+          }
+
+          @Override
+          public boolean mayPlace(ItemStack stack) {
+            return processor.canModifyInputs() && super.mayPlace(stack);
+          }
+        });
+  }
+
+  private static int inputX(int relativeSlot, int inputCount) {
+    int start = inputCount == 1 ? 35 : inputCount == 2 ? 16 : 8;
+    return start + relativeSlot * 24;
   }
 }

@@ -68,6 +68,18 @@ public class SiliconProcessorBlock extends BaseEntityBlock {
     return InteractionResult.sidedSuccess(level.isClientSide);
   }
 
+  @Override
+  public boolean hasAnalogOutputSignal(BlockState state) {
+    return true;
+  }
+
+  @Override
+  public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+    return level.getBlockEntity(pos) instanceof SiliconProcessorBlockEntity processor
+        ? processor.analogSignal()
+        : 0;
+  }
+
   @Nullable
   @Override
   public <T extends BlockEntity> BlockEntityTicker<T> getTicker(

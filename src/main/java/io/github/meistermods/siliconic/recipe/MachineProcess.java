@@ -84,8 +84,7 @@ public record MachineProcess(
 
   public void consume(ItemStackHandler inventory, int inputStart, int inputSlots) {
     if (shaped) {
-      for (ProcessInput input : inputs)
-        inventory.extractItem(inputStart + input.slot(), input.count(), false);
+      for (ProcessInput input : inputs) applyUse(inventory, inputStart + input.slot(), input);
       return;
     }
     for (ProcessInput input : inputs) {
@@ -93,11 +92,26 @@ public record MachineProcess(
       for (int slot = inputStart; slot < inputStart + inputSlots && remaining > 0; slot++) {
         ItemStack stack = inventory.getStackInSlot(slot);
         if (!input.matches(stack)) continue;
-        int extracted = Math.min(remaining, stack.getCount());
-        inventory.extractItem(slot, extracted, false);
-        remaining -= extracted;
+        int used = Math.min(remaining, stack.getCount());
+        if (input.use() == ProcessInput.Use.CONSUME) inventory.extractItem(slot, used, false);
+        else if (input.use() == ProcessInput.Use.DAMAGE) damage(inventory, slot, used);
+        remaining -= used;
       }
     }
+  }
+
+  private void applyUse(ItemStackHandler inventory, int slot, ProcessInput input) {
+    if (input.use() == ProcessInput.Use.CONSUME) inventory.extractItem(slot, input.count(), false);
+    else if (input.use() == ProcessInput.Use.DAMAGE) damage(inventory, slot, input.count());
+  }
+
+  private void damage(ItemStackHandler inventory, int slot, int amount) {
+    ItemStack stack = inventory.getStackInSlot(slot).copy();
+    if (!stack.isDamageableItem()) return;
+    int damage = stack.getDamageValue() + amount;
+    if (damage >= stack.getMaxDamage()) stack.shrink(1);
+    else stack.setDamageValue(damage);
+    inventory.setStackInSlot(slot, stack);
   }
 
   private ProcessInput inputAt(int slot) {

@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [" Q ", "QGQ", " Q "],
+  "key": {
+    "Q": {"item": "minecraft:quartz"},
+    "G": {"item": "minecraft:glass_pane"}
+  },
+  "result": {"item": "siliconic:quartz_deposition_filament"}
+}

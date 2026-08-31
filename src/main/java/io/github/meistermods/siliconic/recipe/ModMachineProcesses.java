@@ -74,7 +74,8 @@ public final class ModMachineProcesses {
             300,
             40,
             input(0, Items.QUARTZ, 4),
-            input(1, Items.CHARCOAL, 4)),
+            input(1, Items.CHARCOAL, 4),
+            damageInput(2, ModItems.CARBON_ELECTRODE.get(), 1)),
         shapedWithByproducts(
             "chlorination_reactor/crude_trichlorosilane",
             MachineKind.CHLORINATION_REACTOR,
@@ -89,10 +90,10 @@ public final class ModMachineProcesses {
             "distillation_tower/purified_trichlorosilane",
             MachineKind.DISTILLATION_TOWER,
             ModItems.PURIFIED_TRICHLOROSILANE.get(),
-            1,
+            4,
             400,
             40,
-            input(0, ModItems.CRUDE_TRICHLOROSILANE.get())),
+            input(0, ModItems.CRUDE_TRICHLOROSILANE.get(), 4)),
         shapedWithByproducts(
             "siemens_reactor/high_purity_silicon",
             MachineKind.SIEMENS_REACTOR,
@@ -102,8 +103,21 @@ public final class ModMachineProcesses {
                 new ItemStack(ModItems.SILICON_TETRACHLORIDE.get(), 3),
                 new ItemStack(ModItems.HYDROGEN.get(), 2)),
             600,
-            40,
-            input(0, ModItems.PURIFIED_TRICHLOROSILANE.get(), 4)),
+            80,
+            input(0, ModItems.PURIFIED_TRICHLOROSILANE.get(), 4),
+            catalystInput(1, ModItems.QUARTZ_DEPOSITION_FILAMENT.get())),
+        shapedWithByproducts(
+            "siemens_reactor/recovered_polysilicon",
+            MachineKind.SIEMENS_REACTOR,
+            ModItems.HIGH_PURITY_SILICON.get(),
+            1,
+            List.of(
+                new ItemStack(ModItems.SILICON_TETRACHLORIDE.get()),
+                new ItemStack(ModItems.HYDROGEN.get())),
+            400,
+            60,
+            input(0, ModItems.PARTIAL_POLYSILICON_ROD.get()),
+            input(1, ModItems.PURIFIED_TRICHLOROSILANE.get(), 2)),
         shapedWithByproducts(
             "chemical_recycler/crude_trichlorosilane",
             MachineKind.CHEMICAL_RECYCLER,
@@ -114,6 +128,14 @@ public final class ModMachineProcesses {
             40,
             input(0, ModItems.SILICON_TETRACHLORIDE.get()),
             input(1, ModItems.HYDROGEN.get())),
+        shaped(
+            "chemical_recycler/distillation_residue",
+            MachineKind.CHEMICAL_RECYCLER,
+            ModItems.CRUDE_TRICHLOROSILANE.get(),
+            1,
+            220,
+            35,
+            input(0, ModItems.DISTILLATION_RESIDUE.get())),
         shaped(
             "wafer_fabricator/ulsi_wafer",
             MachineKind.WAFER_FABRICATOR,
@@ -377,6 +399,14 @@ public final class ModMachineProcesses {
 
   private static ProcessInput input(int slot, TagKey<Item> tag) {
     return new ProcessInput(slot, Ingredient.of(tag), 1);
+  }
+
+  private static ProcessInput damageInput(int slot, Item item, int damage) {
+    return new ProcessInput(slot, Ingredient.of(item), damage, ProcessInput.Use.DAMAGE);
+  }
+
+  private static ProcessInput catalystInput(int slot, Item item) {
+    return new ProcessInput(slot, Ingredient.of(item), 1, ProcessInput.Use.CATALYST);
   }
 
   private ModMachineProcesses() {}

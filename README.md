@@ -56,6 +56,18 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 
 Exact crafting layouts and machine processes are best viewed through JEI in game.
 
+### Front-end machine differences
+
+| Machine | Distinct operation | Automation signal / failure |
+| --- | --- | --- |
+| Silicon Arc Furnace | Uses a durable carbon electrode and moves through charging, peak-power arc, reduction melt, and tapping with different power draw. A badly worn electrode creates extra slag. | Comparator output rises with batch progress. |
+| Chlorination Reactor | Magma heats the vessel to a target of 450 while pressure accumulates during reaction. | A blocked output does not stop the batch; reaching the pressure limit emergency-vents and loses it. |
+| Trichlorosilane Distillation Tower | Consecutive hot batches build column stability and shorten high-purity runs. High-throughput mode refines three of four units twice as fast and separates the last unit as residue. | The recycler recovers one crude TCS from that residue. |
+| Siemens Deposition Reactor | Uses a quartz deposition filament as a seed, then runs preheat, nucleation, rod growth, and controlled cooling. | The UI can abort an interrupted batch and recover a partial rod for a later recovery run. |
+| Chlorosilane Recycler | Converts silicon tetrachloride plus hydrogen, or distillation residue, back into crude trichlorosilane. | Blue slots are dedicated to crude TCS, yellow to HCl, and purple to other byproducts. Comparator 10 means missing hydrogen; 15 means blocked output. |
+
+Hot machines spend stored magma heat to reach temperature and replace heat lost during operation. Magma cream supplies 2,000 heat, a magma block 8,000, and a lava bucket 16,000. Process input slots lock after a batch starts and remain locked until completion or recovery.
+
 ## Requirements
 
 | Component | Version |

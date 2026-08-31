@@ -30,6 +30,14 @@ public final class ModItems {
       ITEMS.register("high_purity_silicon", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SILICON_SLAG =
       ITEMS.register("silicon_slag", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> CARBON_ELECTRODE =
+      ITEMS.register("carbon_electrode", () -> new Item(new Item.Properties().durability(32)));
+  public static final RegistryObject<Item> QUARTZ_DEPOSITION_FILAMENT =
+      ITEMS.register("quartz_deposition_filament", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> PARTIAL_POLYSILICON_ROD =
+      ITEMS.register("partial_polysilicon_rod", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> DISTILLATION_RESIDUE =
+      ITEMS.register("distillation_residue", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> CONTAMINATED_WAFER =
       ITEMS.register("contaminated_wafer", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> CONTAMINATED_GATE =

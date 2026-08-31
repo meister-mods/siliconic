@@ -2,9 +2,11 @@ package io.github.meistermods.siliconic.silicon;
 
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.recipe.MachineKind;
+import io.github.meistermods.siliconic.recipe.MachineKind.ThermalProfile;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
+import io.github.meistermods.siliconic.registry.ModItems;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -18,6 +20,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
@@ -33,16 +36,26 @@ import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProvider {
-  public static final int INPUT_SLOT = 0, CATALYST_SLOT = 1;
-  public static final int MAGMA_SLOT = 2, OUTPUT_START = 3, OUTPUT_SLOTS = 9, SLOT_COUNT = 12;
+  public static final int INPUT_SLOT = 0, CATALYST_SLOT = 1, COMPONENT_SLOT = 2;
+  public static final int INPUT_SLOTS = 3;
+  public static final int MAGMA_SLOT = 3, OUTPUT_START = 4, OUTPUT_SLOTS = 9, SLOT_COUNT = 13;
   public static final int ENERGY_CAPACITY = 30_000;
   public static final int MAGMA_CAPACITY = 32_000;
-  public static final int MAGMA_PER_TICK = 5;
+  private static final int LAYOUT_VERSION = 2;
+  private static final int PRESSURE_LIMIT = 1_000;
 
   private int progress;
   private int clientStatus;
   private int magmaHeat;
+  private int temperature;
+  private int stability;
+  private int pressure;
+  private int operationMode;
+  private int ventedTicks;
+  private int tickCounter;
+  private int lastComparatorSignal = -1;
   private List<ItemStack> pendingResults = List.of();
+
   private final ProcessorEnergyStorage energy = new ProcessorEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
@@ -55,7 +68,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
 
         @Override
         protected void onContentsChanged(int slot) {
-          if (slot == INPUT_SLOT || slot == CATALYST_SLOT) {
+          if (slot >= INPUT_SLOT && slot < INPUT_SLOT + INPUT_SLOTS) {
             progress = 0;
             pendingResults = List.of();
           }
@@ -67,27 +80,35 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   private final IItemHandler automationItems =
       new FilteredItemHandler(
           items,
-          slot -> slot == INPUT_SLOT || slot == CATALYST_SLOT || slot == MAGMA_SLOT,
+          slot -> (slot >= INPUT_SLOT && slot < INPUT_SLOT + INPUT_SLOTS) || slot == MAGMA_SLOT,
           slot ->
               (slot >= OUTPUT_START && slot < OUTPUT_START + OUTPUT_SLOTS)
                   || (slot == MAGMA_SLOT && magmaValue(items.getStackInSlot(slot)) == 0));
   private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> automationItems);
+
   private final ContainerData data =
       new ContainerData() {
         @Override
         public int get(int index) {
           if (level != null && level.isClientSide && index == 5) return clientStatus;
-          MachineProcess process = primaryProcess();
+          MachineProcess process = displayProcess();
+          ThermalProfile profile = machineKind().thermalProfile();
           return switch (index) {
             case 0 -> energy.getEnergyStored();
             case 1 -> energy.getMaxEnergyStored();
             case 2 -> progress;
-            case 3 -> process.ticks();
-            case 4 -> process.energyPerTick();
+            case 3 -> effectiveMaxTicks(process);
+            case 4 -> dynamicEnergyPerTick(process);
             case 5 -> status();
             case 6 -> magmaHeat;
             case 7 -> MAGMA_CAPACITY;
-            case 8 -> machineKind().requiresHeat() ? MAGMA_PER_TICK : 0;
+            case 8 -> profile == null ? 0 : profile.magmaPerHeatingTick();
+            case 9 -> temperature;
+            case 10 -> profile == null ? 0 : profile.targetTemperature();
+            case 11 -> stability;
+            case 12 -> pressure;
+            case 13 -> operationMode;
+            case 14 -> phase();
             default -> 0;
           };
         }
@@ -99,15 +120,17 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
             case 2 -> progress = Math.max(0, value);
             case 5 -> clientStatus = value;
             case 6 -> magmaHeat = Math.max(0, Math.min(value, MAGMA_CAPACITY));
-            default -> {
-              // The remaining values are derived from the machine state.
-            }
+            case 9 -> temperature = Math.max(0, value);
+            case 11 -> stability = Math.max(0, Math.min(value, 1_000));
+            case 12 -> pressure = Math.max(0, Math.min(value, PRESSURE_LIMIT));
+            case 13 -> operationMode = value == 0 ? 0 : 1;
+            default -> {}
           }
         }
 
         @Override
         public int getCount() {
-          return 9;
+          return 15;
         }
       };
 
@@ -138,18 +161,25 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     super(ModBlockEntities.SILICON_PROCESSOR.get(), pos, state);
   }
 
-  public boolean isArcFurnace() {
-    return machineKind() == MachineKind.SILICON_ARC_FURNACE;
-  }
-
   public MachineKind machineKind() {
     if (getBlockState().getBlock() instanceof SiliconProcessorBlock processorBlock)
       return processorBlock.machineKind();
     return MachineKind.SILICON_ARC_FURNACE;
   }
 
-  public boolean hasSecondaryInput() {
-    return ModMachineProcesses.usesInputSlot(machineKind(), CATALYST_SLOT);
+  public boolean isArcFurnace() {
+    return machineKind() == MachineKind.SILICON_ARC_FURNACE;
+  }
+
+  public boolean hasInputSlot(int relativeSlot) {
+    return ModMachineProcesses.usesInputSlot(machineKind(), relativeSlot);
+  }
+
+  public int visibleInputSlots() {
+    int count = 1;
+    if (hasInputSlot(CATALYST_SLOT)) count++;
+    if (hasInputSlot(COMPONENT_SLOT)) count++;
+    return count;
   }
 
   public boolean requiresMagma() {
@@ -160,69 +190,162 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     return items;
   }
 
+  public boolean canModifyInputs() {
+    return progress == 0 && pendingResults.isEmpty();
+  }
+
   public ContainerData data() {
     return data;
   }
 
   public int status() {
+    if (ventedTicks > 0) return 7;
     MachineProcess process = currentProcess();
     if (process == null) {
       if (!ModMachineProcesses.accepts(machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT)))
         return 0;
       return 1;
     }
-    if (pendingResults.isEmpty()) {
-      if (!canFitOutputs(process.outputCopies())) return 2;
-    } else if (!canFitOutputs(pendingResults)) return 2;
-    if (!pendingResults.isEmpty()) return 4;
-    if (requiresMagma() && magmaHeat < MAGMA_PER_TICK) return 5;
-    if (energy.getEnergyStored() < process.energyPerTick()) return 3;
+    List<ItemStack> outputs = pendingResults.isEmpty() ? dynamicOutputs(process) : pendingResults;
+    if (!canFitOutputs(outputs) && machineKind() != MachineKind.CHLORINATION_REACTOR) return 2;
+    if (!pendingResults.isEmpty()) return machineKind() == MachineKind.CHLORINATION_REACTOR ? 9 : 2;
+    if (requiresMagma() && !temperatureReady()) {
+      ThermalProfile profile = machineKind().thermalProfile();
+      if (temperature > profile.targetTemperature() + profile.tolerance()) return 8;
+      if (magmaHeat < profile.magmaPerHeatingTick()) return 5;
+      return 6;
+    }
+    if (pressure >= 800) return 9;
+    if (energy.getEnergyStored() < dynamicEnergyPerTick(process)) return 3;
     return 4;
   }
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, SiliconProcessorBlockEntity processor) {
+    processor.tickCounter++;
+    if (processor.ventedTicks > 0) processor.ventedTicks--;
     processor.absorbMagmaFuel();
     MachineProcess process = processor.currentProcess();
+
     if (process == null) {
       processor.resetProgress();
+      processor.updateTemperature(null, false);
+      processor.decayIdleState();
       updateActiveState(level, pos, state, false);
+      processor.finishServerTick(level, pos, state);
       return;
     }
+
     if (!processor.pendingResults.isEmpty()) {
-      if (processor.canFitOutputs(processor.pendingResults))
+      processor.updateTemperature(process, false);
+      if (processor.machineKind() == MachineKind.CHLORINATION_REACTOR) {
+        processor.pressure = Math.min(PRESSURE_LIMIT, processor.pressure + 8);
+        if (processor.pressure >= PRESSURE_LIMIT) processor.ventBatch(process);
+        else if (processor.canFitOutputs(processor.pendingResults))
+          processor.finishProcess(process, processor.pendingResults);
+      } else if (processor.canFitOutputs(processor.pendingResults)) {
         processor.finishProcess(process, processor.pendingResults);
+      }
       updateActiveState(level, pos, state, false);
+      processor.finishServerTick(level, pos, state);
       return;
     }
-    if (!processor.canFitOutputs(process.outputCopies())) {
-      processor.resetProgress();
-      updateActiveState(level, pos, state, false);
+
+    boolean outputReady = processor.canFitOutputs(processor.dynamicOutputs(process));
+    boolean canStart =
+        processor.progress > 0
+            || outputReady
+            || processor.machineKind() == MachineKind.CHLORINATION_REACTOR;
+    boolean heating = processor.updateTemperature(process, canStart);
+    if (!canStart || !processor.temperatureReady()) {
+      processor.decayStability();
+      updateActiveState(level, pos, state, heating);
+      processor.finishServerTick(level, pos, state);
       return;
     }
-    if (!processor.consumeMagmaHeat()) {
+
+    int energyUse = processor.dynamicEnergyPerTick(process);
+    if (!processor.energy.consumeInternal(energyUse)) {
+      processor.decayStability();
       updateActiveState(level, pos, state, false);
+      processor.finishServerTick(level, pos, state);
       return;
     }
-    if (!processor.energy.consumeInternal(process.energyPerTick())) {
-      processor.refundMagmaHeat();
-      updateActiveState(level, pos, state, false);
-      return;
-    }
+
     processor.progress++;
-    if (processor.progress >= process.ticks()) {
-      List<ItemStack> results = process.outputCopies();
+    processor.onActiveProcessTick();
+    if (processor.progress >= processor.effectiveMaxTicks(process)) {
+      List<ItemStack> results = processor.dynamicOutputs(process);
       if (processor.canFitOutputs(results)) processor.finishProcess(process, results);
       else processor.pendingResults = copyStacks(results);
     }
     processor.setChanged();
     updateActiveState(level, pos, state, true);
+    processor.finishServerTick(level, pos, state);
   }
 
   private static void updateActiveState(
       Level level, BlockPos pos, BlockState state, boolean active) {
     if (state.getValue(SiliconProcessorBlock.ACTIVE) != active)
       level.setBlock(pos, state.setValue(SiliconProcessorBlock.ACTIVE, active), 3);
+  }
+
+  private void finishServerTick(Level level, BlockPos pos, BlockState state) {
+    int signal = analogSignal();
+    if (signal != lastComparatorSignal) {
+      lastComparatorSignal = signal;
+      level.updateNeighbourForOutputSignal(pos, state.getBlock());
+    }
+    setChanged();
+  }
+
+  private void decayIdleState() {
+    decayStability();
+    if (tickCounter % 4 == 0) pressure = Math.max(0, pressure - 1);
+  }
+
+  private void decayStability() {
+    if (machineKind() == MachineKind.DISTILLATION_TOWER && tickCounter % 4 == 0)
+      stability = Math.max(0, stability - 1);
+  }
+
+  private void onActiveProcessTick() {
+    if (machineKind() == MachineKind.CHLORINATION_REACTOR) pressure = Math.min(900, pressure + 2);
+    if (machineKind() == MachineKind.DISTILLATION_TOWER) stability = Math.min(1_000, stability + 2);
+    ThermalProfile profile = machineKind().thermalProfile();
+    if (profile != null && tickCounter % profile.passiveCoolingInterval() == 0)
+      temperature = Math.max(0, temperature - 1);
+  }
+
+  private boolean updateTemperature(@Nullable MachineProcess process, boolean canOperate) {
+    ThermalProfile profile = machineKind().thermalProfile();
+    if (profile == null) return false;
+    boolean forcedCooling =
+        machineKind() == MachineKind.SIEMENS_REACTOR && process != null && phase() == 4;
+    if (forcedCooling) {
+      temperature = Math.max(0, temperature - 12);
+      return false;
+    }
+    if (process != null && canOperate && temperature < profile.targetTemperature()) {
+      if (magmaHeat < profile.magmaPerHeatingTick()) return false;
+      magmaHeat -= profile.magmaPerHeatingTick();
+      temperature = Math.min(profile.targetTemperature(), temperature + profile.heatingRate());
+      return true;
+    }
+    if ((process == null
+            || !canOperate
+            || temperature > profile.targetTemperature() + profile.tolerance())
+        && tickCounter % profile.passiveCoolingInterval() == 0)
+      temperature = Math.max(0, temperature - 1);
+    return false;
+  }
+
+  private boolean temperatureReady() {
+    ThermalProfile profile = machineKind().thermalProfile();
+    if (profile == null) return true;
+    if (machineKind() == MachineKind.SIEMENS_REACTOR && phase() == 4) return true;
+    return temperature >= profile.targetTemperature() - profile.tolerance()
+        && temperature <= profile.targetTemperature() + profile.tolerance();
   }
 
   private void resetProgress() {
@@ -236,9 +359,78 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     return ModMachineProcesses.primary(machineKind());
   }
 
+  private MachineProcess displayProcess() {
+    MachineProcess process = currentProcess();
+    return process == null ? primaryProcess() : process;
+  }
+
   @Nullable
   private MachineProcess currentProcess() {
-    return ModMachineProcesses.findMatching(machineKind(), items, INPUT_SLOT, 2);
+    return ModMachineProcesses.findMatching(machineKind(), items, INPUT_SLOT, INPUT_SLOTS);
+  }
+
+  private int effectiveMaxTicks(MachineProcess process) {
+    if (machineKind() != MachineKind.DISTILLATION_TOWER) return process.ticks();
+    if (operationMode == 1) return Math.max(1, process.ticks() / 2);
+    return Math.max(1, process.ticks() - process.ticks() * stability / 4_000);
+  }
+
+  private int dynamicEnergyPerTick(MachineProcess process) {
+    int currentPhase = phase();
+    if (machineKind() == MachineKind.SILICON_ARC_FURNACE)
+      return switch (currentPhase) {
+        case 1 -> 40;
+        case 2 -> 90;
+        case 3 -> 65;
+        default -> 30;
+      };
+    if (machineKind() == MachineKind.SIEMENS_REACTOR)
+      return switch (currentPhase) {
+        case 1 -> 90;
+        case 2 -> 55;
+        case 3 -> 80;
+        case 4 -> 10;
+        default -> process.energyPerTick();
+      };
+    return process.energyPerTick();
+  }
+
+  private int phase() {
+    MachineProcess process = currentProcess();
+    int max = process == null ? primaryProcess().ticks() : effectiveMaxTicks(process);
+    if (progress <= 0) return 0;
+    if (machineKind() == MachineKind.SILICON_ARC_FURNACE) {
+      int percent = progress * 100 / Math.max(1, max);
+      if (percent < 17) return 1;
+      if (percent < 55) return 2;
+      if (percent < 88) return 3;
+      return 4;
+    }
+    if (machineKind() == MachineKind.SIEMENS_REACTOR) {
+      int percent = progress * 100 / Math.max(1, max);
+      if (percent < 19) return 1;
+      if (percent < 32) return 2;
+      if (percent < 82) return 3;
+      return 4;
+    }
+    return 1;
+  }
+
+  private List<ItemStack> dynamicOutputs(MachineProcess process) {
+    List<ItemStack> results = new ArrayList<>(process.outputCopies());
+    if (machineKind() == MachineKind.SILICON_ARC_FURNACE) {
+      ItemStack electrode = items.getStackInSlot(COMPONENT_SLOT);
+      if (electrode.isDamageableItem()
+          && electrode.getDamageValue() * 4 >= electrode.getMaxDamage() * 3)
+        results.add(new ItemStack(ModItems.SILICON_SLAG.get()));
+    }
+    if (machineKind() == MachineKind.DISTILLATION_TOWER && operationMode == 1) {
+      ItemStack reducedCut = results.get(0).copy();
+      reducedCut.shrink(1);
+      results.set(0, reducedCut);
+      results.add(new ItemStack(ModItems.DISTILLATION_RESIDUE.get()));
+    }
+    return results;
   }
 
   private void absorbMagmaFuel() {
@@ -253,17 +445,6 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     setChanged();
   }
 
-  private boolean consumeMagmaHeat() {
-    if (!requiresMagma()) return true;
-    if (magmaHeat < MAGMA_PER_TICK) return false;
-    magmaHeat -= MAGMA_PER_TICK;
-    return true;
-  }
-
-  private void refundMagmaHeat() {
-    if (requiresMagma()) magmaHeat = Math.min(MAGMA_CAPACITY, magmaHeat + MAGMA_PER_TICK);
-  }
-
   public static int magmaValue(ItemStack stack) {
     if (stack.is(Items.MAGMA_CREAM)) return 2_000;
     if (stack.is(Items.MAGMA_BLOCK)) return 8_000;
@@ -273,16 +454,17 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
 
   private boolean canFitOutputs(List<ItemStack> results) {
     List<ItemStack> simulated = new ArrayList<>(OUTPUT_SLOTS);
-    for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_SLOTS; slot++) {
+    for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_SLOTS; slot++)
       simulated.add(items.getStackInSlot(slot).copy());
-    }
     for (ItemStack result : results) if (!insertSimulated(simulated, result)) return false;
     return true;
   }
 
   private boolean insertSimulated(List<ItemStack> simulated, ItemStack result) {
     int remaining = result.getCount();
-    for (ItemStack output : simulated) {
+    for (int index = 0; index < simulated.size(); index++) {
+      if (!allowedOutputSlot(result.getItem(), index)) continue;
+      ItemStack output = simulated.get(index);
       if (!ItemStack.isSameItemSameTags(output, result)) continue;
       int moved = Math.min(remaining, output.getMaxStackSize() - output.getCount());
       output.grow(moved);
@@ -290,7 +472,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       if (remaining == 0) return true;
     }
     for (int index = 0; index < simulated.size() && remaining > 0; index++) {
-      if (!simulated.get(index).isEmpty()) continue;
+      if (!allowedOutputSlot(result.getItem(), index) || !simulated.get(index).isEmpty()) continue;
       int moved = Math.min(remaining, result.getMaxStackSize());
       simulated.set(index, result.copyWithCount(moved));
       remaining -= moved;
@@ -298,17 +480,35 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     return remaining == 0;
   }
 
+  private boolean allowedOutputSlot(Item item, int relativeSlot) {
+    if (machineKind() != MachineKind.CHEMICAL_RECYCLER) return true;
+    if (item == ModItems.CRUDE_TRICHLOROSILANE.get()) return relativeSlot < 4;
+    if (item == ModItems.HYDROGEN_CHLORIDE.get()) return relativeSlot >= 4 && relativeSlot < 8;
+    return relativeSlot == 8;
+  }
+
   private void finishProcess(MachineProcess process, List<ItemStack> results) {
     if (!canFitOutputs(results)) return;
-    process.consume(items, INPUT_SLOT, 2);
+    process.consume(items, INPUT_SLOT, INPUT_SLOTS);
     results.forEach(this::insertOutput);
     progress = 0;
     pendingResults = List.of();
+    if (machineKind() == MachineKind.CHLORINATION_REACTOR) pressure = Math.max(0, pressure - 500);
+  }
+
+  private void ventBatch(MachineProcess process) {
+    process.consume(items, INPUT_SLOT, INPUT_SLOTS);
+    progress = 0;
+    pressure = 200;
+    pendingResults = List.of();
+    ventedTicks = 100;
   }
 
   private void insertOutput(ItemStack result) {
     int remaining = result.getCount();
     for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_SLOTS; slot++) {
+      int relative = slot - OUTPUT_START;
+      if (!allowedOutputSlot(result.getItem(), relative)) continue;
       ItemStack output = items.getStackInSlot(slot);
       if (!ItemStack.isSameItemSameTags(output, result)) continue;
       int moved = Math.min(remaining, output.getMaxStackSize() - output.getCount());
@@ -317,11 +517,52 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       if (remaining == 0) return;
     }
     for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_SLOTS && remaining > 0; slot++) {
-      if (!items.getStackInSlot(slot).isEmpty()) continue;
+      int relative = slot - OUTPUT_START;
+      if (!allowedOutputSlot(result.getItem(), relative) || !items.getStackInSlot(slot).isEmpty())
+        continue;
       int moved = Math.min(remaining, result.getMaxStackSize());
       items.setStackInSlot(slot, result.copyWithCount(moved));
       remaining -= moved;
     }
+  }
+
+  public boolean handleMenuButton(int id) {
+    if (id == 0
+        && machineKind() == MachineKind.DISTILLATION_TOWER
+        && progress == 0
+        && pendingResults.isEmpty()) {
+      operationMode = operationMode == 0 ? 1 : 0;
+      setChanged();
+      return true;
+    }
+    if (id == 1
+        && machineKind() == MachineKind.SIEMENS_REACTOR
+        && progress > 0
+        && pendingResults.isEmpty()) {
+      MachineProcess process = currentProcess();
+      ItemStack partial = new ItemStack(ModItems.PARTIAL_POLYSILICON_ROD.get());
+      if (process == null || !canFitOutputs(List.of(partial))) return false;
+      process.consume(items, INPUT_SLOT, INPUT_SLOTS);
+      insertOutput(partial);
+      progress = 0;
+      setChanged();
+      return true;
+    }
+    return false;
+  }
+
+  public int analogSignal() {
+    int machineStatus = status();
+    if (machineStatus == 2 || !pendingResults.isEmpty()) return 15;
+    if (machineKind() == MachineKind.CHEMICAL_RECYCLER) {
+      ItemStack feed = items.getStackInSlot(INPUT_SLOT);
+      if (feed.is(ModItems.SILICON_TETRACHLORIDE.get())
+          && !items.getStackInSlot(CATALYST_SLOT).is(ModItems.HYDROGEN.get())) return 10;
+      if (currentProcess() == null) return 5;
+    }
+    MachineProcess process = currentProcess();
+    if (process == null || progress == 0) return 0;
+    return Math.max(1, Math.min(14, progress * 14 / effectiveMaxTicks(process)));
   }
 
   private static List<ItemStack> copyStacks(List<ItemStack> stacks) {
@@ -331,10 +572,16 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   @Override
   protected void saveAdditional(CompoundTag tag) {
     super.saveAdditional(tag);
+    tag.putInt("LayoutVersion", LAYOUT_VERSION);
     tag.put("Items", items.serializeNBT());
     tag.putInt("Energy", energy.getEnergyStored());
     tag.putInt("Progress", progress);
     tag.putInt("MagmaHeat", magmaHeat);
+    tag.putInt("Temperature", temperature);
+    tag.putInt("Stability", stability);
+    tag.putInt("Pressure", pressure);
+    tag.putInt("OperationMode", operationMode);
+    tag.putInt("VentedTicks", ventedTicks);
     ListTag pending = new ListTag();
     pendingResults.forEach(result -> pending.add(result.save(new CompoundTag())));
     tag.put("PendingResults", pending);
@@ -346,9 +593,15 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     CompoundTag itemData = tag.getCompound("Items").copy();
     itemData.putInt("Size", SLOT_COUNT);
     items.deserializeNBT(itemData);
+    if (tag.getInt("LayoutVersion") < LAYOUT_VERSION) migrateLegacySlots();
     energy.setStored(tag.getInt("Energy"));
     progress = Math.max(0, tag.getInt("Progress"));
     magmaHeat = Math.max(0, Math.min(tag.getInt("MagmaHeat"), MAGMA_CAPACITY));
+    temperature = Math.max(0, tag.getInt("Temperature"));
+    stability = Math.max(0, Math.min(tag.getInt("Stability"), 1_000));
+    pressure = Math.max(0, Math.min(tag.getInt("Pressure"), PRESSURE_LIMIT));
+    operationMode = tag.getInt("OperationMode") == 0 ? 0 : 1;
+    ventedTicks = Math.max(0, tag.getInt("VentedTicks"));
     ListTag pending = tag.getList("PendingResults", Tag.TAG_COMPOUND);
     List<ItemStack> loadedResults = new ArrayList<>(pending.size());
     for (int index = 0; index < pending.size(); index++) {
@@ -360,6 +613,17 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       if (!legacyResult.isEmpty()) loadedResults.add(legacyResult);
     }
     pendingResults = List.copyOf(loadedResults);
+  }
+
+  private void migrateLegacySlots() {
+    List<ItemStack> old = new ArrayList<>(12);
+    for (int slot = 0; slot < 12; slot++) old.add(items.getStackInSlot(slot).copy());
+    for (int slot = 0; slot < SLOT_COUNT; slot++) items.setStackInSlot(slot, ItemStack.EMPTY);
+    items.setStackInSlot(INPUT_SLOT, old.get(0));
+    items.setStackInSlot(CATALYST_SLOT, old.get(1));
+    items.setStackInSlot(MAGMA_SLOT, old.get(2));
+    for (int index = 0; index < OUTPUT_SLOTS; index++)
+      items.setStackInSlot(OUTPUT_START + index, old.get(3 + index));
   }
 
   @Override

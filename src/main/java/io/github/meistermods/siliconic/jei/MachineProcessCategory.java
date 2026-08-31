@@ -17,7 +17,7 @@ import net.minecraft.world.level.ItemLike;
 @SuppressWarnings({"null"})
 public class MachineProcessCategory extends AbstractRecipeCategory<MachineProcess> {
   private static final int WIDTH = 150;
-  private static final int HEIGHT = 78;
+  private static final int HEIGHT = 90;
   private final MachineKind machine;
   private final IDrawable arrow;
 
@@ -94,15 +94,21 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
             process.energyPerTick(),
             process.totalEnergy());
     var font = Minecraft.getInstance().font;
+    if (!isGridMachine()) {
+      Component special = Component.translatable("jei.siliconic.process.special." + machine.id());
+      drawCenteredFitted(graphics, special, 56, 0xff505a66);
+    }
     if (machine.requiresHeat()) {
       Component magma =
           Component.translatable(
               "jei.siliconic.process.magma",
-              io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity.MAGMA_PER_TICK);
-      graphics.drawString(font, magma, (WIDTH - font.width(magma)) / 2, 56, 0xffb84b16, false);
+              machine.thermalProfile().targetTemperature(),
+              machine.thermalProfile().magmaPerHeatingTick());
+      drawCenteredFitted(graphics, magma, 67, 0xffb84b16);
     }
     int detailsX = (WIDTH - font.width(details)) / 2;
-    graphics.drawString(font, details, detailsX, 66, 0xff404040, false);
+    graphics.drawString(
+        font, details, detailsX, machine.requiresHeat() ? 78 : 70, 0xff404040, false);
   }
 
   @Override
@@ -112,5 +118,16 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
 
   private boolean isGridMachine() {
     return machine == MachineKind.WAFER_FABRICATOR || machine == MachineKind.GATE_ASSEMBLER;
+  }
+
+  private void drawCenteredFitted(GuiGraphics graphics, Component text, int y, int color) {
+    var font = Minecraft.getInstance().font;
+    int width = font.width(text);
+    float scale = width > WIDTH - 4 ? (float) (WIDTH - 4) / width : 1.0f;
+    graphics.pose().pushPose();
+    graphics.pose().translate(WIDTH / 2.0f, y, 0);
+    graphics.pose().scale(scale, scale, 1.0f);
+    graphics.drawString(font, text, -width / 2, 0, color, false);
+    graphics.pose().popPose();
   }
 }

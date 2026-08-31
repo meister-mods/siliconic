@@ -42,6 +42,10 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.HYDROGEN.get());
                         output.accept(ModItems.HIGH_PURITY_SILICON.get());
                         output.accept(ModItems.SILICON_SLAG.get());
+                        output.accept(ModItems.CARBON_ELECTRODE.get());
+                        output.accept(ModItems.QUARTZ_DEPOSITION_FILAMENT.get());
+                        output.accept(ModItems.PARTIAL_POLYSILICON_ROD.get());
+                        output.accept(ModItems.DISTILLATION_RESIDUE.get());
                         output.accept(ModItems.CONTAMINATED_WAFER.get());
                         output.accept(ModItems.CONTAMINATED_GATE.get());
                         output.accept(ModItems.COATED_BLOCK.get());

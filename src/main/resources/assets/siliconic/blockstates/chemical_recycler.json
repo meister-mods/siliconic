@@ -1,1 +1,12 @@
-{"variants":{"active=false":{"model":"siliconic:block/chemical_recycler"},"active=true":{"model":"siliconic:block/chemical_recycler_active"}}}
+{
+  "variants": {
+    "active=false,facing=north": { "model": "siliconic:block/chemical_recycler" },
+    "active=false,facing=east": { "model": "siliconic:block/chemical_recycler", "y": 90 },
+    "active=false,facing=south": { "model": "siliconic:block/chemical_recycler", "y": 180 },
+    "active=false,facing=west": { "model": "siliconic:block/chemical_recycler", "y": 270 },
+    "active=true,facing=north": { "model": "siliconic:block/chemical_recycler_active" },
+    "active=true,facing=east": { "model": "siliconic:block/chemical_recycler_active", "y": 90 },
+    "active=true,facing=south": { "model": "siliconic:block/chemical_recycler_active", "y": 180 },
+    "active=true,facing=west": { "model": "siliconic:block/chemical_recycler_active", "y": 270 }
+  }
+}

@@ -1,1 +1,6 @@
-{"parent":"minecraft:block/cube_bottom_top","textures":{"top":"siliconic:block/silicon_arc_furnace_top","bottom":"siliconic:block/silicon_arc_furnace_top","side":"siliconic:block/silicon_arc_furnace_active"}}
+{
+  "parent": "siliconic:block/silicon_arc_furnace",
+  "textures": {
+    "front_interface": "siliconic:block/silicon_arc_furnace_front_active"
+  }
+}

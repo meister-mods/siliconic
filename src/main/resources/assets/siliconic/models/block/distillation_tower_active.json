@@ -1,1 +1,6 @@
-{"parent":"minecraft:block/cube_bottom_top","textures":{"top":"siliconic:block/silicon_purifier_top","bottom":"siliconic:block/silicon_purifier_top","side":"siliconic:block/silicon_purifier_active"}}
+{
+  "parent": "siliconic:block/distillation_tower",
+  "textures": {
+    "front_interface": "siliconic:block/distillation_tower_front_active"
+  }
+}

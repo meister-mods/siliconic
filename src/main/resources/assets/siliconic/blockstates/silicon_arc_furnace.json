@@ -1,1 +1,12 @@
-{"variants":{"active=false":{"model":"siliconic:block/silicon_arc_furnace"},"active=true":{"model":"siliconic:block/silicon_arc_furnace_active"}}}
+{
+  "variants": {
+    "active=false,facing=north": { "model": "siliconic:block/silicon_arc_furnace" },
+    "active=false,facing=east": { "model": "siliconic:block/silicon_arc_furnace", "y": 90 },
+    "active=false,facing=south": { "model": "siliconic:block/silicon_arc_furnace", "y": 180 },
+    "active=false,facing=west": { "model": "siliconic:block/silicon_arc_furnace", "y": 270 },
+    "active=true,facing=north": { "model": "siliconic:block/silicon_arc_furnace_active" },
+    "active=true,facing=east": { "model": "siliconic:block/silicon_arc_furnace_active", "y": 90 },
+    "active=true,facing=south": { "model": "siliconic:block/silicon_arc_furnace_active", "y": 180 },
+    "active=true,facing=west": { "model": "siliconic:block/silicon_arc_furnace_active", "y": 270 }
+  }
+}

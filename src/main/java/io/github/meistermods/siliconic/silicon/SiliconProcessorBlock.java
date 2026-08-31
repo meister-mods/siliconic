@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.silicon;
 
+import io.github.meistermods.siliconic.machine.HorizontalFacingEntityBlock;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
@@ -9,7 +10,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -22,14 +23,14 @@ import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
-public class SiliconProcessorBlock extends BaseEntityBlock {
+public class SiliconProcessorBlock extends HorizontalFacingEntityBlock {
   public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
   private final MachineKind machineKind;
 
   public SiliconProcessorBlock(MachineKind machineKind, Properties properties) {
     super(properties);
     this.machineKind = machineKind;
-    registerDefaultState(stateDefinition.any().setValue(ACTIVE, false));
+    registerDefaultState(defaultBlockState().setValue(ACTIVE, false));
   }
 
   public MachineKind machineKind() {
@@ -49,7 +50,8 @@ public class SiliconProcessorBlock extends BaseEntityBlock {
 
   @Override
   protected void createBlockStateDefinition(
-      StateDefinition.Builder<net.minecraft.world.level.block.Block, BlockState> builder) {
+      StateDefinition.Builder<Block, BlockState> builder) {
+    super.createBlockStateDefinition(builder);
     builder.add(ACTIVE);
   }
 

@@ -1,1 +1,7 @@
-{"parent":"minecraft:block/cube_bottom_top","textures":{"top":"siliconic:block/silicon_purifier_top","bottom":"siliconic:block/silicon_purifier_top","side":"siliconic:block/silicon_purifier"}}
+{
+  "parent": "siliconic:block/raw_machine_with_interfaces",
+  "textures": {
+    "front_interface": "siliconic:block/chlorination_reactor_front",
+    "top_interface": "siliconic:block/chlorination_reactor_top"
+  }
+}

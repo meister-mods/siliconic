@@ -1,1 +1,12 @@
-{"variants":{"active=false":{"model":"siliconic:block/distillation_tower"},"active=true":{"model":"siliconic:block/distillation_tower_active"}}}
+{
+  "variants": {
+    "active=false,facing=north": { "model": "siliconic:block/distillation_tower" },
+    "active=false,facing=east": { "model": "siliconic:block/distillation_tower", "y": 90 },
+    "active=false,facing=south": { "model": "siliconic:block/distillation_tower", "y": 180 },
+    "active=false,facing=west": { "model": "siliconic:block/distillation_tower", "y": 270 },
+    "active=true,facing=north": { "model": "siliconic:block/distillation_tower_active" },
+    "active=true,facing=east": { "model": "siliconic:block/distillation_tower_active", "y": 90 },
+    "active=true,facing=south": { "model": "siliconic:block/distillation_tower_active", "y": 180 },
+    "active=true,facing=west": { "model": "siliconic:block/distillation_tower_active", "y": 270 }
+  }
+}

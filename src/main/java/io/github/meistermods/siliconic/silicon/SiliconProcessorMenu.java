@@ -12,6 +12,11 @@ import net.minecraftforge.items.SlotItemHandler;
 
 @SuppressWarnings({"null"})
 public class SiliconProcessorMenu extends AbstractContainerMenu {
+  public static final int INPUT_Y = 37;
+  public static final int MAGMA_X = 82;
+  public static final int OUTPUT_X = 110;
+  public static final int OUTPUT_Y = 20;
+
   private final SiliconProcessorBlockEntity processor;
   private final int machineSlots;
 
@@ -26,22 +31,25 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
     super(ModMenus.SILICON_PROCESSOR.get(), id);
     this.processor = processor;
     int inputCount = processor.visibleInputSlots();
-    addProcessSlot(SiliconProcessorBlockEntity.INPUT_SLOT, inputX(0, inputCount), 42);
+    addProcessSlot(SiliconProcessorBlockEntity.INPUT_SLOT, inputX(0, inputCount), INPUT_Y);
     if (processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT))
-      addProcessSlot(SiliconProcessorBlockEntity.CATALYST_SLOT, inputX(1, inputCount), 42);
+      addProcessSlot(
+          SiliconProcessorBlockEntity.CATALYST_SLOT, inputX(1, inputCount), INPUT_Y);
     if (processor.hasInputSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT))
-      addProcessSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT, inputX(2, inputCount), 42);
+      addProcessSlot(
+          SiliconProcessorBlockEntity.COMPONENT_SLOT, inputX(2, inputCount), INPUT_Y);
     if (processor.requiresMagma())
       addSlot(
-          new SlotItemHandler(processor.items(), SiliconProcessorBlockEntity.MAGMA_SLOT, 68, 42));
+          new SlotItemHandler(
+              processor.items(), SiliconProcessorBlockEntity.MAGMA_SLOT, MAGMA_X, INPUT_Y));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 3; column++)
         addSlot(
             new SlotItemHandler(
                 processor.items(),
                 SiliconProcessorBlockEntity.OUTPUT_START + row * 3 + column,
-                110 + column * 18,
-                24 + row * 18));
+                OUTPUT_X + column * 18,
+                OUTPUT_Y + row * 18));
     machineSlots =
         1
             + (processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT) ? 1 : 0)
@@ -182,7 +190,7 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
         });
   }
 
-  private static int inputX(int relativeSlot, int inputCount) {
+  public static int inputX(int relativeSlot, int inputCount) {
     int start = inputCount == 1 ? 35 : inputCount == 2 ? 16 : 8;
     return start + relativeSlot * 24;
   }

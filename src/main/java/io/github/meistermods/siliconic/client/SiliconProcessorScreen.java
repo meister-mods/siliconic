@@ -56,15 +56,28 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
     int inputCount = menu.visibleInputSlots();
     for (int slot = 0; slot < SiliconProcessorBlockEntity.INPUT_SLOTS; slot++)
       if (menu.hasInputSlot(slot))
-        slotBox(g, leftPos + inputX(slot, inputCount), topPos + 37, 0xff737a80);
-    if (menu.requiresMagma()) slotBox(g, leftPos + 82, topPos + 37, 0xffff8a24);
+        slotBox(
+            g,
+            leftPos + SiliconProcessorMenu.inputX(slot, inputCount),
+            topPos + SiliconProcessorMenu.INPUT_Y,
+            0xff737a80);
+    if (menu.requiresMagma())
+      slotBox(
+          g,
+          leftPos + SiliconProcessorMenu.MAGMA_X,
+          topPos + SiliconProcessorMenu.INPUT_Y,
+          0xffff8a24);
     for (int row = 0; row < 3; row++) {
       for (int column = 0; column < 3; column++) {
         int relative = row * 3 + column;
         int border = 0xff737a80;
         if (menu.machineKind() == MachineKind.CHEMICAL_RECYCLER)
           border = relative < 4 ? 0xff55a7c9 : relative < 8 ? 0xffd6b14d : 0xff8d7a9e;
-        slotBox(g, leftPos + 110 + column * 18, topPos + 20 + row * 18, border);
+        slotBox(
+            g,
+            leftPos + SiliconProcessorMenu.OUTPUT_X + column * 18,
+            topPos + SiliconProcessorMenu.OUTPUT_Y + row * 18,
+            border);
       }
     }
     for (int row = 0; row < 3; row++)
@@ -75,7 +88,12 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
 
     for (int slot = 1; slot < inputCount; slot++)
       g.drawString(
-          font, "+", leftPos + inputX(slot, inputCount) - 7, topPos + 41, 0xffe8edf2, false);
+          font,
+          "+",
+          leftPos + SiliconProcessorMenu.inputX(slot, inputCount) - 7,
+          topPos + 41,
+          0xffe8edf2,
+          false);
     g.drawString(font, "→", leftPos + 97, topPos + 41, 0xffe8edf2, false);
 
     int progressWidth = menu.maxProgress() == 0 ? 0 : 92 * menu.progress() / menu.maxProgress();
@@ -133,7 +151,12 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
               ? "screen.siliconic.processor.input"
               : "screen.siliconic.processor.input." + menu.machineKind().id() + "." + slot;
       drawCenteredFittedString(
-          g, Component.translatable(key), inputX(slot, inputCount) + 8, 25, 22, 0xffaeb7c0);
+          g,
+          Component.translatable(key),
+          SiliconProcessorMenu.inputX(slot, inputCount) + 8,
+          25,
+          22,
+          0xffaeb7c0);
     }
     if (menu.requiresMagma())
       drawCenteredFittedString(
@@ -221,10 +244,5 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
     renderBackground(g);
     super.render(g, mouseX, mouseY, partial);
     renderTooltip(g, mouseX, mouseY);
-  }
-
-  private static int inputX(int relativeSlot, int inputCount) {
-    int start = inputCount == 1 ? 35 : inputCount == 2 ? 16 : 8;
-    return start + relativeSlot * 24;
   }
 }

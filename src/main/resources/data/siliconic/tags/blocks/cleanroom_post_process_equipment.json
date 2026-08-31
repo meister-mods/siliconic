@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "siliconic:wafer_assembler",
+    "siliconic:creative_wafer_assembler",
+    "siliconic:wafer_guard",
+    "siliconic:creative_wafer_guard",
+    "siliconic:wafer_fabricator",
+    "siliconic:gate_assembler",
+    "siliconic:wafer_inverter",
+    "siliconic:wafer_duplicator"
+  ]
+}

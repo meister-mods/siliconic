@@ -13,10 +13,6 @@
     "siliconic:distillation_tower",
     "siliconic:siemens_reactor",
     "siliconic:chemical_recycler",
-    "siliconic:wafer_fabricator",
-    "siliconic:gate_assembler",
-    "siliconic:wafer_inverter",
-    "siliconic:wafer_duplicator",
     "siliconic:coal_generator",
     "siliconic:reprocessor"
   ]

@@ -3,6 +3,6 @@
   "render_type": "minecraft:cutout",
   "textures": {
     "front_interface": "siliconic:block/wafer_assembler_front",
-    "top_interface": "siliconic:block/wafer_assembler_top"
+    "top_interface": "siliconic:block/wafer_assembler_top_loaded"
   }
 }

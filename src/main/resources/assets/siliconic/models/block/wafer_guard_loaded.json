@@ -1,3 +1,6 @@
 {
-  "parent": "siliconic:block/wafer_guard"
+  "parent": "siliconic:block/wafer_guard",
+  "textures": {
+    "top_interface": "siliconic:block/wafer_assembler_top_loaded"
+  }
 }

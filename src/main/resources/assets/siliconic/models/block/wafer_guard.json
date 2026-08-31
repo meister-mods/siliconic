@@ -1,23 +1,8 @@
 {
-  "parent": "minecraft:block/block",
+  "parent": "siliconic:block/machine_with_interfaces",
+  "render_type": "minecraft:cutout",
   "textures": {
-    "top": "siliconic:block/wafer_assembler_front",
-    "bottom": "siliconic:block/fabrication_frame_cap",
-    "side": "siliconic:block/fabrication_frame_side",
-    "particle": "siliconic:block/fabrication_frame_side"
-  },
-  "elements": [
-    {
-      "from": [0, 0, 0],
-      "to": [16, 3, 16],
-      "faces": {
-        "down": {"texture": "#bottom", "cullface": "down"},
-        "up": {"texture": "#top"},
-        "north": {"texture": "#side", "cullface": "north"},
-        "south": {"texture": "#side", "cullface": "south"},
-        "west": {"texture": "#side", "cullface": "west"},
-        "east": {"texture": "#side", "cullface": "east"}
-      }
-    }
-  ]
+    "front_interface": "siliconic:block/wafer_assembler_front",
+    "top_interface": "siliconic:block/wafer_assembler_top"
+  }
 }

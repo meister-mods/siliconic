@@ -1,1 +1,8 @@
-{"parent":"minecraft:block/orientable","textures":{"front":"siliconic:block/wafer_assembler_front","side":"siliconic:block/fabrication_frame_side","top":"siliconic:block/fabrication_frame_cap"}}
+{
+  "parent": "siliconic:block/machine_with_interfaces",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "front_interface": "siliconic:block/wafer_assembler_front",
+    "top_interface": "siliconic:block/wafer_assembler_top"
+  }
+}

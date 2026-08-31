@@ -1,1 +1,12 @@
-{"variants":{"facing=north,has_wafer=false":{"model":"siliconic:block/wafer_guard"},"facing=east,has_wafer=false":{"model":"siliconic:block/wafer_guard"},"facing=south,has_wafer=false":{"model":"siliconic:block/wafer_guard"},"facing=west,has_wafer=false":{"model":"siliconic:block/wafer_guard"},"facing=north,has_wafer=true":{"model":"siliconic:block/wafer_guard_loaded"},"facing=east,has_wafer=true":{"model":"siliconic:block/wafer_guard_loaded"},"facing=south,has_wafer=true":{"model":"siliconic:block/wafer_guard_loaded"},"facing=west,has_wafer=true":{"model":"siliconic:block/wafer_guard_loaded"}}}
+{
+  "variants": {
+    "facing=north,has_wafer=false": { "model": "siliconic:block/wafer_guard" },
+    "facing=east,has_wafer=false": { "model": "siliconic:block/wafer_guard", "y": 90 },
+    "facing=south,has_wafer=false": { "model": "siliconic:block/wafer_guard", "y": 180 },
+    "facing=west,has_wafer=false": { "model": "siliconic:block/wafer_guard", "y": 270 },
+    "facing=north,has_wafer=true": { "model": "siliconic:block/wafer_guard_loaded" },
+    "facing=east,has_wafer=true": { "model": "siliconic:block/wafer_guard_loaded", "y": 90 },
+    "facing=south,has_wafer=true": { "model": "siliconic:block/wafer_guard_loaded", "y": 180 },
+    "facing=west,has_wafer=true": { "model": "siliconic:block/wafer_guard_loaded", "y": 270 }
+  }
+}

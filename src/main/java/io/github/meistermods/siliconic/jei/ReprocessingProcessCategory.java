@@ -21,7 +21,7 @@ public final class ReprocessingProcessCategory extends AbstractRecipeCategory<Re
   private static final int WIDTH = 176;
   private static final int HEIGHT = 78;
   private static final int OUTPUT_CENTER_X = 126;
-  private static final int OUTPUT_SPACING = 24;
+  private static final int OUTPUT_SPACING = 28;
   private final IDrawable arrow;
 
   public ReprocessingProcessCategory(

@@ -16,8 +16,12 @@ import net.minecraft.world.level.ItemLike;
 
 @SuppressWarnings({"null"})
 public class MachineProcessCategory extends AbstractRecipeCategory<MachineProcess> {
-  private static final int WIDTH = 150;
+  private static final int WIDTH = 176;
   private static final int HEIGHT = 90;
+  private static final int SINGLE_OUTPUT_X = 140;
+  private static final int OUTPUT_GRID_X = 126;
+  private static final int OUTPUT_GRID_Y = 6;
+  private static final int OUTPUT_SPACING = 28;
   private final MachineKind machine;
   private final IDrawable arrow;
 
@@ -69,8 +73,14 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
     }
     var outputs = process.outputCopies();
     for (int index = 0; index < outputs.size(); index++) {
-      int x = outputs.size() == 1 ? 124 : 112 + index % 2 * 20;
-      int y = outputs.size() == 1 ? 24 : 6 + index / 2 * 20;
+      int x =
+          outputs.size() == 1
+              ? SINGLE_OUTPUT_X
+              : OUTPUT_GRID_X + index % 2 * OUTPUT_SPACING;
+      int y =
+          outputs.size() == 1
+              ? 24
+              : OUTPUT_GRID_Y + index / 2 * OUTPUT_SPACING;
       builder.addOutputSlot(x, y).setOutputSlotBackground().addItemStack(outputs.get(index));
     }
   }

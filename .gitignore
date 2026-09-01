@@ -29,7 +29,6 @@
 
 # Local editor and developer settings
 /.vscode/
-/doc/tip.txt
 .DS_Store
 Thumbs.db
 

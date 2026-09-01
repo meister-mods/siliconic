@@ -99,6 +99,19 @@ With JDK 17 installed, run:
 
 The built mod file will be generated in `build/libs`. Use `.\gradlew.bat runClient` to launch the development client.
 
+## Repository Layout
+
+| Path | Purpose | Git policy |
+| --- | --- | --- |
+| `src/main/java` | Mod logic, machines, interfaces, networking, and JEI integration | Tracked |
+| `src/main/resources` | Block and item models, textures, languages, recipes, tags, and world-generation data | Tracked |
+| `src/generated/resources` | Data-generator output | Review and track only results required by the distributed mod |
+| `artwork` | High-resolution concepts and source artwork used for texture production | Intentionally tracked |
+| `tools` | Repeatable asset-generation and maintenance scripts | Tracked |
+| `build`, `.gradle`, `bin`, `run`, `run-data` | Build output, caches, and local runtime data | Excluded from uploads |
+
+VS Code configuration and local JDK paths vary by developer, so `.vscode` is not stored in the repository. Configure the IDE locally to use the project's Gradle Wrapper and Java 17.
+
 ## Development Status
 
 Siliconic is in pre-1.0 development. World data formats, recipes, balance, and machine behavior may change between versions, so back up important worlds before updating.

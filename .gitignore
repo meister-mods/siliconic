@@ -1,27 +1,37 @@
-# eclipse
-bin
+# Eclipse
+/bin/
+/eclipse/
 *.launch
-.settings
-.metadata
+/.settings/
+/.metadata/
 .classpath
 .project
+.factorypath
 
-# idea
-out
+# IntelliJ IDEA
+/out/
 *.ipr
 *.iws
 *.iml
-.idea
+/.idea/
 
-# gradle
-build
-.gradle
+# Gradle and compiled output
+/build/
+/.gradle/
+*.class
 
-# other
-eclipse
-run
-.vscode/*
-!.vscode/settings.json
+# Minecraft development runtime and generated working data
+/run/
+/run-data/
+/logs/
+/crash-reports/
+*.log
+
+# Local editor and developer settings
+/.vscode/
+/doc/tip.txt
+.DS_Store
+Thumbs.db
 
 # Files from Forge MDK
 forge*changelog.txt

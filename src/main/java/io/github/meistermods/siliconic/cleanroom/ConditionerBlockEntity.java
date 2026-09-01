@@ -58,13 +58,14 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   private int cleanlinessLimit = BASE_CLEANLINESS_LIMIT;
   private int coatingCoverage;
   private int unprotectedEntities;
-  private int pollutionSources;
+  private int equipmentPollutionSources;
+  private int blockPollutionSources;
   private int conditionerCount = 1;
   private long lastSharedCleanlinessUpdate = -1L;
   private double cleanlinessRecoveryProgress;
   private RoomScanResult lastScan = RoomScanResult.notScanned();
   private final Set<Long> claimedInteriorPositions = new HashSet<>();
-  private final int[] clientData = new int[9];
+  private final int[] clientData = new int[10];
   private final ContainerData data =
       new ContainerData() {
         @Override
@@ -80,7 +81,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
             case 5 -> coatingCoverage();
             case 6 -> unprotectedEntities;
             case 7 -> conditionerCount;
-            case 8 -> pollutionSources;
+            case 8 -> equipmentPollutionSources;
+            case 9 -> blockPollutionSources;
             default -> 0;
           };
         }
@@ -229,7 +231,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
         cleanlinessLimit,
         coatingCoverage,
         unprotectedEntities,
-        pollutionSources,
+        equipmentPollutionSources,
+        blockPollutionSources,
         lastSharedCleanlinessUpdate,
         cleanlinessRecoveryProgress);
   }
@@ -241,7 +244,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
             || cleanlinessLimit != state.cleanlinessLimit()
             || coatingCoverage != state.coatingCoverage()
             || unprotectedEntities != state.unprotectedEntities()
-            || pollutionSources != state.pollutionSources()
+            || equipmentPollutionSources != state.equipmentPollutionSources()
+            || blockPollutionSources != state.blockPollutionSources()
             || lastSharedCleanlinessUpdate != state.updatedAt()
             || Double.compare(cleanlinessRecoveryProgress, state.recoveryProgress()) != 0
             || conditionerCount != sharedConditionerCount
@@ -250,7 +254,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     cleanlinessLimit = state.cleanlinessLimit();
     coatingCoverage = state.coatingCoverage();
     unprotectedEntities = state.unprotectedEntities();
-    pollutionSources = state.pollutionSources();
+    equipmentPollutionSources = state.equipmentPollutionSources();
+    blockPollutionSources = state.blockPollutionSources();
     lastSharedCleanlinessUpdate = state.updatedAt();
     cleanlinessRecoveryProgress = state.recoveryProgress();
     conditionerCount = sharedConditionerCount;
@@ -269,16 +274,20 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
         if (cleanliness >= cleanlinessLimit) cleanlinessRecoveryProgress = 0.0D;
       } else cleanliness = Math.min(cleanliness, cleanlinessLimit);
       unprotectedEntities = countUnprotectedEntities(level);
-      pollutionSources = CleanroomPollution.countSources(level, lastScan.interiorPositions());
+      CleanroomPollution.SourceCounts pollution =
+          CleanroomPollution.countSources(level, lastScan.interiorPositions());
+      equipmentPollutionSources = pollution.equipment();
+      blockPollutionSources = pollution.blocks();
       int contamination =
           Math.min(
               MAX_CLEANLINESS,
               unprotectedEntities * CONTAMINATION_PER_UNPROTECTED_ENTITY
-                  + pollutionSources * CONTAMINATION_PER_POLLUTION_SOURCE);
+                  + pollution.total() * CONTAMINATION_PER_POLLUTION_SOURCE);
       cleanliness = Math.max(0, cleanliness - contamination);
     } else {
       unprotectedEntities = 0;
-      pollutionSources = 0;
+      equipmentPollutionSources = 0;
+      blockPollutionSources = 0;
       cleanlinessRecoveryProgress = 0.0D;
       cleanliness = Math.max(0, cleanliness - CLEANLINESS_DECAY_PER_SCAN);
     }
@@ -471,7 +480,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
       int cleanlinessLimit,
       int coatingCoverage,
       int unprotectedEntities,
-      int pollutionSources,
+      int equipmentPollutionSources,
+      int blockPollutionSources,
       long updatedAt,
       double recoveryProgress) {}
 }

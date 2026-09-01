@@ -28,7 +28,7 @@ import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 
-/** Detects autonomous input-consumption-output equipment without treating storage as machinery. */
+/** Classifies cleanroom pollution without treating storage or terrain blocks as machinery. */
 @SuppressWarnings({"null"})
 public final class CleanroomPollution {
   /** Explicit data-pack override. Entries remain pollution sources even without a block entity. */
@@ -139,41 +139,65 @@ public final class CleanroomPollution {
     "terminal"
   };
 
-  public static int countSources(Level level, Set<Long> interiorPositions) {
+  public static SourceCounts countSources(Level level, Set<Long> interiorPositions) {
     Set<Long> inspected = new HashSet<>();
-    int sources = 0;
+    int equipment = 0;
+    int blocks = 0;
     for (long packedPosition : interiorPositions) {
       BlockPos interiorPos = BlockPos.of(packedPosition);
-      if (isNewPollutionSource(level, interiorPos, inspected)) sources++;
-      for (Direction direction : Direction.values())
-        if (isNewPollutionSource(level, interiorPos.relative(direction), inspected)) sources++;
+      PollutionSourceType sourceType =
+          classifyNewPollutionSource(level, interiorPos, inspected);
+      if (sourceType == PollutionSourceType.EQUIPMENT) equipment++;
+      else if (sourceType == PollutionSourceType.BLOCK) blocks++;
+      for (Direction direction : Direction.values()) {
+        sourceType = classifyNewPollutionSource(level, interiorPos.relative(direction), inspected);
+        if (sourceType == PollutionSourceType.EQUIPMENT) equipment++;
+        else if (sourceType == PollutionSourceType.BLOCK) blocks++;
+      }
     }
-    return sources;
+    return new SourceCounts(equipment, blocks);
   }
 
-  private static boolean isNewPollutionSource(
+  private static PollutionSourceType classifyNewPollutionSource(
       Level level, BlockPos pos, Set<Long> inspectedPositions) {
-    if (!inspectedPositions.add(pos.asLong()) || !level.isLoaded(pos)) return false;
+    if (!inspectedPositions.add(pos.asLong()) || !level.isLoaded(pos))
+      return PollutionSourceType.NONE;
     BlockState state = level.getBlockState(pos);
-    if (state.isAir() || state.is(POLLUTION_EXEMPTIONS)) return false;
-    if (state.is(POLLUTION_SOURCES)) return true;
-    if (state.is(BlockTags.MINEABLE_WITH_SHOVEL)) return true;
+    if (state.isAir() || state.is(POLLUTION_EXEMPTIONS)) return PollutionSourceType.NONE;
+    if (state.is(BlockTags.MINEABLE_WITH_SHOVEL)) return PollutionSourceType.BLOCK;
 
     BlockEntity blockEntity = level.getBlockEntity(pos);
-    if (blockEntity == null) return false;
-    if (state.getBlock() instanceof CraftingTableBlock) return false;
+    if (state.is(POLLUTION_SOURCES))
+      return blockEntity == null ? PollutionSourceType.BLOCK : PollutionSourceType.EQUIPMENT;
+    if (blockEntity == null) return PollutionSourceType.NONE;
+    if (state.getBlock() instanceof CraftingTableBlock) return PollutionSourceType.NONE;
 
     String identity = equipmentIdentity(state, blockEntity);
-    if (isManualWorkstation(identity)) return false;
-    if (blockEntity instanceof AbstractFurnaceBlockEntity) return true;
-    if (hasOutputOnlyEnergyCapability(blockEntity)) return true;
-    if (containsAny(identity, LEGACY_EQUIPMENT_NAMES)) return true;
+    if (isManualWorkstation(identity)) return PollutionSourceType.NONE;
+    if (blockEntity instanceof AbstractFurnaceBlockEntity) return PollutionSourceType.EQUIPMENT;
+    if (hasOutputOnlyEnergyCapability(blockEntity)) return PollutionSourceType.EQUIPMENT;
+    if (containsAny(identity, LEGACY_EQUIPMENT_NAMES)) return PollutionSourceType.EQUIPMENT;
 
     InventoryProfile inventory = inventoryProfile(blockEntity);
-    if (!inventory.present()) return false;
-    if (containsAny(identity, PROCESSING_EQUIPMENT_NAMES)) return true;
-    if (containsAny(identity, PASSIVE_INVENTORY_NAMES)) return false;
-    return inventory.hasProcessingSlotLayout();
+    if (!inventory.present()) return PollutionSourceType.NONE;
+    if (containsAny(identity, PROCESSING_EQUIPMENT_NAMES)) return PollutionSourceType.EQUIPMENT;
+    if (containsAny(identity, PASSIVE_INVENTORY_NAMES)) return PollutionSourceType.NONE;
+    return inventory.hasProcessingSlotLayout()
+        ? PollutionSourceType.EQUIPMENT
+        : PollutionSourceType.NONE;
+  }
+
+  /** Separate source totals for the conditioner UI; both retain the same contamination strength. */
+  public record SourceCounts(int equipment, int blocks) {
+    public int total() {
+      return equipment + blocks;
+    }
+  }
+
+  private enum PollutionSourceType {
+    NONE,
+    EQUIPMENT,
+    BLOCK
   }
 
   /**

@@ -133,6 +133,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
         .limit(MAX_ENDPOINTS)
         .forEach(
             entry -> {
+              if (!level.hasChunkAt(entry.getKey())) return;
               BlockEntity blockEntity = level.getBlockEntity(entry.getKey());
               if (blockEntity == null) return;
               Component name = blockEntity.getBlockState().getBlock().getName();
@@ -291,7 +292,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   }
 
   private List<IItemHandler> extractionHandlers(MachineEndpoint endpoint, boolean forced) {
-    if (level == null) return List.of();
+    if (level == null || !level.hasChunkAt(endpoint.pos())) return List.of();
     List<IItemHandler> handlers = new ArrayList<>();
     for (Direction side : endpoint.sides()) {
       IItemHandler handler = normalHandler(endpoint, side);
@@ -307,7 +308,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
 
   @Nullable
   private IItemHandler normalHandler(MachineEndpoint endpoint, Direction side) {
-    if (level == null) return null;
+    if (level == null || !level.hasChunkAt(endpoint.pos())) return null;
     BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
     return blockEntity == null
         ? null

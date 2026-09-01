@@ -160,8 +160,8 @@ public class LogisticsControllerScreen
       if (endpoint == null) continue;
       int y = LogisticsControllerMenu.ROW_Y + row * LogisticsControllerMenu.ROW_SPACING;
       drawFittedString(g, endpoint.name(), 11, y - 1, 98, 0xffe8edf2);
-      g.drawString(
-          font,
+      drawFittedString(
+          g,
           Component.literal(
               endpoint.pos().getX()
                   + ", "
@@ -170,8 +170,8 @@ public class LogisticsControllerScreen
                   + endpoint.pos().getZ()),
           11,
           y + 9,
-          0xff89939c,
-          false);
+          98,
+          0xff89939c);
     }
     g.drawString(
         font,

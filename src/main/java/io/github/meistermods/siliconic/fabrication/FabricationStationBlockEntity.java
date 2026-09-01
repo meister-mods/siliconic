@@ -2,6 +2,7 @@ package io.github.meistermods.siliconic.fabrication;
 
 import io.github.meistermods.siliconic.cleanroom.CleanroomContamination;
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
+import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
@@ -31,7 +32,8 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
-public class FabricationStationBlockEntity extends BlockEntity implements MenuProvider {
+public class FabricationStationBlockEntity extends BlockEntity
+    implements MenuProvider, LogisticsInventoryAccess {
   public static final int INPUT_START = 0, INPUT_SLOTS = 9;
   public static final int OUTPUT_START = 9, OUTPUT_SLOTS = 9, SLOT_COUNT = 18;
   public static final int ENERGY_CAPACITY = 60_000;
@@ -131,6 +133,11 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   }
 
   public ItemStackHandler items() {
+    return items;
+  }
+
+  @Override
+  public IItemHandler logisticsInventory() {
     return items;
   }
 

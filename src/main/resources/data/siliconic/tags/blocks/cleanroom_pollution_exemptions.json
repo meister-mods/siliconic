@@ -8,6 +8,8 @@
     "minecraft:stonecutter",
     "minecraft:loom",
     "minecraft:grindstone",
+    "siliconic:logistics_pipe",
+    "siliconic:logistics_controller",
     "siliconic:wafer_guard",
     "siliconic:creative_wafer_guard",
     "#siliconic:cleanroom_post_process_equipment"

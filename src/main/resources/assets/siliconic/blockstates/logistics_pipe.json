@@ -1,0 +1,11 @@
+{
+  "multipart": [
+    {"apply": {"model": "siliconic:block/logistics_pipe_core"}},
+    {"when": {"north": "true"}, "apply": {"model": "siliconic:block/logistics_pipe_arm_north"}},
+    {"when": {"east": "true"}, "apply": {"model": "siliconic:block/logistics_pipe_arm_east"}},
+    {"when": {"south": "true"}, "apply": {"model": "siliconic:block/logistics_pipe_arm_south"}},
+    {"when": {"west": "true"}, "apply": {"model": "siliconic:block/logistics_pipe_arm_west"}},
+    {"when": {"up": "true"}, "apply": {"model": "siliconic:block/logistics_pipe_arm_up"}},
+    {"when": {"down": "true"}, "apply": {"model": "siliconic:block/logistics_pipe_arm_down"}}
+  ]
+}

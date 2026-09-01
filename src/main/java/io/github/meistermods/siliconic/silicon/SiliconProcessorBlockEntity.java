@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.silicon;
 
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
+import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineKind.ThermalProfile;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
@@ -35,7 +36,8 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
-public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProvider {
+public class SiliconProcessorBlockEntity extends BlockEntity
+    implements MenuProvider, LogisticsInventoryAccess {
   public static final int INPUT_SLOT = 0, CATALYST_SLOT = 1, COMPONENT_SLOT = 2;
   public static final int INPUT_SLOTS = 3;
   public static final int MAGMA_SLOT = 3, OUTPUT_START = 4, OUTPUT_SLOTS = 9, SLOT_COUNT = 13;
@@ -190,6 +192,11 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   }
 
   public ItemStackHandler items() {
+    return items;
+  }
+
+  @Override
+  public IItemHandler logisticsInventory() {
     return items;
   }
 

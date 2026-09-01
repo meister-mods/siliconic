@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.registry;
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.cleanroom.ConditionerBlockEntity;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
+import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
 import io.github.meistermods.siliconic.reprocessing.ReprocessorBlockEntity;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
@@ -85,6 +86,15 @@ public final class ModBlockEntities {
           () ->
               BlockEntityType.Builder.of(ConditionerBlockEntity::new, ModBlocks.CONDITIONER.get())
                   .build(null));
+  public static final RegistryObject<BlockEntityType<LogisticsControllerBlockEntity>>
+      LOGISTICS_CONTROLLER =
+          BLOCK_ENTITIES.register(
+              "logistics_controller",
+              () ->
+                  BlockEntityType.Builder.of(
+                          LogisticsControllerBlockEntity::new,
+                          ModBlocks.LOGISTICS_CONTROLLER.get())
+                      .build(null));
 
   private ModBlockEntities() {}
 }

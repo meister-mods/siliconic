@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.registry;
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.cleanroom.ConditionerMenu;
 import io.github.meistermods.siliconic.fabrication.FabricationStationMenu;
+import io.github.meistermods.siliconic.logistics.LogisticsControllerMenu;
 import io.github.meistermods.siliconic.power.CoalGeneratorMenu;
 import io.github.meistermods.siliconic.reprocessing.ReprocessorMenu;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorMenu;
@@ -35,6 +36,9 @@ public final class ModMenus {
       MENUS.register("reprocessor", () -> IForgeMenuType.create(ReprocessorMenu::new));
   public static final RegistryObject<MenuType<ConditionerMenu>> CONDITIONER =
       MENUS.register("conditioner", () -> IForgeMenuType.create(ConditionerMenu::new));
+  public static final RegistryObject<MenuType<LogisticsControllerMenu>> LOGISTICS_CONTROLLER =
+      MENUS.register(
+          "logistics_controller", () -> IForgeMenuType.create(LogisticsControllerMenu::new));
 
   private ModMenus() {}
 }

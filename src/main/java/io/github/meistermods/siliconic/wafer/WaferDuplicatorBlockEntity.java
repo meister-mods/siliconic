@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.wafer;
 import io.github.meistermods.siliconic.cleanroom.CleanroomContamination;
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
+import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.List;
@@ -28,7 +29,8 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
-public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvider {
+public class WaferDuplicatorBlockEntity extends BlockEntity
+    implements MenuProvider, LogisticsInventoryAccess {
   public static final int SOURCE_SLOT = 0, BLANK_SLOT = 1, OUTPUT_SLOT = 2;
   public static final int MATERIAL_START = 3, MATERIAL_SLOTS = 18;
   public static final int EXTRA_OUTPUT_START = 21, OUTPUT_SLOTS = 9, SLOT_COUNT = 29;
@@ -121,6 +123,11 @@ public class WaferDuplicatorBlockEntity extends BlockEntity implements MenuProvi
   }
 
   public ItemStackHandler items() {
+    return items;
+  }
+
+  @Override
+  public IItemHandler logisticsInventory() {
     return items;
   }
 

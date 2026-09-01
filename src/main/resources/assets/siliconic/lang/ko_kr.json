@@ -273,5 +273,19 @@
   "message.siliconic.wafer_inverter.no_energy": "반전에 필요한 전력이 부족합니다. (%s SE)",
   "message.siliconic.wafer_inverter.require_completed": "먼저 웨이퍼 작업기에서 웨이퍼를 완성해야 합니다.",
   "message.siliconic.wafer_inverter.status": "웨이퍼 반전기: %s/%s SE",
-  "message.siliconic.machine.outside_cleanroom": "이 기계는 밀폐된 컨디셔너 공간 안에서만 작동합니다."
+  "message.siliconic.machine.outside_cleanroom": "이 기계는 밀폐된 컨디셔너 공간 안에서만 작동합니다.",
+  "block.siliconic.logistics_pipe": "물류 파이프",
+  "block.siliconic.logistics_controller": "물류 제어기",
+  "container.siliconic.logistics_controller": "물류 제어기",
+  "message.siliconic.logistics_controller.no_pipe": "먼저 물류 제어기를 물류 파이프에 연결해야 합니다.",
+  "screen.siliconic.logistics_controller.page": "%s / %s",
+  "screen.siliconic.logistics_controller.machine": "기계",
+  "screen.siliconic.logistics_controller.filter": "필터",
+  "screen.siliconic.logistics_controller.input.on": "투입 켬",
+  "screen.siliconic.logistics_controller.input.off": "투입 끔",
+  "screen.siliconic.logistics_controller.output.on": "배출 켬",
+  "screen.siliconic.logistics_controller.output.off": "배출 끔",
+  "screen.siliconic.logistics_controller.forced.on": "강제 켬",
+  "screen.siliconic.logistics_controller.forced.off": "강제 끔",
+  "screen.siliconic.logistics_controller.none": "이 파이프 망에 닿은 기계가 없습니다."
 }

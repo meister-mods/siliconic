@@ -273,5 +273,19 @@
   "message.siliconic.wafer_inverter.no_energy": "Not enough power to mirror the wafer. (%s SE)",
   "message.siliconic.wafer_inverter.require_completed": "Finish the wafer at a Wafer Station first.",
   "message.siliconic.wafer_inverter.status": "Wafer Inverter: %s/%s SE",
-  "message.siliconic.machine.outside_cleanroom": "This machine requires a sealed conditioner room."
+  "message.siliconic.machine.outside_cleanroom": "This machine requires a sealed conditioner room.",
+  "block.siliconic.logistics_pipe": "Logistics Pipe",
+  "block.siliconic.logistics_controller": "Logistics Controller",
+  "container.siliconic.logistics_controller": "Logistics Controller",
+  "message.siliconic.logistics_controller.no_pipe": "Connect a logistics pipe before opening the controller.",
+  "screen.siliconic.logistics_controller.page": "%s / %s",
+  "screen.siliconic.logistics_controller.machine": "Machine",
+  "screen.siliconic.logistics_controller.filter": "Filter",
+  "screen.siliconic.logistics_controller.input.on": "Input ON",
+  "screen.siliconic.logistics_controller.input.off": "Input OFF",
+  "screen.siliconic.logistics_controller.output.on": "Output ON",
+  "screen.siliconic.logistics_controller.output.off": "Output OFF",
+  "screen.siliconic.logistics_controller.forced.on": "Force ON",
+  "screen.siliconic.logistics_controller.forced.off": "Force OFF",
+  "screen.siliconic.logistics_controller.none": "No machines touch this pipe network."
 }

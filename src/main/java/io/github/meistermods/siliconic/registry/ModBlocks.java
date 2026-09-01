@@ -4,6 +4,8 @@ import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.cleanroom.CableCoatedBlock;
 import io.github.meistermods.siliconic.cleanroom.ConditionerBlock;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlock;
+import io.github.meistermods.siliconic.logistics.LogisticsControllerBlock;
+import io.github.meistermods.siliconic.logistics.LogisticsPipeBlock;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
 import io.github.meistermods.siliconic.power.PowerCableBlock;
 import io.github.meistermods.siliconic.power.RedstoneClockBlock;
@@ -236,6 +238,23 @@ public final class ModBlocks {
                       .strength(0.2f)
                       .noCollission()
                       .noOcclusion()));
+  public static final RegistryObject<Block> LOGISTICS_PIPE =
+      BLOCKS.register(
+          "logistics_pipe",
+          () ->
+              new LogisticsPipeBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(0.4f)
+                      .noOcclusion()));
+  public static final RegistryObject<Block> LOGISTICS_CONTROLLER =
+      BLOCKS.register(
+          "logistics_controller",
+          () ->
+              new LogisticsControllerBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(3.5f)));
   public static final RegistryObject<Block> REDSTONE_CLOCK =
       BLOCKS.register(
           "redstone_clock",

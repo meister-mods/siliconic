@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_iron": {"trigger": "minecraft:inventory_changed", "conditions": {"items": [{"tag": "forge:nuggets/iron"}]}},
+    "has_recipe": {"trigger": "minecraft:recipe_unlocked", "conditions": {"recipe": "siliconic:logistics_pipe"}}
+  },
+  "requirements": [["has_iron", "has_recipe"]],
+  "rewards": {"recipes": ["siliconic:logistics_pipe"]}
+}

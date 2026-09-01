@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.wafer;
 
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
+import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
@@ -38,7 +39,8 @@ import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
-public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvider {
+public class PrototypeWaferBlockEntity extends BlockEntity
+    implements MenuProvider, LogisticsInventoryAccess {
   public static final int GRID_SIZE = 9;
   public static final String DESIGN_TAG = "SiliconicDesign";
   public static final String COMPLETED_TAG = "SiliconicCompleted";
@@ -102,6 +104,42 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
           return isWafer(stack);
         }
       };
+  private final IItemHandler forcedWaferItems =
+      new IItemHandler() {
+        @Override
+        public int getSlots() {
+          return waferItems.getSlots();
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+          return waferItems.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+          return waferItems.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+          checkWaferSlot(slot);
+          if (amount <= 0 || wafer.isEmpty()) return ItemStack.EMPTY;
+          ItemStack result = wafer.copyWithCount(1);
+          if (!simulate) removeWafer();
+          return result;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+          return waferItems.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+          return waferItems.isItemValid(slot, stack);
+        }
+      };
   private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> waferItems);
   private final int[] clientData = new int[4];
   private final ContainerData data =
@@ -132,6 +170,11 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   private boolean powered;
   private boolean insideCleanroom;
   private boolean simulationDirty = true;
+
+  @Override
+  public IItemHandler logisticsInventory() {
+    return forcedWaferItems;
+  }
 
   private final class StationEnergyStorage extends EnergyStorage {
     StationEnergyStorage() {

@@ -1,0 +1,1 @@
+{"ambientocclusion":false,"textures":{"particle":"siliconic:block/fabrication_frame_side","pipe":"siliconic:block/fabrication_frame_side"},"elements":[{"from":[5,0,5],"to":[11,5,11],"faces":{"down":{"texture":"#pipe"},"up":{"texture":"#pipe"},"north":{"texture":"#pipe"},"south":{"texture":"#pipe"},"west":{"texture":"#pipe"},"east":{"texture":"#pipe"}}}]}

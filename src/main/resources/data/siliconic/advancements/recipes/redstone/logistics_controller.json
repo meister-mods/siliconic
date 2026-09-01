@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_pipe": {"trigger": "minecraft:inventory_changed", "conditions": {"items": [{"items": ["siliconic:logistics_pipe"]}]}},
+    "has_recipe": {"trigger": "minecraft:recipe_unlocked", "conditions": {"recipe": "siliconic:logistics_controller"}}
+  },
+  "requirements": [["has_pipe", "has_recipe"]],
+  "rewards": {"recipes": ["siliconic:logistics_controller"]}
+}

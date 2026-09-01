@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.power;
 
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
+import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayDeque;
@@ -36,7 +37,8 @@ import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
-public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvider {
+public class CoalGeneratorBlockEntity extends BlockEntity
+    implements MenuProvider, LogisticsInventoryAccess {
   public static final int FUEL_SLOT = 0;
   public static final int SLOT_COUNT = 1;
   public static final int ENERGY_CAPACITY = 40_000;
@@ -117,6 +119,11 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
   }
 
   public ItemStackHandler items() {
+    return items;
+  }
+
+  @Override
+  public IItemHandler logisticsInventory() {
     return items;
   }
 

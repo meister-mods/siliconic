@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": {"model": "siliconic:block/logistics_controller"},
+    "facing=east": {"model": "siliconic:block/logistics_controller", "y": 90},
+    "facing=south": {"model": "siliconic:block/logistics_controller", "y": 180},
+    "facing=west": {"model": "siliconic:block/logistics_controller", "y": 270}
+  }
+}

@@ -33,6 +33,10 @@ public final class ClientEvents {
         () -> MenuScreens.register(ModMenus.REPROCESSOR.get(), ReprocessorScreen::new));
     event.enqueueWork(
         () -> MenuScreens.register(ModMenus.CONDITIONER.get(), ConditionerScreen::new));
+    event.enqueueWork(
+        () ->
+            MenuScreens.register(
+                ModMenus.LOGISTICS_CONTROLLER.get(), LogisticsControllerScreen::new));
   }
 
   private ClientEvents() {}

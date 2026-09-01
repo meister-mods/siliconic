@@ -184,6 +184,14 @@ public final class ModItems {
   public static final RegistryObject<Item> POWER_CABLE =
       ITEMS.register(
           "power_cable", () -> new BlockItem(ModBlocks.POWER_CABLE.get(), new Item.Properties()));
+  public static final RegistryObject<Item> LOGISTICS_PIPE =
+      ITEMS.register(
+          "logistics_pipe",
+          () -> new BlockItem(ModBlocks.LOGISTICS_PIPE.get(), new Item.Properties()));
+  public static final RegistryObject<Item> LOGISTICS_CONTROLLER =
+      ITEMS.register(
+          "logistics_controller",
+          () -> new BlockItem(ModBlocks.LOGISTICS_CONTROLLER.get(), new Item.Properties()));
   public static final RegistryObject<Item> REDSTONE_CLOCK =
       ITEMS.register(
           "redstone_clock",

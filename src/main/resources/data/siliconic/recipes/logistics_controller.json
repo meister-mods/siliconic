@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["IRI", "CPC", "III"],
+  "key": {
+    "I": {"tag": "forge:ingots/iron"},
+    "R": {"item": "minecraft:redstone"},
+    "C": {"item": "minecraft:comparator"},
+    "P": {"item": "siliconic:logistics_pipe"}
+  },
+  "result": {"item": "siliconic:logistics_controller"}
+}

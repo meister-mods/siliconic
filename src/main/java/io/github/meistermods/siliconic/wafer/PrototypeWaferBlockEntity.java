@@ -1109,7 +1109,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public int getOutput(Direction direction) {
-    if (!canOperateHere()) return 0;
+    if (!isPowered()) return 0;
     Direction[] dirs = directions();
     for (int i = 0; i < 4; i++)
       if (dirs[i].getOpposite() == direction && getPinMode(i) == PinMode.OUTPUT) return outputs[i];

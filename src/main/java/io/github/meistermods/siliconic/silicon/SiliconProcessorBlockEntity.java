@@ -43,6 +43,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
   public static final int MAGMA_CAPACITY = 32_000;
   private static final int LAYOUT_VERSION = 2;
   private static final int PRESSURE_LIMIT = 1_000;
+  private static final int MAX_SYNCED_TEMPERATURE = Short.MAX_VALUE;
 
   private int progress;
   private int clientStatus;
@@ -606,10 +607,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     if (tag.getInt("LayoutVersion") < LAYOUT_VERSION) migrateLegacySlots();
     energy.setStored(tag.getInt("Energy"));
     magmaHeat = Math.max(0, Math.min(tag.getInt("MagmaHeat"), MAGMA_CAPACITY));
-    ThermalProfile profile = machineKind().thermalProfile();
-    int maximumTemperature =
-        profile == null ? 0 : profile.targetTemperature() + profile.tolerance();
-    temperature = Math.max(0, Math.min(tag.getInt("Temperature"), maximumTemperature));
+    temperature = Math.max(0, Math.min(tag.getInt("Temperature"), MAX_SYNCED_TEMPERATURE));
     stability = Math.max(0, Math.min(tag.getInt("Stability"), 1_000));
     pressure = Math.max(0, Math.min(tag.getInt("Pressure"), PRESSURE_LIMIT));
     operationMode = tag.getInt("OperationMode") == 0 ? 0 : 1;

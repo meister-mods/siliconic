@@ -187,17 +187,38 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (snapshot.updatedAt() < 0L
         || gameTime < snapshot.updatedAt()
         || gameTime - snapshot.updatedAt() >= SCAN_INTERVAL) {
-      updateCleanliness(level, roomPowered);
-      lastSharedCleanlinessUpdate = gameTime;
-      snapshot = sharedState();
-      for (ConditionerBlockEntity conditioner : conditioners)
-        if (conditioner.applySharedState(snapshot, sharedConditionerCount, roomPowered))
-          changedConditioners.add(conditioner);
+      ConditionerBlockEntity updater = cleanlinessUpdater(conditioners);
+      if (updater != null) {
+        updater.updateCleanliness(level, roomPowered);
+        updater.lastSharedCleanlinessUpdate = gameTime;
+        changedConditioners.add(updater);
+        snapshot = updater.sharedState();
+        for (ConditionerBlockEntity conditioner : conditioners)
+          if (conditioner.applySharedState(snapshot, sharedConditionerCount, roomPowered))
+            changedConditioners.add(conditioner);
+      }
     }
 
     CleanroomOccupancy.synchronizeCleanliness(level, conditionerPositions, snapshot.cleanliness());
     for (ConditionerBlockEntity conditioner : changedConditioners)
       if (conditioner != this) conditioner.sync();
+  }
+
+  /**
+   * An unloaded scan cannot prove whether the room is still sealed. Prefer a linked conditioner
+   * with a complete scan, and freeze the shared state when every available scan is incomplete.
+   */
+  @Nullable
+  private ConditionerBlockEntity cleanlinessUpdater(List<ConditionerBlockEntity> conditioners) {
+    if (lastScan.status() != RoomScanResult.Status.UNLOADED) return this;
+    ConditionerBlockEntity updater = null;
+    for (ConditionerBlockEntity conditioner : conditioners) {
+      if (!conditioner.lastScan.isSealed()) continue;
+      if (updater == null
+          || conditioner.worldPosition.asLong() < updater.worldPosition.asLong())
+        updater = conditioner;
+    }
+    return updater;
   }
 
   private List<ConditionerBlockEntity> resolveConditioners(
@@ -410,24 +431,26 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
         Double.isFinite(savedRecoveryProgress)
             ? Math.max(0.0D, Math.min(1.0D, savedRecoveryProgress))
             : 0.0D;
-    claimedInteriorPositions.clear();
-    long[] savedClaims = tag.getLongArray(CLAIMED_INTERIOR_TAG);
-    int savedClaimLimit = Math.min(savedClaims.length, RoomScanner.DEFAULT_LIMITS.maxVolume());
-    for (int index = 0; index < savedClaimLimit; index++) {
-      BlockPos savedPosition = BlockPos.of(savedClaims[index]);
-      int savedDistance =
-          Math.max(
-              Math.max(
-                  Math.abs(worldPosition.getX() - savedPosition.getX()),
-                  Math.abs(worldPosition.getY() - savedPosition.getY())),
-              Math.abs(worldPosition.getZ() - savedPosition.getZ()));
-      if (savedDistance <= RoomScanner.DEFAULT_LIMITS.maxDistance())
-        claimedInteriorPositions.add(savedClaims[index]);
-    }
     lastScan =
         tag.contains("LastScan", Tag.TAG_COMPOUND)
             ? RoomScanResult.load(tag.getCompound("LastScan"))
             : RoomScanResult.notScanned();
+    claimedInteriorPositions.clear();
+    if (lastScan.isSealed() || lastScan.status() == RoomScanResult.Status.UNLOADED) {
+      long[] savedClaims = tag.getLongArray(CLAIMED_INTERIOR_TAG);
+      int savedClaimLimit = Math.min(savedClaims.length, RoomScanner.DEFAULT_LIMITS.maxVolume());
+      for (int index = 0; index < savedClaimLimit; index++) {
+        BlockPos savedPosition = BlockPos.of(savedClaims[index]);
+        int savedDistance =
+            Math.max(
+                Math.max(
+                    Math.abs(worldPosition.getX() - savedPosition.getX()),
+                    Math.abs(worldPosition.getY() - savedPosition.getY())),
+                Math.abs(worldPosition.getZ() - savedPosition.getZ()));
+        if (savedDistance <= RoomScanner.DEFAULT_LIMITS.maxDistance())
+          claimedInteriorPositions.add(savedClaims[index]);
+      }
+    }
   }
 
   @Override

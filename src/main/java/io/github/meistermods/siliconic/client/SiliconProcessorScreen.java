@@ -107,7 +107,7 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
       int temperatureHeight =
           menu.targetTemperature() == 0
               ? 0
-              : Math.min(54, 54 * menu.temperature() / menu.targetTemperature());
+              : Math.min(54, (int) (54L * menu.temperature() / menu.targetTemperature()));
       verticalGauge(g, leftPos + 106, topPos + 20, 3, 54, temperatureHeight, 0xffffd35c);
     }
     int processGauge =

@@ -145,5 +145,11 @@ public final class SiliconicJeiPlugin implements IModPlugin {
         ModItems.CHEMICAL_RECYCLER.get(),
         Component.translatable("jei.siliconic.info.recycler.loop"),
         Component.translatable("jei.siliconic.info.recycler.outputs"));
+    registration.addIngredientInfo(
+        ModItems.WAFER_ASSEMBLER.get(),
+        Component.translatable("jei.siliconic.info.wafer_assembler.contamination"));
+    registration.addIngredientInfo(
+        ModItems.WAFER_INVERTER.get(),
+        Component.translatable("jei.siliconic.info.wafer_inverter.contamination"));
   }
 }

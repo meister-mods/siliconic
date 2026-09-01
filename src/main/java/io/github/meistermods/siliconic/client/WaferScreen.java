@@ -92,6 +92,7 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
               case DROP -> 0xffe0a84f;
               case SWITCH -> 0xff6fcf72;
               case CHIP -> signal > 0 ? 0xffffd24f : 0xffd6b437;
+              case CONTAMINATED -> 0xff4f392f;
             };
         int x1 = gridX + x * CELL, y1 = gridY + y * CELL;
         if (type.isConductor()) {
@@ -111,6 +112,9 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
                   : gateSymbol(type);
           g.drawCenteredString(font, symbol, x1 + CELL / 2, y1 + 3, 0xffffffff);
           g.drawString(font, arrow(menu.wafer().getRotation(cell)), x1, y1, 0xff202020, false);
+        } else if (type == CellType.CONTAMINATED) {
+          g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
+          g.drawCenteredString(font, "×", x1 + CELL / 2, y1 + 3, 0xffff8d76);
         } else {
           g.fill(x1 + 1, y1 + 1, x1 + CELL - 1, y1 + CELL - 1, color);
         }

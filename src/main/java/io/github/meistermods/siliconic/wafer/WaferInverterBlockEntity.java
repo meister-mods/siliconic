@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.cleanroom.CleanroomContamination;
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
@@ -132,7 +133,7 @@ public class WaferInverterBlockEntity extends BlockEntity implements MenuProvide
     if (!isInsideCleanroom()) return 0;
     ItemStack input = items.getStackInSlot(INPUT_SLOT);
     if (!PrototypeWaferBlockEntity.isCompleted(input)) return 1;
-    if (!canFitOutput(resultFor(input))) return 2;
+    if (!canFitPossibleOutput(resultFor(input))) return 2;
     if (energy.getEnergyStored() < energyPerTick()) return 3;
     return 4;
   }
@@ -145,11 +146,14 @@ public class WaferInverterBlockEntity extends BlockEntity implements MenuProvide
       return;
     }
     if (!inverter.isInsideCleanroom()) return;
-    ItemStack result = inverter.resultFor(input);
-    if (!inverter.canFitOutput(result)) return;
+    ItemStack intended = inverter.resultFor(input);
+    if (!inverter.canFitPossibleOutput(intended)) return;
     if (!inverter.energy.consumeInternal(inverter.energyPerTick())) return;
     inverter.progress++;
-    if (inverter.progress >= PROCESS_TICKS) inverter.finishProcess(result);
+    if (inverter.progress >= PROCESS_TICKS) {
+      ItemStack result = CleanroomContamination.processResult(level, pos, intended);
+      inverter.finishProcess(result);
+    }
     inverter.setChanged();
   }
 
@@ -163,7 +167,17 @@ public class WaferInverterBlockEntity extends BlockEntity implements MenuProvide
     ItemStack output = items.getStackInSlot(OUTPUT_SLOT);
     return output.isEmpty()
         || (ItemStack.isSameItemSameTags(output, result)
-            && output.getCount() < output.getMaxStackSize());
+            && output.getCount()
+                < Math.min(output.getMaxStackSize(), items.getSlotLimit(OUTPUT_SLOT)));
+  }
+
+  private boolean canFitPossibleOutput(ItemStack intended) {
+    int contaminationChance = CleanroomContamination.contaminationChance(level, worldPosition);
+    ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
+    if (contaminated.isEmpty()) return canFitOutput(intended);
+    boolean intendedFits = contaminationChance >= 100 || canFitOutput(intended);
+    boolean contaminatedFits = contaminationChance <= 0 || canFitOutput(contaminated);
+    return intendedFits && contaminatedFits;
   }
 
   private void finishProcess(ItemStack result) {

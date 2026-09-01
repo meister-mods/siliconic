@@ -180,7 +180,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     GOLD,
     BUFFER,
     DROP,
-    SWITCH;
+    SWITCH,
+    CONTAMINATED;
 
     public boolean isGate() {
       return (ordinal() >= NOT.ordinal() && ordinal() <= XOR.ordinal())
@@ -447,6 +448,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public void interactCell(int cell, boolean rotate, ServerPlayer player) {
     if (!canEditHere() || !valid(cell)) return;
     CellType old = getCellType(cell);
+    if (old == CellType.CONTAMINATED) return;
+    if (contaminateCellOnEdit()) {
+      if (old == CellType.CHIP) removeChip(cell);
+      setCell(cell, CellType.CONTAMINATED);
+      return;
+    }
     ItemStack carried = player.containerMenu.getCarried();
     if (rotate) {
       if (old == CellType.DROP
@@ -489,6 +496,19 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
       if (!player.getAbilities().instabuild) carried.shrink(1);
       player.containerMenu.setCarried(carried);
     }
+  }
+
+  private boolean contaminateCellOnEdit() {
+    if (level == null
+        || level.isClientSide
+        || !getBlockState().is(ModBlocks.WAFER_ASSEMBLER.get())) return false;
+    int cleanliness =
+        Math.max(
+            0,
+            Math.min(
+                100, CleanroomOccupancy.cleanlinessAtMachine(level, worldPosition)));
+    int missingCleanliness = 100 - cleanliness;
+    return missingCleanliness > 0 && level.random.nextInt(200) < missingCleanliness;
   }
 
   private boolean canInsertChip(ItemStack stack) {
@@ -1143,7 +1163,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
               Math.min(Byte.toUnsignedInt(cells[cell]), CellType.values().length - 1)];
       ItemStack required;
       if (type == CellType.CHIP) required = ItemStack.of(chips.getCompound(Integer.toString(cell)));
-      else if (type == CellType.EMPTY) continue;
+      else if (type == CellType.EMPTY || type == CellType.CONTAMINATED) continue;
       else required = new ItemStack(itemFor(type));
       mergeRequirement(result, required);
     }

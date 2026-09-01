@@ -3,8 +3,7 @@
   "category": "misc",
   "ingredients": [
     {"item": "minecraft:blaze_powder"},
-    {"item": "minecraft:prismarine_crystals"},
-    {"item": "minecraft:water_bucket"},
+    {"item": "siliconic:salt"},
     {"item": "minecraft:glass_bottle"}
   ],
   "result": {"item": "siliconic:hydrogen_chloride", "count": 3}

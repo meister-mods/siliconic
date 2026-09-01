@@ -22,6 +22,8 @@ public final class ModItems {
       ITEMS.register("purified_trichlorosilane", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SILICON_TETRACHLORIDE =
       ITEMS.register("silicon_tetrachloride", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> SALT =
+      ITEMS.register("salt", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> HYDROGEN_CHLORIDE =
       ITEMS.register("hydrogen_chloride", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> HYDROGEN =

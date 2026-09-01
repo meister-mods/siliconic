@@ -14,6 +14,7 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
 @JeiPlugin
@@ -63,6 +64,7 @@ public final class SiliconicJeiPlugin implements IModPlugin {
     for (MachineKind machine : MachineKind.values())
       registration.addRecipes(recipeType(machine), ModMachineProcesses.forMachine(machine));
     registration.addRecipes(REPROCESSOR, ReprocessingProcess.all());
+    registerProcessInformation(registration);
   }
 
   @Override
@@ -98,5 +100,53 @@ public final class SiliconicJeiPlugin implements IModPlugin {
 
   private static String titleKey(MachineKind machine) {
     return "container.siliconic." + machine.id();
+  }
+
+  private static void registerProcessInformation(IRecipeRegistration registration) {
+    registration.addIngredientInfo(
+        ModItems.SALT_DIRT.get(),
+        Component.translatable("jei.siliconic.info.salt_dirt.discovery"),
+        Component.translatable("jei.siliconic.info.salt_dirt.drops"));
+    registration.addIngredientInfo(
+        ModItems.SALT.get(), Component.translatable("jei.siliconic.info.salt.use"));
+
+    registration.addIngredientInfo(
+        Items.MAGMA_CREAM,
+        Component.translatable("jei.siliconic.info.magma_fuel", 2_000));
+    registration.addIngredientInfo(
+        Items.MAGMA_BLOCK,
+        Component.translatable("jei.siliconic.info.magma_fuel", 8_000));
+    registration.addIngredientInfo(
+        Items.LAVA_BUCKET,
+        Component.translatable("jei.siliconic.info.magma_fuel.lava", 16_000));
+
+    registration.addIngredientInfo(
+        ModItems.SILICON_ARC_FURNACE.get(),
+        Component.translatable("jei.siliconic.info.arc_furnace.operation"));
+    registration.addIngredientInfo(
+        ModItems.CARBON_ELECTRODE.get(),
+        Component.translatable("jei.siliconic.info.arc_furnace.electrode"));
+    registration.addIngredientInfo(
+        ModItems.CHLORINATION_REACTOR.get(),
+        Component.translatable("jei.siliconic.info.chlorination.pressure"));
+    registration.addIngredientInfo(
+        ModItems.DISTILLATION_TOWER.get(),
+        Component.translatable("jei.siliconic.info.distillation.purity"),
+        Component.translatable("jei.siliconic.info.distillation.throughput"),
+        Component.translatable("jei.siliconic.info.distillation.stability"));
+    registration.addIngredientInfo(
+        ModItems.DISTILLATION_RESIDUE.get(),
+        Component.translatable("jei.siliconic.info.distillation.residue"));
+    registration.addIngredientInfo(
+        ModItems.SIEMENS_REACTOR.get(),
+        Component.translatable("jei.siliconic.info.siemens.filament"),
+        Component.translatable("jei.siliconic.info.siemens.recovery"));
+    registration.addIngredientInfo(
+        ModItems.PARTIAL_POLYSILICON_ROD.get(),
+        Component.translatable("jei.siliconic.info.siemens.partial_rod"));
+    registration.addIngredientInfo(
+        ModItems.CHEMICAL_RECYCLER.get(),
+        Component.translatable("jei.siliconic.info.recycler.loop"),
+        Component.translatable("jei.siliconic.info.recycler.outputs"));
   }
 }

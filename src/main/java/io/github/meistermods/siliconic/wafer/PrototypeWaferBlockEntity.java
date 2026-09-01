@@ -499,14 +499,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   private boolean contaminateCellOnEdit() {
-    if (level == null
-        || level.isClientSide
-        || !getBlockState().is(ModBlocks.WAFER_ASSEMBLER.get())) return false;
+    if (level == null || level.isClientSide || !getBlockState().is(ModBlocks.WAFER_ASSEMBLER.get()))
+      return false;
     int cleanliness =
-        Math.max(
-            0,
-            Math.min(
-                100, CleanroomOccupancy.cleanlinessAtMachine(level, worldPosition)));
+        Math.max(0, Math.min(100, CleanroomOccupancy.cleanlinessAtMachine(level, worldPosition)));
     int missingCleanliness = 100 - cleanliness;
     return missingCleanliness > 0 && level.random.nextInt(200) < missingCleanliness;
   }

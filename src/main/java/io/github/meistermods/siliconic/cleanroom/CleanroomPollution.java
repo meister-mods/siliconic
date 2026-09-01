@@ -145,8 +145,7 @@ public final class CleanroomPollution {
     int blocks = 0;
     for (long packedPosition : interiorPositions) {
       BlockPos interiorPos = BlockPos.of(packedPosition);
-      PollutionSourceType sourceType =
-          classifyNewPollutionSource(level, interiorPos, inspected);
+      PollutionSourceType sourceType = classifyNewPollutionSource(level, interiorPos, inspected);
       if (sourceType == PollutionSourceType.EQUIPMENT) equipment++;
       else if (sourceType == PollutionSourceType.BLOCK) blocks++;
       for (Direction direction : Direction.values()) {

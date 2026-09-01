@@ -263,7 +263,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public CellType getCellType(int cell) {
-    return cellType(design(), getGridSize(), cell);
+    return valid(cell) ? cellType(design(), getGridSize(), cell) : CellType.EMPTY;
   }
 
   public ItemStack getEmbeddedWafer(int cell) {
@@ -272,16 +272,16 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   }
 
   public int getRotation(int cell) {
+    if (!valid(cell)) return 0;
     byte[] rotations = rotations(design(), getGridSize());
-    return valid(cell) ? Byte.toUnsignedInt(rotations[cell]) & 3 : 0;
+    return Byte.toUnsignedInt(rotations[cell]) & 3;
   }
 
   public ConductorMode getConductorMode(int cell) {
+    if (!valid(cell)) return ConductorMode.PLUS;
     byte[] modes = conductorModes(design(), getGridSize());
-    return valid(cell)
-        ? ConductorMode.values()[
-            Math.min(Byte.toUnsignedInt(modes[cell]), ConductorMode.values().length - 1)]
-        : ConductorMode.PLUS;
+    return ConductorMode.values()[
+        Math.min(Byte.toUnsignedInt(modes[cell]), ConductorMode.values().length - 1)];
   }
 
   public int getDropAmount(int cell) {

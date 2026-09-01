@@ -73,14 +73,8 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
     }
     var outputs = process.outputCopies();
     for (int index = 0; index < outputs.size(); index++) {
-      int x =
-          outputs.size() == 1
-              ? SINGLE_OUTPUT_X
-              : OUTPUT_GRID_X + index % 2 * OUTPUT_SPACING;
-      int y =
-          outputs.size() == 1
-              ? 24
-              : OUTPUT_GRID_Y + index / 2 * OUTPUT_SPACING;
+      int x = outputs.size() == 1 ? SINGLE_OUTPUT_X : OUTPUT_GRID_X + index % 2 * OUTPUT_SPACING;
+      int y = outputs.size() == 1 ? 24 : OUTPUT_GRID_Y + index / 2 * OUTPUT_SPACING;
       builder.addOutputSlot(x, y).setOutputSlotBackground().addItemStack(outputs.get(index));
     }
   }

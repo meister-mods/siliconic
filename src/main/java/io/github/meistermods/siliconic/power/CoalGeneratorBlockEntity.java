@@ -14,6 +14,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Containers;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -37,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings({"null"})
 public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvider {
   public static final int FUEL_SLOT = 0;
+  public static final int SLOT_COUNT = 1;
   public static final int ENERGY_CAPACITY = 40_000;
   public static final int GENERATION_PER_TICK = 40;
   private static final int TRANSFER_PER_CONNECTION = 200;
@@ -44,7 +46,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
 
   private final GeneratorEnergyStorage energy = new GeneratorEnergyStorage();
   private final ItemStackHandler items =
-      new ItemStackHandler(1) {
+      new ItemStackHandler(SLOT_COUNT) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
           return slot == FUEL_SLOT && burnDuration(stack) > 0;
@@ -155,7 +157,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
         generator.totalBurnTime = duration;
         ItemStack consumed = generator.items.extractItem(FUEL_SLOT, 1, false);
         ItemStack remainder = consumed.getCraftingRemainingItem();
-        if (!remainder.isEmpty()) generator.items.setStackInSlot(FUEL_SLOT, remainder);
+        generator.storeFuelRemainder(level, pos, remainder);
       }
     }
     if (generator.burnTime > 0
@@ -174,6 +176,23 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
     return ForgeHooks.getBurnTime(stack, RecipeType.SMELTING);
   }
 
+  private void storeFuelRemainder(Level level, BlockPos pos, ItemStack remainder) {
+    if (remainder.isEmpty()) return;
+    ItemStack remainingFuel = items.getStackInSlot(FUEL_SLOT);
+    if (remainingFuel.isEmpty()) {
+      items.setStackInSlot(FUEL_SLOT, remainder);
+      return;
+    }
+    if (ItemStack.isSameItemSameTags(remainingFuel, remainder)) {
+      int moved =
+          Math.min(remainder.getCount(), remainingFuel.getMaxStackSize() - remainingFuel.getCount());
+      remainingFuel.grow(moved);
+      remainder.shrink(moved);
+    }
+    if (!remainder.isEmpty())
+      Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), remainder);
+  }
+
   private void pushEnergy(Level level, BlockPos pos) {
     Map<BlockPos, Direction> receivers = new LinkedHashMap<>();
     ArrayDeque<BlockPos> pendingCables = new ArrayDeque<>();
@@ -181,7 +200,8 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
 
     for (Direction direction : Direction.values()) {
       BlockPos neighborPos = pos.relative(direction);
-      if (level.getBlockState(neighborPos).getBlock() instanceof PowerCableBlock)
+      BlockState neighborState = level.getBlockState(neighborPos);
+      if (PowerCableBlock.connectsToward(neighborState, direction.getOpposite()))
         pendingCables.add(neighborPos);
       else if (level.getBlockEntity(neighborPos) != null)
         receivers.putIfAbsent(neighborPos, direction.getOpposite());
@@ -200,6 +220,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
         BlockPos receiverPos = cablePos.relative(direction);
         if (receiverPos.equals(pos)
             || level.getBlockState(receiverPos).getBlock() instanceof PowerCableBlock) continue;
+        if (!PowerCableBlock.connectsToward(cableState, direction)) continue;
         if (level.getBlockEntity(receiverPos) != null)
           receivers.putIfAbsent(receiverPos, direction.getOpposite());
       }
@@ -312,8 +333,11 @@ public class CoalGeneratorBlockEntity extends BlockEntity implements MenuProvide
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
-    if (tag.contains("Items")) items.deserializeNBT(tag.getCompound("Items"));
-    else if (tag.contains("Fuel"))
+    if (tag.contains("Items")) {
+      CompoundTag itemData = tag.getCompound("Items").copy();
+      itemData.putInt("Size", SLOT_COUNT);
+      items.deserializeNBT(itemData);
+    } else if (tag.contains("Fuel"))
       items.setStackInSlot(FUEL_SLOT, ItemStack.of(tag.getCompound("Fuel")));
     burnTime = Math.max(0, tag.getInt("BurnTime"));
     totalBurnTime = Math.max(burnTime, tag.getInt("TotalBurnTime"));

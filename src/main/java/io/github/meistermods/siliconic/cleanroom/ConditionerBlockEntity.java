@@ -159,7 +159,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
       if (conditioner.lastScan.isSealed()) {
         conditioner.claimedInteriorPositions.clear();
         conditioner.claimedInteriorPositions.addAll(conditioner.lastScan.interiorPositions());
-      }
+      } else if (conditioner.lastScan.status() != RoomScanResult.Status.UNLOADED)
+        conditioner.claimedInteriorPositions.clear();
       Set<Long> conditionerGroup =
           CleanroomOccupancy.update(
               level, pos, conditioner.claimedInteriorPositions, conditioner.cleanliness);
@@ -401,13 +402,28 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
         tag.contains(LAST_SHARED_UPDATE_TAG, Tag.TAG_LONG)
             ? tag.getLong(LAST_SHARED_UPDATE_TAG)
             : -1L;
-    cleanlinessRecoveryProgress =
+    double savedRecoveryProgress =
         tag.contains(RECOVERY_PROGRESS_TAG, Tag.TAG_DOUBLE)
-            ? Math.max(0.0D, Math.min(1.0D, tag.getDouble(RECOVERY_PROGRESS_TAG)))
+            ? tag.getDouble(RECOVERY_PROGRESS_TAG)
+            : 0.0D;
+    cleanlinessRecoveryProgress =
+        Double.isFinite(savedRecoveryProgress)
+            ? Math.max(0.0D, Math.min(1.0D, savedRecoveryProgress))
             : 0.0D;
     claimedInteriorPositions.clear();
-    for (long claimedPos : tag.getLongArray(CLAIMED_INTERIOR_TAG))
-      claimedInteriorPositions.add(claimedPos);
+    long[] savedClaims = tag.getLongArray(CLAIMED_INTERIOR_TAG);
+    int savedClaimLimit = Math.min(savedClaims.length, RoomScanner.DEFAULT_LIMITS.maxVolume());
+    for (int index = 0; index < savedClaimLimit; index++) {
+      BlockPos savedPosition = BlockPos.of(savedClaims[index]);
+      int savedDistance =
+          Math.max(
+              Math.max(
+                  Math.abs(worldPosition.getX() - savedPosition.getX()),
+                  Math.abs(worldPosition.getY() - savedPosition.getY())),
+              Math.abs(worldPosition.getZ() - savedPosition.getZ()));
+      if (savedDistance <= RoomScanner.DEFAULT_LIMITS.maxDistance())
+        claimedInteriorPositions.add(savedClaims[index]);
+    }
     lastScan =
         tag.contains("LastScan", Tag.TAG_COMPOUND)
             ? RoomScanResult.load(tag.getCompound("LastScan"))

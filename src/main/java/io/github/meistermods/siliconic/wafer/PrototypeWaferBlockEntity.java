@@ -440,7 +440,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
     markUnfinished();
     clearRuntimeState(wafer);
     int[] modes = modes(design());
-    modes[pin] = PinMode.values()[modes[pin]].next().ordinal();
+    modes[pin] = pinMode(design(), pin).next().ordinal();
     design().putIntArray("PinModes", modes);
     changedAndSync();
   }
@@ -1449,18 +1449,25 @@ public class PrototypeWaferBlockEntity extends BlockEntity implements MenuProvid
   public void load(CompoundTag tag) {
     super.load(tag);
     simulationDirty = true;
-    wafer = ItemStack.of(tag.getCompound("Wafer"));
+    ItemStack loadedWafer = ItemStack.of(tag.getCompound("Wafer"));
+    wafer = isWafer(loadedWafer) ? loadedWafer.copyWithCount(1) : ItemStack.EMPTY;
     copy(tag.getIntArray("Inputs"), inputs);
     copy(tag.getIntArray("Outputs"), outputs);
-    signals = tag.getIntArray("Signals");
-    horizontalSignals = tag.getIntArray("HorizontalSignals");
-    verticalSignals = tag.getIntArray("VerticalSignals");
+    int signalCount = hasWafer() ? getGridSize() * getGridSize() : 0;
+    signals = fixedLength(tag.getIntArray("Signals"), signalCount);
+    horizontalSignals = fixedLength(tag.getIntArray("HorizontalSignals"), signalCount);
+    verticalSignals = fixedLength(tag.getIntArray("VerticalSignals"), signalCount);
     energy.setStored(tag.getInt("Energy"));
     insideCleanroom = tag.getBoolean("InsideCleanroom");
   }
 
   private void copy(int[] source, int[] target) {
+    Arrays.fill(target, 0);
     if (source.length == target.length) System.arraycopy(source, 0, target, 0, target.length);
+  }
+
+  private int[] fixedLength(int[] source, int length) {
+    return source.length == length ? source : new int[length];
   }
 
   @Override

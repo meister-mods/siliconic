@@ -12,7 +12,7 @@ import net.minecraftforge.items.SlotItemHandler;
 
 @SuppressWarnings({"null"})
 public class CoalGeneratorMenu extends AbstractContainerMenu {
-  private static final int MACHINE_SLOTS = 1;
+  private static final int MACHINE_SLOTS = CoalGeneratorBlockEntity.SLOT_COUNT;
   private final CoalGeneratorBlockEntity generator;
 
   public CoalGeneratorMenu(int id, Inventory inventory, FriendlyByteBuf data) {

@@ -205,7 +205,11 @@ public class WaferInverterBlockEntity extends BlockEntity implements MenuProvide
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
-    if (tag.contains("Items")) items.deserializeNBT(tag.getCompound("Items"));
+    if (tag.contains("Items")) {
+      CompoundTag itemData = tag.getCompound("Items").copy();
+      itemData.putInt("Size", SLOT_COUNT);
+      items.deserializeNBT(itemData);
+    }
     energy.setStored(tag.getInt("Energy"));
     progress = Math.max(0, Math.min(PROCESS_TICKS - 1, tag.getInt("Progress")));
   }

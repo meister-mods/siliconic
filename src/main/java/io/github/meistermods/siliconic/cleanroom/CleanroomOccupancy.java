@@ -10,7 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
-/** Runtime index of the last sealed positions claimed by each live conditioner. */
+/** Runtime index of the last valid sealed positions claimed by each live conditioner. */
 @SuppressWarnings({"null"})
 public final class CleanroomOccupancy {
   private static final Map<Level, LevelClaims> LEVEL_CLAIMS = new WeakHashMap<>();

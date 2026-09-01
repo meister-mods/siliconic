@@ -244,9 +244,15 @@ public class ReprocessorBlockEntity extends BlockEntity implements MenuProvider 
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
-    items.deserializeNBT(tag.getCompound("Items"));
+    CompoundTag itemData = tag.getCompound("Items").copy();
+    itemData.putInt("Size", SLOT_COUNT);
+    items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
-    progress = Math.max(0, tag.getInt("Progress"));
+    ReprocessingProcess process = currentProcess();
+    progress =
+        process == null
+            ? 0
+            : Math.max(0, Math.min(process.ticks() - 1, tag.getInt("Progress")));
   }
 
   @Override

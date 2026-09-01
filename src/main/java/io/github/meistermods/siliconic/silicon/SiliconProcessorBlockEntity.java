@@ -605,16 +605,18 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
     items.deserializeNBT(itemData);
     if (tag.getInt("LayoutVersion") < LAYOUT_VERSION) migrateLegacySlots();
     energy.setStored(tag.getInt("Energy"));
-    progress = Math.max(0, tag.getInt("Progress"));
     magmaHeat = Math.max(0, Math.min(tag.getInt("MagmaHeat"), MAGMA_CAPACITY));
-    temperature = Math.max(0, tag.getInt("Temperature"));
+    ThermalProfile profile = machineKind().thermalProfile();
+    int maximumTemperature =
+        profile == null ? 0 : profile.targetTemperature() + profile.tolerance();
+    temperature = Math.max(0, Math.min(tag.getInt("Temperature"), maximumTemperature));
     stability = Math.max(0, Math.min(tag.getInt("Stability"), 1_000));
     pressure = Math.max(0, Math.min(tag.getInt("Pressure"), PRESSURE_LIMIT));
     operationMode = tag.getInt("OperationMode") == 0 ? 0 : 1;
-    ventedTicks = Math.max(0, tag.getInt("VentedTicks"));
+    ventedTicks = Math.max(0, Math.min(100, tag.getInt("VentedTicks")));
     ListTag pending = tag.getList("PendingResults", Tag.TAG_COMPOUND);
-    List<ItemStack> loadedResults = new ArrayList<>(pending.size());
-    for (int index = 0; index < pending.size(); index++) {
+    List<ItemStack> loadedResults = new ArrayList<>(Math.min(pending.size(), OUTPUT_SLOTS));
+    for (int index = 0; index < pending.size() && loadedResults.size() < OUTPUT_SLOTS; index++) {
       ItemStack result = ItemStack.of(pending.getCompound(index));
       if (!result.isEmpty()) loadedResults.add(result);
     }
@@ -623,6 +625,11 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
       if (!legacyResult.isEmpty()) loadedResults.add(legacyResult);
     }
     pendingResults = List.copyOf(loadedResults);
+    MachineProcess process = currentProcess();
+    progress =
+        process == null || !pendingResults.isEmpty()
+            ? 0
+            : Math.max(0, Math.min(effectiveMaxTicks(process) - 1, tag.getInt("Progress")));
   }
 
   private void migrateLegacySlots() {

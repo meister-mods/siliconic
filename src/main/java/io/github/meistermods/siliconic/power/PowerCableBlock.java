@@ -221,6 +221,12 @@ public class PowerCableBlock extends Block {
     return new ArrayList<>(result);
   }
 
+  static boolean connectsToward(BlockState state, Direction direction) {
+    return state.getBlock() instanceof PowerCableBlock
+        && (state.getValue(property(direction))
+            || state.getValue(ATTACHMENT).contains(direction));
+  }
+
   private static void addCableCoatedBlockConnections(
       Level level, BlockPos pos, Attachment attachment, Set<BlockPos> result) {
     for (Direction support : attachment.faces()) {

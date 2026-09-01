@@ -49,12 +49,13 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 ## Progression Overview
 
 1. Gather Nether quartz, carbon, silver, lead, copper, and other required resources.
-2. Reduce quartz and charcoal into metallurgical-grade silicon in the arc furnace and reprocess the slag.
-3. Use the chlorination reactor and distillation tower to produce purified trichlorosilane.
-4. Deposit high-purity polysilicon in the Siemens reactor and recycle silicon tetrachloride, hydrogen, and hydrogen chloride.
-5. Construct a sealed cleanroom outside the polluting front-end line and power its conditioner.
-6. Fabricate wafers and gates, then design and finish circuits at the Wafer Assembler.
-7. Operate, duplicate, mirror, and embed completed wafers while automating the full production line.
+2. Mine salt dirt from riverbeds and riverbanks, then combine the salt with blaze powder to prepare hydrogen chloride.
+3. Reduce quartz and charcoal into metallurgical-grade silicon in the arc furnace and reprocess the slag.
+4. Use the chlorination reactor and distillation tower to produce purified trichlorosilane.
+5. Deposit high-purity polysilicon in the Siemens reactor and recycle silicon tetrachloride, hydrogen, and hydrogen chloride.
+6. Construct a sealed cleanroom outside the polluting front-end line and power its conditioner.
+7. Fabricate wafers and gates, then design and finish circuits at the Wafer Assembler.
+8. Operate, duplicate, mirror, and embed completed wafers while automating the full production line.
 
 Exact crafting layouts and machine processes are best viewed through JEI in game.
 

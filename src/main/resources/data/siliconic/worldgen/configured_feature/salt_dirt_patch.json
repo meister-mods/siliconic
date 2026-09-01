@@ -1,25 +1,30 @@
 {
-  "type": "minecraft:ore",
+  "type": "minecraft:disk",
   "config": {
-    "discard_chance_on_air_exposure": 0.0,
-    "size": 12,
-    "targets": [
-      {
-        "target": {"predicate_type": "minecraft:block_match", "block": "minecraft:dirt"},
-        "state": {"Name": "siliconic:salt_dirt"}
-      },
-      {
-        "target": {"predicate_type": "minecraft:block_match", "block": "minecraft:sand"},
-        "state": {"Name": "siliconic:salt_dirt"}
-      },
-      {
-        "target": {"predicate_type": "minecraft:block_match", "block": "minecraft:gravel"},
-        "state": {"Name": "siliconic:salt_dirt"}
-      },
-      {
-        "target": {"predicate_type": "minecraft:block_match", "block": "minecraft:clay"},
-        "state": {"Name": "siliconic:salt_dirt"}
+    "half_height": 1,
+    "radius": {
+      "type": "minecraft:uniform",
+      "value": {
+        "min_inclusive": 2,
+        "max_inclusive": 3
       }
-    ]
+    },
+    "state_provider": {
+      "fallback": {
+        "type": "minecraft:simple_state_provider",
+        "state": {"Name": "siliconic:salt_dirt"}
+      },
+      "rules": []
+    },
+    "target": {
+      "type": "minecraft:matching_blocks",
+      "blocks": [
+        "minecraft:dirt",
+        "minecraft:grass_block",
+        "minecraft:sand",
+        "minecraft:gravel",
+        "minecraft:clay"
+      ]
+    }
   }
 }

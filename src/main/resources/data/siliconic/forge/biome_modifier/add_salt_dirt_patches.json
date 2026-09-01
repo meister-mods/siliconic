@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_river",
+  "features": "siliconic:salt_dirt_patch",
+  "step": "underground_ores"
+}

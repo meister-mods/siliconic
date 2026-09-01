@@ -25,6 +25,15 @@ import net.minecraftforge.registries.RegistryObject;
 public final class ModBlocks {
   public static final DeferredRegister<Block> BLOCKS =
       DeferredRegister.create(ForgeRegistries.BLOCKS, Siliconic.MOD_ID);
+  public static final RegistryObject<Block> SALT_DIRT =
+      BLOCKS.register(
+          "salt_dirt",
+          () ->
+              new Block(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.DIRT)
+                      .strength(0.5f)
+                      .sound(SoundType.GRAVEL)));
   public static final RegistryObject<Block> WAFER_ASSEMBLER =
       BLOCKS.register(
           "wafer_assembler",

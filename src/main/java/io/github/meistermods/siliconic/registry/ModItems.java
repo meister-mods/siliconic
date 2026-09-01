@@ -24,6 +24,9 @@ public final class ModItems {
       ITEMS.register("silicon_tetrachloride", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> SALT =
       ITEMS.register("salt", () -> new Item(new Item.Properties()));
+  public static final RegistryObject<Item> SALT_DIRT =
+      ITEMS.register(
+          "salt_dirt", () -> new BlockItem(ModBlocks.SALT_DIRT.get(), new Item.Properties()));
   public static final RegistryObject<Item> HYDROGEN_CHLORIDE =
       ITEMS.register("hydrogen_chloride", () -> new Item(new Item.Properties()));
   public static final RegistryObject<Item> HYDROGEN =

@@ -1,0 +1,25 @@
+{
+  "type": "minecraft:ore",
+  "config": {
+    "discard_chance_on_air_exposure": 0.0,
+    "size": 12,
+    "targets": [
+      {
+        "target": {"predicate_type": "minecraft:block_match", "block": "minecraft:dirt"},
+        "state": {"Name": "siliconic:salt_dirt"}
+      },
+      {
+        "target": {"predicate_type": "minecraft:block_match", "block": "minecraft:sand"},
+        "state": {"Name": "siliconic:salt_dirt"}
+      },
+      {
+        "target": {"predicate_type": "minecraft:block_match", "block": "minecraft:gravel"},
+        "state": {"Name": "siliconic:salt_dirt"}
+      },
+      {
+        "target": {"predicate_type": "minecraft:block_match", "block": "minecraft:clay"},
+        "state": {"Name": "siliconic:salt_dirt"}
+      }
+    ]
+  }
+}

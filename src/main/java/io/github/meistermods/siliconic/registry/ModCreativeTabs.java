@@ -39,6 +39,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.PURIFIED_TRICHLOROSILANE.get());
                         output.accept(ModItems.SILICON_TETRACHLORIDE.get());
                         output.accept(ModItems.SALT.get());
+                        output.accept(ModItems.SALT_DIRT.get());
                         output.accept(ModItems.HYDROGEN_CHLORIDE.get());
                         output.accept(ModItems.HYDROGEN.get());
                         output.accept(ModItems.HIGH_PURITY_SILICON.get());

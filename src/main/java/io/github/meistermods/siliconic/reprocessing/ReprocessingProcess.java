@@ -10,7 +10,7 @@ import net.minecraft.world.item.Items;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
-/** Defines deterministic material recovery from contaminated process waste. */
+/** Defines deterministic material recovery from process waste and finished components. */
 @SuppressWarnings({"null"})
 public record ReprocessingProcess(
     ResourceLocation id,
@@ -34,7 +34,7 @@ public record ReprocessingProcess(
       int available = 0;
       for (int slot = inputStart; slot < inputStart + inputSlots; slot++) {
         ItemStack stack = inventory.getStackInSlot(slot);
-        if (stack.is(process.input())) available += stack.getCount();
+        if (process.matches(stack)) available += stack.getCount();
       }
       if (available >= process.inputCount()) return process;
     }
@@ -46,8 +46,12 @@ public record ReprocessingProcess(
   }
 
   public static boolean accepts(ItemStack stack) {
-    for (ReprocessingProcess process : Holder.PROCESSES) if (stack.is(process.input())) return true;
+    for (ReprocessingProcess process : Holder.PROCESSES) if (process.matches(stack)) return true;
     return false;
+  }
+
+  public boolean matches(ItemStack stack) {
+    return stack.is(input);
   }
 
   public List<ItemStack> outputCopies() {
@@ -86,7 +90,44 @@ public record ReprocessingProcess(
                     new ItemStack(Items.REDSTONE),
                     new ItemStack(ModItems.COPPER_NUGGET.get(), 2)),
                 240,
-                50));
+                50),
+            wafer("ssi_wafer", ModItems.SSI_WAFER.get(), 2),
+            wafer("msi_wafer", ModItems.MSI_WAFER.get(), 3),
+            wafer("lsi_wafer", ModItems.LSI_WAFER.get(), 4),
+            wafer("vlsi_wafer", ModItems.VLSI_WAFER.get(), 5),
+            wafer("ulsi_wafer", ModItems.ULSI_WAFER.get(), 6),
+            gate("not_gate", ModItems.NOT_GATE.get()),
+            gate("and_gate", ModItems.AND_GATE.get()),
+            gate("or_gate", ModItems.OR_GATE.get()),
+            gate("xor_gate", ModItems.XOR_GATE.get()),
+            gate("buffer_gate", ModItems.BUFFER_GATE.get()),
+            gate("drop_gate", ModItems.DROP_GATE.get()),
+            gate("switch_gate", ModItems.SWITCH_GATE.get()));
+  }
+
+  private static ReprocessingProcess wafer(String id, Item input, int siliconOutput) {
+    return process(
+        id,
+        input,
+        1,
+        List.of(
+            new ItemStack(ModItems.HIGH_PURITY_SILICON.get(), siliconOutput),
+            new ItemStack(Items.REDSTONE)),
+        300,
+        60);
+  }
+
+  private static ReprocessingProcess gate(String id, Item input) {
+    return process(
+        id,
+        input,
+        1,
+        List.of(
+            new ItemStack(ModItems.HIGH_PURITY_SILICON.get()),
+            new ItemStack(Items.REDSTONE),
+            new ItemStack(ModItems.COPPER_NUGGET.get(), 2)),
+        240,
+        50);
   }
 
   private static ReprocessingProcess process(

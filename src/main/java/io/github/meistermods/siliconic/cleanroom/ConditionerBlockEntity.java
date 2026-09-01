@@ -28,6 +28,7 @@ import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
@@ -41,6 +42,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   public static final int CLEANLINESS_DECAY_PER_SCAN = 2;
   public static final int CONTAMINATION_PER_UNPROTECTED_ENTITY = 2;
   public static final int CONTAMINATION_PER_POLLUTION_SOURCE = 4;
+  public static final int CONDITIONER_LIMIT_GAP_REDUCTION_PERCENT = 10;
   private static final String CLAIMED_INTERIOR_TAG = "ClaimedInterior";
   private static final String LAST_SHARED_UPDATE_TAG = "LastSharedCleanlinessUpdate";
   private static final String RECOVERY_PROGRESS_TAG = "CleanlinessRecoveryProgress";
@@ -320,15 +322,29 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   private void updateCleanlinessLimit() {
     int totalFaces = totalSurfaceFaces();
     int coatedFaces = coatedSurfaceFaces();
+    int surfaceLimit = BASE_CLEANLINESS_LIMIT;
     if (totalFaces == 0) {
-      cleanlinessLimit = BASE_CLEANLINESS_LIMIT;
       coatingCoverage = 0;
-      return;
+    } else {
+      coatingCoverage = (100 * coatedFaces + totalFaces / 2) / totalFaces;
+      int bonus =
+          ((MAX_CLEANLINESS - BASE_CLEANLINESS_LIMIT) * coatedFaces + totalFaces / 2) / totalFaces;
+      surfaceLimit += bonus;
     }
-    coatingCoverage = (100 * coatedFaces + totalFaces / 2) / totalFaces;
-    int bonus =
-        ((MAX_CLEANLINESS - BASE_CLEANLINESS_LIMIT) * coatedFaces + totalFaces / 2) / totalFaces;
-    cleanlinessLimit = BASE_CLEANLINESS_LIMIT + bonus;
+    cleanlinessLimit = limitWithConditioners(surfaceLimit, conditionerCount);
+  }
+
+  static int limitWithConditioners(int surfaceLimit, int conditioners) {
+    int limit = Math.max(BASE_CLEANLINESS_LIMIT, Math.min(MAX_CLEANLINESS, surfaceLimit));
+    for (int extra = 1; extra < Math.max(1, conditioners) && limit < MAX_CLEANLINESS; extra++) {
+      int remaining = MAX_CLEANLINESS - limit;
+      int increase =
+          Math.max(
+              1,
+              (remaining * CONDITIONER_LIMIT_GAP_REDUCTION_PERCENT + 99) / 100);
+      limit = Math.min(MAX_CLEANLINESS, limit + increase);
+    }
+    return limit;
   }
 
   private int totalSurfaceFaces() {
@@ -336,8 +352,17 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   }
 
   private int coatedSurfaceFaces() {
-    return lastScan.surfaceMaterials().getOrDefault(ModBlocks.COATED_BLOCK.getId(), 0)
-        + lastScan.surfaceMaterials().getOrDefault(ModBlocks.CABLE_COATED_BLOCK.getId(), 0);
+    int coated =
+        lastScan.surfaceMaterials().getOrDefault(ModBlocks.COATED_BLOCK.getId(), 0)
+            + lastScan.surfaceMaterials().getOrDefault(ModBlocks.CABLE_COATED_BLOCK.getId(), 0);
+    for (var entry : lastScan.surfaceMaterials().entrySet()) {
+      if (entry.getKey().equals(ModBlocks.COATED_BLOCK.getId())
+          || entry.getKey().equals(ModBlocks.CABLE_COATED_BLOCK.getId())) continue;
+      var block = ForgeRegistries.BLOCKS.getValue(entry.getKey());
+      if (block != null && block.defaultBlockState().is(CleanroomPollution.POST_PROCESS_EQUIPMENT))
+        coated += entry.getValue();
+    }
+    return coated;
   }
 
   @Override

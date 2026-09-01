@@ -151,5 +151,12 @@ public final class SiliconicJeiPlugin implements IModPlugin {
     registration.addIngredientInfo(
         ModItems.WAFER_INVERTER.get(),
         Component.translatable("jei.siliconic.info.wafer_inverter.contamination"));
+    registration.addIngredientInfo(
+        ModItems.REPROCESSOR.get(),
+        Component.translatable("jei.siliconic.info.reprocessor.finished_components"));
+    registration.addIngredientInfo(
+        ModItems.CONDITIONER.get(),
+        Component.translatable("jei.siliconic.info.conditioner.limit"),
+        Component.translatable("jei.siliconic.info.conditioner.shovel_pollution"));
   }
 }

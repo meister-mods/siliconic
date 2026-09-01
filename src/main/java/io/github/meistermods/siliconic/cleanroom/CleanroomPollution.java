@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -42,6 +43,13 @@ public final class CleanroomPollution {
           Registries.BLOCK,
           ResourceLocation.fromNamespaceAndPath(
               Siliconic.MOD_ID, "cleanroom_pollution_exemptions"));
+
+  /** Precision back-end equipment that also counts as a coated cleanroom surface. */
+  public static final TagKey<Block> POST_PROCESS_EQUIPMENT =
+      TagKey.create(
+          Registries.BLOCK,
+          ResourceLocation.fromNamespaceAndPath(
+              Siliconic.MOD_ID, "cleanroom_post_process_equipment"));
 
   /** Preserves the former furnace, combustion, generator, and reactor compatibility behavior. */
   private static final String[] LEGACY_EQUIPMENT_NAMES = {
@@ -149,6 +157,7 @@ public final class CleanroomPollution {
     BlockState state = level.getBlockState(pos);
     if (state.isAir() || state.is(POLLUTION_EXEMPTIONS)) return false;
     if (state.is(POLLUTION_SOURCES)) return true;
+    if (state.is(BlockTags.MINEABLE_WITH_SHOVEL)) return true;
 
     BlockEntity blockEntity = level.getBlockEntity(pos);
     if (blockEntity == null) return false;

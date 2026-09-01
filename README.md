@@ -15,7 +15,7 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 - Recycle silicon tetrachloride, hydrogen, and hydrogen chloride through a closed chemical loop.
 - Manufacture logic gates and five wafer tiers, from SSI through ULSI.
 - Use specialized powered machines for fabrication, purification, duplication, inversion, and material recovery.
-- Reprocess contaminated products into useful raw materials instead of discarding them.
+- Reprocess contaminated products, blank, unfinished, or completed wafers, and standard logic gates instead of discarding them. Higher wafer tiers from SSI through ULSI recover progressively more high-purity silicon.
 
 ### Programmable Wafer Circuits
 
@@ -31,11 +31,11 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 - Build sealed rooms monitored by powered Cleanroom Conditioners.
 - Track cleanliness as a persistent value that falls when a room is opened or polluted and recovers while the room remains sealed.
 - Reach the standard cleanliness ceiling in an ordinary room, or improve it toward 100% by coating the interior surfaces.
-- Synchronize multiple conditioners in the same room for shared monitoring and improved purification efficiency.
+- Synchronize multiple conditioners in the same room for shared monitoring and improved purification efficiency. Each additional conditioner reduces the remaining gap between the current cleanliness limit and 100% by 10%.
 - Build working airlocks: an open doorway can temporarily merge two otherwise sealed spaces without immediately invalidating the cleanroom.
 - Reduce contamination from occupants with cleanroom suits, and keep furnaces, generators, and other polluting equipment outside precision work areas.
-- Autonomous equipment with distinct material input, consumption, and output slots is detected as a cleanroom pollution source, including compatible machines from other mods. Existing furnace, combustion, and generator sources remain included.
-- The wafer assembler and fabricator, gate fabricator, wafer inverter, and wafer duplicator are sealed cleanroom-compatible post-process equipment, so they do not lower cleanliness. These machines still operate only inside a sealed conditioner space. Wafer guards and reprocessors are not classified as post-process equipment.
+- Autonomous equipment with distinct material input, consumption, and output slots is detected as a cleanroom pollution source, including compatible machines from other mods. Existing furnace, combustion, and generator sources remain included, as do shovel-mineable blocks such as dirt, sand, and gravel.
+- The wafer assembler and fabricator, gate fabricator, wafer inverter, and wafer duplicator are sealed cleanroom-compatible post-process equipment, so they do not lower cleanliness and their contacting faces count as coated surfaces. These machines still operate only inside a sealed conditioner space. Wafer guards and reprocessors are not classified as post-process equipment.
 - Crafting and manual workbenches and simple chests, barrels, and hoppers are excluded. Data packs can override detection with the `cleanroom_pollution_sources`, `cleanroom_pollution_exemptions`, and `cleanroom_post_process_equipment` block tags.
 
 ### Power and Automation

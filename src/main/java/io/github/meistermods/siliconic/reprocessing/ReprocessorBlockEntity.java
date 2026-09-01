@@ -208,7 +208,7 @@ public class ReprocessorBlockEntity extends BlockEntity implements MenuProvider 
     int remaining = process.inputCount();
     for (int slot = INPUT_START; slot < INPUT_START + INPUT_SLOTS && remaining > 0; slot++) {
       ItemStack stack = items.getStackInSlot(slot);
-      if (!stack.is(process.input())) continue;
+      if (!process.matches(stack)) continue;
       int extracted = Math.min(remaining, stack.getCount());
       items.extractItem(slot, extracted, false);
       remaining -= extracted;

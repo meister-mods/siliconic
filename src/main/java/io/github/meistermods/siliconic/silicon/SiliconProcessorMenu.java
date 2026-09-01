@@ -33,11 +33,9 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
     int inputCount = processor.visibleInputSlots();
     addProcessSlot(SiliconProcessorBlockEntity.INPUT_SLOT, inputX(0, inputCount), INPUT_Y);
     if (processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT))
-      addProcessSlot(
-          SiliconProcessorBlockEntity.CATALYST_SLOT, inputX(1, inputCount), INPUT_Y);
+      addProcessSlot(SiliconProcessorBlockEntity.CATALYST_SLOT, inputX(1, inputCount), INPUT_Y);
     if (processor.hasInputSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT))
-      addProcessSlot(
-          SiliconProcessorBlockEntity.COMPONENT_SLOT, inputX(2, inputCount), INPUT_Y);
+      addProcessSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT, inputX(2, inputCount), INPUT_Y);
     if (processor.requiresMagma())
       addSlot(
           new SlotItemHandler(

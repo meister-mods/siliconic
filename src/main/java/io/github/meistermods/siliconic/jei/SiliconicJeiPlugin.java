@@ -111,14 +111,11 @@ public final class SiliconicJeiPlugin implements IModPlugin {
         ModItems.SALT.get(), Component.translatable("jei.siliconic.info.salt.use"));
 
     registration.addIngredientInfo(
-        Items.MAGMA_CREAM,
-        Component.translatable("jei.siliconic.info.magma_fuel", 2_000));
+        Items.MAGMA_CREAM, Component.translatable("jei.siliconic.info.magma_fuel", 2_000));
     registration.addIngredientInfo(
-        Items.MAGMA_BLOCK,
-        Component.translatable("jei.siliconic.info.magma_fuel", 8_000));
+        Items.MAGMA_BLOCK, Component.translatable("jei.siliconic.info.magma_fuel", 8_000));
     registration.addIngredientInfo(
-        Items.LAVA_BUCKET,
-        Component.translatable("jei.siliconic.info.magma_fuel.lava", 16_000));
+        Items.LAVA_BUCKET, Component.translatable("jei.siliconic.info.magma_fuel.lava", 16_000));
 
     registration.addIngredientInfo(
         ModItems.SILICON_ARC_FURNACE.get(),

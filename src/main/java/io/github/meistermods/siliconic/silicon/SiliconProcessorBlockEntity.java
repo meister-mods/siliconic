@@ -82,9 +82,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity implements MenuProv
           items,
           slot ->
               slot == MAGMA_SLOT
-                  || (slot >= INPUT_SLOT
-                      && slot < INPUT_SLOT + INPUT_SLOTS
-                      && canModifyInputs()),
+                  || (slot >= INPUT_SLOT && slot < INPUT_SLOT + INPUT_SLOTS && canModifyInputs()),
           slot ->
               (slot >= OUTPUT_START && slot < OUTPUT_START + OUTPUT_SLOTS)
                   || (slot == MAGMA_SLOT && magmaValue(items.getStackInSlot(slot)) == 0));

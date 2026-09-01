@@ -105,12 +105,7 @@ public final class CleanroomPollution {
   };
 
   private static final String[] MANUAL_WORKSTATION_NAMES = {
-    "workbench",
-    "work_bench",
-    "worktable",
-    "work_table",
-    "crafting_station",
-    "craftingstation"
+    "workbench", "work_bench", "worktable", "work_table", "crafting_station", "craftingstation"
   };
 
   private static final String[] PASSIVE_INVENTORY_NAMES = {
@@ -216,11 +211,9 @@ public final class CleanroomPollution {
     if (handler != null) handlers.add(handler);
   }
 
-  private static boolean acceptsAnyProbe(
-      IItemHandler handler, int slot, List<ItemStack> probes) {
+  private static boolean acceptsAnyProbe(IItemHandler handler, int slot, List<ItemStack> probes) {
     if (handler.getSlotLimit(slot) <= 0) return false;
-    for (ItemStack probe : probes)
-      if (handler.isItemValid(slot, probe)) return true;
+    for (ItemStack probe : probes) if (handler.isItemValid(slot, probe)) return true;
     return false;
   }
 

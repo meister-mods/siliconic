@@ -111,5 +111,6 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SWITCH_GATE.get());
                       })
                   .build());
+
   private ModCreativeTabs() {}
 }

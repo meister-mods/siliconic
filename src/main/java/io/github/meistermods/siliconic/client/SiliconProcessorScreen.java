@@ -238,8 +238,7 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
       if (menu.machineKind() == MachineKind.DISTILLATION_TOWER) {
         controlButton.setMessage(modeText());
         controlButton.active = menu.progress() == 0;
-      } else
-        controlButton.active = menu.progress() > 0 && menu.progress() < menu.maxProgress();
+      } else controlButton.active = menu.progress() > 0 && menu.progress() < menu.maxProgress();
     }
     renderBackground(g);
     super.render(g, mouseX, mouseY, partial);

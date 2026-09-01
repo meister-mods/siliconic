@@ -88,8 +88,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
             ? Integer.toString(process.ticks() / 20)
             : String.format(Locale.ROOT, "%.1f", process.ticks() / 20.0);
     Component details =
-        Component.translatable(
-            "jei.siliconic.process.details", seconds, process.energyPerTick());
+        Component.translatable("jei.siliconic.process.details", seconds, process.energyPerTick());
     if (!isGridMachine()) {
       Component special = Component.translatable("jei.siliconic.process.special." + machine.id());
       drawCenteredFitted(graphics, special, 56, 0xff505a66);

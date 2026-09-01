@@ -49,8 +49,7 @@ public class SiliconProcessorBlock extends HorizontalFacingEntityBlock {
   }
 
   @Override
-  protected void createBlockStateDefinition(
-      StateDefinition.Builder<Block, BlockState> builder) {
+  protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
     super.createBlockStateDefinition(builder);
     builder.add(ACTIVE);
   }

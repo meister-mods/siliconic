@@ -21,7 +21,7 @@
   "block.siliconic.cable_coated_block": "Cable Coated Cleanroom Block",
   "block.siliconic.silver_block": "Block of Silver",
   "block.siliconic.lead_block": "Block of Lead",
-  "itemGroup.siliconic.materials": "Siliconic: Materials",
+  "itemGroup.siliconic.general": "Siliconic: General",
   "itemGroup.siliconic.circuits": "Siliconic: Circuits",
   "itemGroup.siliconic.machines": "Siliconic: Machines",
   "item.siliconic.metallurgical_silicon": "Metallurgical-grade Silicon",

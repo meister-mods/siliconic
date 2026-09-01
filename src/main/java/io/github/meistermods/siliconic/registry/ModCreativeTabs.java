@@ -12,51 +12,80 @@ import net.minecraftforge.registries.RegistryObject;
 public final class ModCreativeTabs {
   public static final DeferredRegister<CreativeModeTab> TABS =
       DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Siliconic.MOD_ID);
-  public static final RegistryObject<CreativeModeTab> MATERIALS =
+  public static final RegistryObject<CreativeModeTab> MACHINES =
       TABS.register(
-          "materials",
+          "machines",
           () ->
               CreativeModeTab.builder()
-                  .title(Component.translatable("itemGroup.siliconic.materials"))
-                  .icon(() -> new ItemStack(ModItems.SILVER_INGOT.get()))
+                  .title(Component.translatable("itemGroup.siliconic.machines"))
+                  .icon(() -> new ItemStack(ModItems.SILICON_ARC_FURNACE.get()))
                   .displayItems(
                       (parameters, output) -> {
+                        output.accept(ModItems.COAL_GENERATOR.get());
+                        output.accept(ModItems.POWER_CABLE.get());
+                        output.accept(ModItems.REDSTONE_CLOCK.get());
+                        output.accept(ModItems.SILICON_ARC_FURNACE.get());
+                        output.accept(ModItems.CHLORINATION_REACTOR.get());
+                        output.accept(ModItems.DISTILLATION_TOWER.get());
+                        output.accept(ModItems.SIEMENS_REACTOR.get());
+                        output.accept(ModItems.CHEMICAL_RECYCLER.get());
+                        output.accept(ModItems.REPROCESSOR.get());
+                        output.accept(ModItems.CONDITIONER.get());
+                        output.accept(ModItems.COATED_BLOCK.get());
+                        output.accept(ModItems.CABLE_COATED_BLOCK.get());
+                        output.accept(ModItems.WAFER_FABRICATOR.get());
+                        output.accept(ModItems.GATE_ASSEMBLER.get());
+                        output.accept(ModItems.WAFER_ASSEMBLER.get());
+                        output.accept(ModItems.CREATIVE_WAFER_ASSEMBLER.get());
+                        output.accept(ModItems.WAFER_INVERTER.get());
+                        output.accept(ModItems.WAFER_DUPLICATOR.get());
+                        output.accept(ModItems.WAFER_GUARD.get());
+                        output.accept(ModItems.CREATIVE_WAFER_GUARD.get());
+                      })
+                  .build());
+  public static final RegistryObject<CreativeModeTab> GENERAL =
+      TABS.register(
+          "general",
+          () ->
+              CreativeModeTab.builder()
+                  .title(Component.translatable("itemGroup.siliconic.general"))
+                  .icon(() -> new ItemStack(ModItems.SALT.get()))
+                  .displayItems(
+                      (parameters, output) -> {
+                        output.accept(ModItems.SALT_DIRT.get());
+                        output.accept(ModItems.SALT.get());
                         output.accept(ModItems.LEAD_ORE.get());
-                        output.accept(ModItems.SILVER_ORE.get());
                         output.accept(ModItems.DEEPSLATE_LEAD_ORE.get());
+                        output.accept(ModItems.SILVER_ORE.get());
                         output.accept(ModItems.DEEPSLATE_SILVER_ORE.get());
-                        output.accept(ModItems.LEAD_BLOCK.get());
-                        output.accept(ModItems.SILVER_BLOCK.get());
                         output.accept(ModItems.RAW_LEAD.get());
-                        output.accept(ModItems.RAW_SILVER.get());
                         output.accept(ModItems.LEAD_INGOT.get());
-                        output.accept(ModItems.SILVER_INGOT.get());
-                        output.accept(ModItems.COPPER_NUGGET.get());
                         output.accept(ModItems.LEAD_NUGGET.get());
+                        output.accept(ModItems.LEAD_BLOCK.get());
+                        output.accept(ModItems.RAW_SILVER.get());
+                        output.accept(ModItems.SILVER_INGOT.get());
                         output.accept(ModItems.SILVER_NUGGET.get());
+                        output.accept(ModItems.SILVER_BLOCK.get());
+                        output.accept(ModItems.COPPER_NUGGET.get());
+                        output.accept(ModItems.CARBON_ELECTRODE.get());
                         output.accept(ModItems.METALLURGICAL_SILICON.get());
+                        output.accept(ModItems.SILICON_SLAG.get());
+                        output.accept(ModItems.HYDROGEN_CHLORIDE.get());
                         output.accept(ModItems.CRUDE_TRICHLOROSILANE.get());
                         output.accept(ModItems.PURIFIED_TRICHLOROSILANE.get());
-                        output.accept(ModItems.SILICON_TETRACHLORIDE.get());
-                        output.accept(ModItems.SALT.get());
-                        output.accept(ModItems.SALT_DIRT.get());
-                        output.accept(ModItems.HYDROGEN_CHLORIDE.get());
-                        output.accept(ModItems.HYDROGEN.get());
-                        output.accept(ModItems.HIGH_PURITY_SILICON.get());
-                        output.accept(ModItems.SILICON_SLAG.get());
-                        output.accept(ModItems.CARBON_ELECTRODE.get());
                         output.accept(ModItems.QUARTZ_DEPOSITION_FILAMENT.get());
+                        output.accept(ModItems.HIGH_PURITY_SILICON.get());
+                        output.accept(ModItems.SILICON_TETRACHLORIDE.get());
+                        output.accept(ModItems.HYDROGEN.get());
                         output.accept(ModItems.PARTIAL_POLYSILICON_ROD.get());
                         output.accept(ModItems.DISTILLATION_RESIDUE.get());
                         output.accept(ModItems.CONTAMINATED_WAFER.get());
                         output.accept(ModItems.CONTAMINATED_GATE.get());
-                        output.accept(ModItems.COATED_BLOCK.get());
-                        output.accept(ModItems.CABLE_COATED_BLOCK.get());
+                        output.accept(ModItems.ANTISTATIC_FABRIC.get());
                         output.accept(ModItems.CLEANROOM_HOOD.get());
                         output.accept(ModItems.CLEANROOM_CHESTPLATE.get());
                         output.accept(ModItems.CLEANROOM_LEGGINGS.get());
                         output.accept(ModItems.CLEANROOM_BOOTS.get());
-                        output.accept(ModItems.ANTISTATIC_FABRIC.get());
                       })
                   .build());
   public static final RegistryObject<CreativeModeTab> CIRCUITS =
@@ -82,35 +111,5 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.SWITCH_GATE.get());
                       })
                   .build());
-  public static final RegistryObject<CreativeModeTab> MACHINES =
-      TABS.register(
-          "machines",
-          () ->
-              CreativeModeTab.builder()
-                  .title(Component.translatable("itemGroup.siliconic.machines"))
-                  .icon(() -> new ItemStack(ModItems.WAFER_ASSEMBLER.get()))
-                  .displayItems(
-                      (parameters, output) -> {
-                        output.accept(ModItems.COAL_GENERATOR.get());
-                        output.accept(ModItems.SILICON_ARC_FURNACE.get());
-                        output.accept(ModItems.CHLORINATION_REACTOR.get());
-                        output.accept(ModItems.DISTILLATION_TOWER.get());
-                        output.accept(ModItems.SIEMENS_REACTOR.get());
-                        output.accept(ModItems.CHEMICAL_RECYCLER.get());
-                        output.accept(ModItems.CONDITIONER.get());
-                        output.accept(ModItems.WAFER_ASSEMBLER.get());
-                        output.accept(ModItems.CREATIVE_WAFER_ASSEMBLER.get());
-                        output.accept(ModItems.GATE_ASSEMBLER.get());
-                        output.accept(ModItems.WAFER_FABRICATOR.get());
-                        output.accept(ModItems.WAFER_INVERTER.get());
-                        output.accept(ModItems.WAFER_DUPLICATOR.get());
-                        output.accept(ModItems.REPROCESSOR.get());
-                        output.accept(ModItems.WAFER_GUARD.get());
-                        output.accept(ModItems.CREATIVE_WAFER_GUARD.get());
-                        output.accept(ModItems.REDSTONE_CLOCK.get());
-                        output.accept(ModItems.POWER_CABLE.get());
-                      })
-                  .build());
-
   private ModCreativeTabs() {}
 }

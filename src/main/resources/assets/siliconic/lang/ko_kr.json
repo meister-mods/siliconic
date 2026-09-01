@@ -21,7 +21,7 @@
   "block.siliconic.cable_coated_block": "케이블 클린룸 코팅 블록",
   "block.siliconic.silver_block": "은 블록",
   "block.siliconic.lead_block": "납 블록",
-  "itemGroup.siliconic.materials": "실리코닉: 재료",
+  "itemGroup.siliconic.general": "실리코닉: 일반",
   "itemGroup.siliconic.circuits": "실리코닉: 회로",
   "itemGroup.siliconic.machines": "실리코닉: 기계",
   "item.siliconic.metallurgical_silicon": "금속급 실리콘",

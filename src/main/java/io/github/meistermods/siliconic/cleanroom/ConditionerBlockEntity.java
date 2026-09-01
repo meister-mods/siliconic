@@ -338,10 +338,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     int limit = Math.max(BASE_CLEANLINESS_LIMIT, Math.min(MAX_CLEANLINESS, surfaceLimit));
     for (int extra = 1; extra < Math.max(1, conditioners) && limit < MAX_CLEANLINESS; extra++) {
       int remaining = MAX_CLEANLINESS - limit;
-      int increase =
-          Math.max(
-              1,
-              (remaining * CONDITIONER_LIMIT_GAP_REDUCTION_PERCENT + 99) / 100);
+      int increase = Math.max(1, (remaining * CONDITIONER_LIMIT_GAP_REDUCTION_PERCENT + 99) / 100);
       limit = Math.min(MAX_CLEANLINESS, limit + increase);
     }
     return limit;

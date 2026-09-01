@@ -207,6 +207,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
 
     for (Direction direction : Direction.values()) {
       BlockPos neighborPos = pos.relative(direction);
+      if (!level.hasChunkAt(neighborPos)) continue;
       BlockState neighborState = level.getBlockState(neighborPos);
       if (PowerCableBlock.connectsToward(neighborState, direction.getOpposite()))
         pendingCables.add(neighborPos);
@@ -216,7 +217,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
 
     while (!pendingCables.isEmpty() && visitedCables.size() < MAX_CABLES_PER_NETWORK) {
       BlockPos cablePos = pendingCables.removeFirst();
-      if (!visitedCables.add(cablePos)) continue;
+      if (!visitedCables.add(cablePos) || !level.hasChunkAt(cablePos)) continue;
       BlockState cableState = level.getBlockState(cablePos);
       if (!(cableState.getBlock() instanceof PowerCableBlock)) continue;
 
@@ -225,6 +226,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
 
       for (Direction direction : Direction.values()) {
         BlockPos receiverPos = cablePos.relative(direction);
+        if (!level.hasChunkAt(receiverPos)) continue;
         if (receiverPos.equals(pos)
             || level.getBlockState(receiverPos).getBlock() instanceof PowerCableBlock) continue;
         if (!PowerCableBlock.connectsToward(cableState, direction)) continue;
@@ -235,6 +237,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
 
     List<IEnergyStorage> targets = new ArrayList<>(receivers.size());
     for (Map.Entry<BlockPos, Direction> receiver : receivers.entrySet()) {
+      if (!level.hasChunkAt(receiver.getKey())) continue;
       BlockEntity blockEntity = level.getBlockEntity(receiver.getKey());
       if (blockEntity == null) continue;
       blockEntity

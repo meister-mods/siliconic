@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.silicon;
 
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.registry.ModMenus;
 import net.minecraft.network.FriendlyByteBuf;
@@ -83,11 +84,11 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
   }
 
   public int energy() {
-    return processor.data().get(0);
+    return MenuDataSync.combine(processor.data().get(0), processor.data().get(1));
   }
 
   public int capacity() {
-    return processor.data().get(1);
+    return SiliconProcessorBlockEntity.ENERGY_CAPACITY;
   }
 
   public int progress() {

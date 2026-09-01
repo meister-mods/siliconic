@@ -195,7 +195,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
 
   ItemStack filter(BlockPos pos) {
     EndpointConfig config = configurations.get(pos);
-    return config == null ? ItemStack.EMPTY : config.filter;
+    return config == null ? ItemStack.EMPTY : config.filter.copy();
   }
 
   void setFilter(BlockPos pos, ItemStack stack) {

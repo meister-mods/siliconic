@@ -2,6 +2,7 @@ package io.github.meistermods.siliconic.silicon;
 
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineKind.ThermalProfile;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
@@ -48,7 +49,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   private static final int MAX_SYNCED_TEMPERATURE = Short.MAX_VALUE;
 
   private int progress;
-  private int clientStatus;
+  private final int[] clientData = new int[15];
   private int magmaHeat;
   private int temperature;
   private int stability;
@@ -95,12 +96,13 @@ public class SiliconProcessorBlockEntity extends BlockEntity
       new ContainerData() {
         @Override
         public int get(int index) {
-          if (level != null && level.isClientSide && index == 5) return clientStatus;
+          if (level != null && level.isClientSide)
+            return index >= 0 && index < clientData.length ? clientData[index] : 0;
           MachineProcess process = displayProcess();
           ThermalProfile profile = machineKind().thermalProfile();
           return switch (index) {
-            case 0 -> energy.getEnergyStored();
-            case 1 -> energy.getMaxEnergyStored();
+            case 0 -> MenuDataSync.low(energy.getEnergyStored());
+            case 1 -> MenuDataSync.high(energy.getEnergyStored());
             case 2 -> progress;
             case 3 -> effectiveMaxTicks(process);
             case 4 -> dynamicEnergyPerTick(process);
@@ -120,17 +122,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
 
         @Override
         public void set(int index, int value) {
-          switch (index) {
-            case 0 -> energy.setStored(value);
-            case 2 -> progress = Math.max(0, value);
-            case 5 -> clientStatus = value;
-            case 6 -> magmaHeat = Math.max(0, Math.min(value, MAGMA_CAPACITY));
-            case 9 -> temperature = Math.max(0, value);
-            case 11 -> stability = Math.max(0, Math.min(value, 1_000));
-            case 12 -> pressure = Math.max(0, Math.min(value, PRESSURE_LIMIT));
-            case 13 -> operationMode = value == 0 ? 0 : 1;
-            default -> {}
-          }
+          if (index >= 0 && index < clientData.length) clientData[index] = value;
         }
 
         @Override

@@ -1,0 +1,1 @@
+{"variants":{"facing=north":{"model":"siliconic:block/gate_fabricator"},"facing=east":{"model":"siliconic:block/gate_fabricator","y":90},"facing=south":{"model":"siliconic:block/gate_fabricator","y":180},"facing=west":{"model":"siliconic:block/gate_fabricator","y":270}}}

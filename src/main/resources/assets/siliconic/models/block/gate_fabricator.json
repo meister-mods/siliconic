@@ -1,0 +1,8 @@
+{
+  "parent": "siliconic:block/machine_with_interfaces",
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "front_interface": "siliconic:block/gate_fabricator_front",
+    "top_interface": "siliconic:block/gate_fabricator_top"
+  }
+}

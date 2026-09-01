@@ -35,8 +35,8 @@ public final class SiliconicJeiPlugin implements IModPlugin {
       RecipeType.create(Siliconic.MOD_ID, "chemical_recycler", MachineProcess.class);
   public static final RecipeType<MachineProcess> WAFER_FABRICATOR =
       RecipeType.create(Siliconic.MOD_ID, "wafer_fabricator", MachineProcess.class);
-  public static final RecipeType<MachineProcess> GATE_ASSEMBLER =
-      RecipeType.create(Siliconic.MOD_ID, "gate_assembler", MachineProcess.class);
+  public static final RecipeType<MachineProcess> GATE_FABRICATOR =
+      RecipeType.create(Siliconic.MOD_ID, "gate_fabricator", MachineProcess.class);
   public static final RecipeType<ReprocessingProcess> REPROCESSOR =
       RecipeType.create(Siliconic.MOD_ID, "reprocessor", ReprocessingProcess.class);
 
@@ -82,7 +82,7 @@ public final class SiliconicJeiPlugin implements IModPlugin {
       case SIEMENS_REACTOR -> SIEMENS_REACTOR;
       case CHEMICAL_RECYCLER -> CHEMICAL_RECYCLER;
       case WAFER_FABRICATOR -> WAFER_FABRICATOR;
-      case GATE_ASSEMBLER -> GATE_ASSEMBLER;
+      case GATE_FABRICATOR -> GATE_FABRICATOR;
     };
   }
 
@@ -94,7 +94,7 @@ public final class SiliconicJeiPlugin implements IModPlugin {
       case SIEMENS_REACTOR -> ModItems.SIEMENS_REACTOR.get();
       case CHEMICAL_RECYCLER -> ModItems.CHEMICAL_RECYCLER.get();
       case WAFER_FABRICATOR -> ModItems.WAFER_FABRICATOR.get();
-      case GATE_ASSEMBLER -> ModItems.GATE_ASSEMBLER.get();
+      case GATE_FABRICATOR -> ModItems.GATE_FABRICATOR.get();
     };
   }
 

@@ -114,7 +114,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
   }
 
   private boolean isGridMachine() {
-    return machine == MachineKind.WAFER_FABRICATOR || machine == MachineKind.GATE_ASSEMBLER;
+    return machine == MachineKind.WAFER_FABRICATOR || machine == MachineKind.GATE_FABRICATOR;
   }
 
   private void drawCenteredFitted(GuiGraphics graphics, Component text, int y, int color) {

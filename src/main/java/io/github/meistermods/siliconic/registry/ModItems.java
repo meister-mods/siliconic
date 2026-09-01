@@ -150,10 +150,10 @@ public final class ModItems {
       ITEMS.register(
           "wafer_fabricator",
           () -> new BlockItem(ModBlocks.WAFER_FABRICATOR.get(), new Item.Properties()));
-  public static final RegistryObject<Item> GATE_ASSEMBLER =
+  public static final RegistryObject<Item> GATE_FABRICATOR =
       ITEMS.register(
-          "gate_assembler",
-          () -> new BlockItem(ModBlocks.GATE_ASSEMBLER.get(), new Item.Properties()));
+          "gate_fabricator",
+          () -> new BlockItem(ModBlocks.GATE_FABRICATOR.get(), new Item.Properties()));
   public static final RegistryObject<Item> REPROCESSOR =
       ITEMS.register(
           "reprocessor", () -> new BlockItem(ModBlocks.REPROCESSOR.get(), new Item.Properties()));

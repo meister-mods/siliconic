@@ -127,7 +127,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
   }
 
   private MachineKind machineKind() {
-    return isWaferFabricator() ? MachineKind.WAFER_FABRICATOR : MachineKind.GATE_ASSEMBLER;
+    return isWaferFabricator() ? MachineKind.WAFER_FABRICATOR : MachineKind.GATE_FABRICATOR;
   }
 
   public ItemStackHandler items() {
@@ -272,7 +272,7 @@ public class FabricationStationBlockEntity extends BlockEntity implements MenuPr
     return Component.translatable(
         isWaferFabricator()
             ? "container.siliconic.wafer_fabricator"
-            : "container.siliconic.gate_assembler");
+            : "container.siliconic.gate_fabricator");
   }
 
   @Nullable

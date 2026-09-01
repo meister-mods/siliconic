@@ -71,7 +71,7 @@ public final class ModBlockEntities {
                   BlockEntityType.Builder.of(
                           FabricationStationBlockEntity::new,
                           ModBlocks.WAFER_FABRICATOR.get(),
-                          ModBlocks.GATE_ASSEMBLER.get())
+                          ModBlocks.GATE_FABRICATOR.get())
                       .build(null));
   public static final RegistryObject<BlockEntityType<ReprocessorBlockEntity>> REPROCESSOR =
       BLOCK_ENTITIES.register(

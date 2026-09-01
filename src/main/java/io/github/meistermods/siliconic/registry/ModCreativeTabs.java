@@ -34,7 +34,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.COATED_BLOCK.get());
                         output.accept(ModItems.CABLE_COATED_BLOCK.get());
                         output.accept(ModItems.WAFER_FABRICATOR.get());
-                        output.accept(ModItems.GATE_ASSEMBLER.get());
+                        output.accept(ModItems.GATE_FABRICATOR.get());
                         output.accept(ModItems.WAFER_ASSEMBLER.get());
                         output.accept(ModItems.CREATIVE_WAFER_ASSEMBLER.get());
                         output.accept(ModItems.WAFER_INVERTER.get());

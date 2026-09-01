@@ -60,7 +60,7 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "siliconic:gate_assembler"
+        "recipe": "siliconic:gate_fabricator"
       }
     }
   },
@@ -76,7 +76,7 @@
   ],
   "rewards": {
     "recipes": [
-      "siliconic:gate_assembler"
+      "siliconic:gate_fabricator"
     ]
   }
 }

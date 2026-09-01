@@ -7,7 +7,7 @@ public enum MachineKind {
   SIEMENS_REACTOR("siemens_reactor", new ThermalProfile(1_000, 40, 8, 8, 1)),
   CHEMICAL_RECYCLER("chemical_recycler", new ThermalProfile(600, 30, 6, 3, 3)),
   WAFER_FABRICATOR("wafer_fabricator", null),
-  GATE_ASSEMBLER("gate_assembler", null);
+  GATE_FABRICATOR("gate_fabricator", null);
 
   private final String id;
   private final ThermalProfile thermalProfile;

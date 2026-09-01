@@ -142,9 +142,9 @@ public final class ModBlocks {
                       .mapColor(MapColor.METAL)
                       .strength(3.5f)
                       .requiresCorrectToolForDrops()));
-  public static final RegistryObject<Block> GATE_ASSEMBLER =
+  public static final RegistryObject<Block> GATE_FABRICATOR =
       BLOCKS.register(
-          "gate_assembler",
+          "gate_fabricator",
           () ->
               new FabricationStationBlock(
                   BlockBehaviour.Properties.of()

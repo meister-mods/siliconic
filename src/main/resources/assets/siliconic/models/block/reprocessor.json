@@ -1,9 +1,7 @@
 {
-  "parent": "minecraft:block/orientable_with_bottom",
+  "parent": "siliconic:block/raw_machine_with_interfaces",
   "textures": {
-    "front": "siliconic:block/reprocessor_front",
-    "side": "siliconic:block/reprocessor_side",
-    "top": "siliconic:block/reprocessor_top",
-    "bottom": "siliconic:block/reprocessor_bottom"
+    "front_interface": "siliconic:block/reprocessor_front",
+    "top_interface": "siliconic:block/reprocessor_top"
   }
 }

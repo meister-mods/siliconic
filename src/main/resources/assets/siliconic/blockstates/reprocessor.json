@@ -1,1 +1,12 @@
-{"variants":{"facing=north":{"model":"siliconic:block/reprocessor"},"facing=east":{"model":"siliconic:block/reprocessor","y":90},"facing=south":{"model":"siliconic:block/reprocessor","y":180},"facing=west":{"model":"siliconic:block/reprocessor","y":270}}}
+{
+  "variants": {
+    "active=false,facing=north": { "model": "siliconic:block/reprocessor" },
+    "active=false,facing=east": { "model": "siliconic:block/reprocessor", "y": 90 },
+    "active=false,facing=south": { "model": "siliconic:block/reprocessor", "y": 180 },
+    "active=false,facing=west": { "model": "siliconic:block/reprocessor", "y": 270 },
+    "active=true,facing=north": { "model": "siliconic:block/reprocessor_active" },
+    "active=true,facing=east": { "model": "siliconic:block/reprocessor_active", "y": 90 },
+    "active=true,facing=south": { "model": "siliconic:block/reprocessor_active", "y": 180 },
+    "active=true,facing=west": { "model": "siliconic:block/reprocessor_active", "y": 270 }
+  }
+}

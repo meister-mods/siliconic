@@ -1,0 +1,6 @@
+{
+  "parent": "siliconic:block/reprocessor",
+  "textures": {
+    "front_interface": "siliconic:block/reprocessor_front_active"
+  }
+}

@@ -138,13 +138,27 @@ public class ReprocessorBlockEntity extends BlockEntity implements MenuProvider 
     ReprocessingProcess process = reprocessor.currentProcess();
     if (process == null) {
       reprocessor.resetProgress();
+      updateActive(level, pos, state, false);
       return;
     }
-    if (!reprocessor.canFitOutputs(process.outputs())) return;
-    if (!reprocessor.energy.consumeInternal(process.energyPerTick())) return;
+    if (!reprocessor.canFitOutputs(process.outputs())) {
+      updateActive(level, pos, state, false);
+      return;
+    }
+    if (!reprocessor.energy.consumeInternal(process.energyPerTick())) {
+      updateActive(level, pos, state, false);
+      return;
+    }
     reprocessor.progress++;
     if (reprocessor.progress >= process.ticks()) reprocessor.finishProcess(process);
     reprocessor.setChanged();
+    updateActive(level, pos, state, true);
+  }
+
+  private static void updateActive(
+      Level level, BlockPos pos, BlockState state, boolean active) {
+    if (state.getValue(ReprocessorBlock.ACTIVE) != active)
+      level.setBlock(pos, state.setValue(ReprocessorBlock.ACTIVE, active), 3);
   }
 
   @Nullable

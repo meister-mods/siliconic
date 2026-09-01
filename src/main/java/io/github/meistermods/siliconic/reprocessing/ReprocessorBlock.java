@@ -10,19 +10,25 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null", "deprecation"})
 public class ReprocessorBlock extends HorizontalFacingEntityBlock {
+  public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+
   public ReprocessorBlock(Properties properties) {
     super(properties);
+    registerDefaultState(defaultBlockState().setValue(ACTIVE, false));
   }
 
   @Override
@@ -34,6 +40,12 @@ public class ReprocessorBlock extends HorizontalFacingEntityBlock {
   @Override
   public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
     return new ReprocessorBlockEntity(pos, state);
+  }
+
+  @Override
+  protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+    super.createBlockStateDefinition(builder);
+    builder.add(ACTIVE);
   }
 
   @Override

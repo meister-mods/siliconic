@@ -155,8 +155,7 @@ public class ReprocessorBlockEntity extends BlockEntity implements MenuProvider 
     updateActive(level, pos, state, true);
   }
 
-  private static void updateActive(
-      Level level, BlockPos pos, BlockState state, boolean active) {
+  private static void updateActive(Level level, BlockPos pos, BlockState state, boolean active) {
     if (state.getValue(ReprocessorBlock.ACTIVE) != active)
       level.setBlock(pos, state.setValue(ReprocessorBlock.ACTIVE, active), 3);
   }

@@ -2,6 +2,13 @@
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Documentation
+
+- Refocused the bilingual READMEs on project, installation, development, contribution, and license information.
+- Moved detailed in-game progression and machine behavior into separate English and Korean gameplay guides.
+
 ## [0.2.3] - 2026-09-02
 
 ### Fixed

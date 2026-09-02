@@ -27,10 +27,12 @@ The `machine` field must be one of `silicon_arc_furnace`, `chlorination_reactor`
 Input `use` supports the following values:
 
 - `consume`: remove the configured item count when the batch finishes.
-- `damage`: apply the configured amount of durability damage.
+- `damage`: require one damageable item and apply `count` durability damage when the batch finishes.
 - `catalyst`: require the item without consuming it.
 
-For a shapeless process, set `shaped` to `false` and use `-1` for every input slot. For a shaped process, slots are zero-based indexes into the machine's input area. `ticks`, `energy_per_tick`, input counts, and output counts must be positive integers.
+For a shapeless process, set `shaped` to `false` and use `-1` for every input slot. The matcher assigns overlapping ingredients to distinct available items, so one stack cannot satisfy multiple requirements at once.
+
+For a shaped process, slots are zero-based indexes into the machine's input area. Industrial processors use slots `0` through `2`; wafer and gate fabricators use slots `0` through `8`. Duplicate or out-of-range shaped slots are rejected while the data pack loads. `ticks`, `energy_per_tick`, input counts, and output counts must be positive integers. Output counts cannot exceed the output item's maximum stack size.
 
 ## Reprocessing Recipes
 
@@ -49,4 +51,4 @@ The reprocessor uses the `siliconic:reprocessing` recipe type.
 }
 ```
 
-The `input` object accepts one item and a positive count. `outputs` must contain at least one item stack. `ticks` and `energy_per_tick` must also be positive integers.
+The `input` object accepts one item and a positive count. `outputs` must contain at least one non-empty item stack, and each output count cannot exceed that item's maximum stack size. `ticks` and `energy_per_tick` must also be positive integers.

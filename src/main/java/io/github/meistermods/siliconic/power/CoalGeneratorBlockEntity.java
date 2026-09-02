@@ -6,7 +6,10 @@ import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -219,11 +222,15 @@ public class CoalGeneratorBlockEntity extends BlockEntity
     }
 
     List<IEnergyStorage> targets = new ArrayList<>(cachedReceivers.size());
+    Set<IEnergyStorage> seenTargets = Collections.newSetFromMap(new IdentityHashMap<>());
     for (PowerNetworkTopology.Receiver receiver : cachedReceivers) {
       if (!level.isLoaded(receiver.pos())) continue;
       BlockEntity blockEntity = level.getBlockEntity(receiver.pos());
       if (blockEntity == null) continue;
-      blockEntity.getCapability(ForgeCapabilities.ENERGY, receiver.side()).ifPresent(targets::add);
+      blockEntity
+          .getCapability(ForgeCapabilities.ENERGY, receiver.side())
+          .filter(target -> target.canReceive() && seenTargets.add(target))
+          .ifPresent(targets::add);
     }
     distributeEnergyEvenly(targets);
   }

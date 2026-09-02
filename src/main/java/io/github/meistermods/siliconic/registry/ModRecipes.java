@@ -19,7 +19,7 @@ public final class ModRecipes {
       RECIPE_TYPES.register(
           "machine_process",
           () ->
-              new RecipeType<>() {
+              new RecipeType<MachineProcess>() {
                 @Override
                 public String toString() {
                   return Siliconic.MOD_ID + ":machine_process";
@@ -32,7 +32,7 @@ public final class ModRecipes {
       RECIPE_TYPES.register(
           "reprocessing",
           () ->
-              new RecipeType<>() {
+              new RecipeType<ReprocessingProcess>() {
                 @Override
                 public String toString() {
                   return Siliconic.MOD_ID + ":reprocessing";

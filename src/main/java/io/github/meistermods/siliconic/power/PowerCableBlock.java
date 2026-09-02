@@ -206,7 +206,7 @@ public class PowerCableBlock extends Block {
         if (!state.getValue(property(tangent))) continue;
 
         BlockPos directPos = pos.relative(tangent);
-        if (level.hasChunkAt(directPos)) {
+        if (level.isLoaded(directPos)) {
           BlockState direct = level.getBlockState(directPos);
           if (direct.getBlock() instanceof PowerCableBlock
               && direct.getValue(ATTACHMENT).contains(support)
@@ -214,7 +214,7 @@ public class PowerCableBlock extends Block {
         }
 
         BlockPos cornerPos = directPos.relative(support);
-        if (level.hasChunkAt(cornerPos)) {
+        if (level.isLoaded(cornerPos)) {
           BlockState corner = level.getBlockState(cornerPos);
           if (corner.getBlock() instanceof PowerCableBlock
               && corner.getValue(ATTACHMENT).contains(tangent.getOpposite())
@@ -234,14 +234,14 @@ public class PowerCableBlock extends Block {
       Level level, BlockPos pos, Attachment attachment, Set<BlockPos> result) {
     for (Direction support : attachment.faces()) {
       BlockPos cleanroomBlockPos = pos.relative(support);
-      if (!level.hasChunkAt(cleanroomBlockPos)) continue;
+      if (!level.isLoaded(cleanroomBlockPos)) continue;
       if (!(level.getBlockState(cleanroomBlockPos).getBlock() instanceof CableCoatedBlock))
         continue;
 
       for (Direction candidateSupport : Direction.values()) {
         BlockPos candidatePos = cleanroomBlockPos.relative(candidateSupport.getOpposite());
         if (candidatePos.equals(pos)) continue;
-        if (!level.hasChunkAt(candidatePos)) continue;
+        if (!level.isLoaded(candidatePos)) continue;
         BlockState candidate = level.getBlockState(candidatePos);
         if (candidate.getBlock() instanceof PowerCableBlock
             && candidate.getValue(ATTACHMENT).contains(candidateSupport)) result.add(candidatePos);

@@ -116,7 +116,7 @@ public class LogisticsPipeBlock extends Block {
   private static BlockState connections(BlockState state, LevelAccessor level, BlockPos pos) {
     for (Direction direction : Direction.values()) {
       BlockPos neighborPos = pos.relative(direction);
-      if (level instanceof Level loadedLevel && !loadedLevel.hasChunkAt(neighborPos)) continue;
+      if (level instanceof Level loadedLevel && !loadedLevel.isLoaded(neighborPos)) continue;
       state =
           state.setValue(
               property(direction),
@@ -130,7 +130,7 @@ public class LogisticsPipeBlock extends Block {
       LevelAccessor level, BlockPos pos, BlockState state, Direction sideFacingPipe) {
     if (state.getBlock() instanceof LogisticsPipeBlock
         || state.is(ModBlocks.LOGISTICS_CONTROLLER.get())) return true;
-    if (level instanceof Level loadedLevel && !loadedLevel.hasChunkAt(pos)) return false;
+    if (level instanceof Level loadedLevel && !loadedLevel.isLoaded(pos)) return false;
     BlockEntity blockEntity = level.getBlockEntity(pos);
     return blockEntity != null && LogisticsItemHandlerAccess.isPresent(blockEntity, sideFacingPipe);
   }

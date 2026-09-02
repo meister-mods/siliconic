@@ -92,7 +92,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
 
     for (Direction direction : Direction.values()) {
       BlockPos neighbor = worldPosition.relative(direction);
-      if (level.hasChunkAt(neighbor)
+      if (level.isLoaded(neighbor)
           && level.getBlockState(neighbor).getBlock() instanceof LogisticsPipeBlock)
         pending.addLast(neighbor);
     }
@@ -100,12 +100,12 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
 
     while (!pending.isEmpty() && visited.size() < MAX_PIPES) {
       BlockPos pipePos = pending.removeFirst();
-      if (!visited.add(pipePos) || !level.hasChunkAt(pipePos)) continue;
+      if (!visited.add(pipePos) || !level.isLoaded(pipePos)) continue;
       if (!(level.getBlockState(pipePos).getBlock() instanceof LogisticsPipeBlock)) continue;
 
       for (Direction direction : Direction.values()) {
         BlockPos neighbor = pipePos.relative(direction);
-        if (!level.hasChunkAt(neighbor)) continue;
+        if (!level.isLoaded(neighbor)) continue;
         BlockState neighborState = level.getBlockState(neighbor);
         if (neighborState.getBlock() instanceof LogisticsPipeBlock) {
           if (!visited.contains(neighbor)) pending.addLast(neighbor);
@@ -128,7 +128,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
         .limit(MAX_ENDPOINTS)
         .forEach(
             endpoint -> {
-              if (!level.hasChunkAt(endpoint.pos())) return;
+              if (!level.isLoaded(endpoint.pos())) return;
               BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
               if (blockEntity == null
                   || !LogisticsItemHandlerAccess.isPresent(blockEntity, endpoint.side())) return;
@@ -285,7 +285,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   }
 
   private List<IItemHandler> extractionHandlers(MachineEndpoint endpoint, boolean forced) {
-    if (level == null || !level.hasChunkAt(endpoint.pos())) return List.of();
+    if (level == null || !level.isLoaded(endpoint.pos())) return List.of();
     List<IItemHandler> handlers = new ArrayList<>();
     IItemHandler handler = normalHandler(endpoint);
     if (handler != null) handlers.add(handler);
@@ -299,7 +299,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
 
   @Nullable
   private IItemHandler normalHandler(MachineEndpoint endpoint) {
-    if (level == null || !level.hasChunkAt(endpoint.pos())) return null;
+    if (level == null || !level.isLoaded(endpoint.pos())) return null;
     BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
     return blockEntity == null
         ? null

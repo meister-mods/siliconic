@@ -11,6 +11,7 @@ import net.minecraftforge.items.wrapper.SidedInvWrapper;
 import org.jetbrains.annotations.Nullable;
 
 /** Resolves a pipe-facing inventory without bypassing the inventory's normal sided rules. */
+@SuppressWarnings("null")
 final class LogisticsItemHandlerAccess {
   private LogisticsItemHandlerAccess() {}
 

@@ -25,7 +25,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,8 +115,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
             || neighborState.getBlock() instanceof LogisticsControllerBlock) continue;
         BlockEntity blockEntity = level.getBlockEntity(neighbor);
         Direction machineSide = direction.getOpposite();
-        if (blockEntity != null
-            && blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, machineSide).isPresent())
+        if (blockEntity != null && LogisticsItemHandlerAccess.isPresent(blockEntity, machineSide))
           machineInterfaces.add(key(neighbor, machineSide));
       }
     }
@@ -133,9 +131,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
               if (!level.hasChunkAt(endpoint.pos())) return;
               BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
               if (blockEntity == null
-                  || !blockEntity
-                      .getCapability(ForgeCapabilities.ITEM_HANDLER, endpoint.side())
-                      .isPresent()) return;
+                  || !LogisticsItemHandlerAccess.isPresent(blockEntity, endpoint.side())) return;
               Component name = blockEntity.getBlockState().getBlock().getName();
               found.add(
                   new MachineEndpoint(
@@ -307,9 +303,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
     return blockEntity == null
         ? null
-        : blockEntity
-            .getCapability(ForgeCapabilities.ITEM_HANDLER, endpoint.side())
-            .orElse(null);
+        : LogisticsItemHandlerAccess.find(blockEntity, endpoint.side());
   }
 
   private static ItemStack insert(IItemHandler handler, ItemStack stack, boolean simulate) {

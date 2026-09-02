@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import org.jetbrains.annotations.Nullable;
 
 /** A free-standing, six-pixel-wide item pipe that connects on all six axes. */
@@ -133,8 +132,7 @@ public class LogisticsPipeBlock extends Block {
         || state.is(ModBlocks.LOGISTICS_CONTROLLER.get())) return true;
     if (level instanceof Level loadedLevel && !loadedLevel.hasChunkAt(pos)) return false;
     BlockEntity blockEntity = level.getBlockEntity(pos);
-    return blockEntity != null
-        && blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, sideFacingPipe).isPresent();
+    return blockEntity != null && LogisticsItemHandlerAccess.isPresent(blockEntity, sideFacingPipe);
   }
 
   private static BooleanProperty property(Direction direction) {

@@ -4,10 +4,8 @@ import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,12 +37,15 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   private static final int TRANSFER_INTERVAL = 10;
   private static final int TRANSFER_LIMIT = 8;
 
-  public record EndpointInfo(BlockPos pos, Component name, boolean supportsForced) {}
+  public record EndpointInfo(
+      BlockPos pos, Direction side, Component name, boolean supportsForced) {}
 
   private record MachineEndpoint(
-      BlockPos pos, List<Direction> sides, Component name, boolean supportsForced) {}
+      BlockPos pos, Direction side, Component name, boolean supportsForced) {}
 
-  private record Destination(MachineEndpoint endpoint, Direction side) {}
+  private record EndpointKey(BlockPos pos, Direction side) {}
+
+  private record Destination(MachineEndpoint endpoint) {}
 
   private static final class EndpointConfig {
     private boolean input;
@@ -57,7 +58,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     }
   }
 
-  private final Map<BlockPos, EndpointConfig> configurations = new HashMap<>();
+  private final Map<EndpointKey, EndpointConfig> configurations = new HashMap<>();
+  private final Map<BlockPos, EndpointConfig> legacyConfigurations = new HashMap<>();
   private List<MachineEndpoint> endpoints = List.of();
   private boolean connectedToPipe;
   private ItemStack transferBuffer = ItemStack.EMPTY;
@@ -87,7 +89,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     if (level == null || level.isClientSide) return connectedToPipe;
     ArrayDeque<BlockPos> pending = new ArrayDeque<>();
     Set<BlockPos> visited = new HashSet<>();
-    Map<BlockPos, EnumSet<Direction>> machineSides = new LinkedHashMap<>();
+    Set<EndpointKey> machineInterfaces = new HashSet<>();
 
     for (Direction direction : Direction.values()) {
       BlockPos neighbor = worldPosition.relative(direction);
@@ -116,30 +118,34 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
         Direction machineSide = direction.getOpposite();
         if (blockEntity != null
             && blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, machineSide).isPresent())
-          machineSides
-              .computeIfAbsent(neighbor.immutable(), ignored -> EnumSet.noneOf(Direction.class))
-              .add(machineSide);
+          machineInterfaces.add(key(neighbor, machineSide));
       }
     }
 
     List<MachineEndpoint> found = new ArrayList<>();
-    machineSides.entrySet().stream()
-        .sorted(Comparator.comparingLong(entry -> entry.getKey().asLong()))
+    machineInterfaces.stream()
+        .sorted(
+            Comparator.comparingLong((EndpointKey endpoint) -> endpoint.pos().asLong())
+                .thenComparingInt(endpoint -> endpoint.side().get3DDataValue()))
         .limit(MAX_ENDPOINTS)
         .forEach(
-            entry -> {
-              if (!level.hasChunkAt(entry.getKey())) return;
-              BlockEntity blockEntity = level.getBlockEntity(entry.getKey());
-              if (blockEntity == null) return;
+            endpoint -> {
+              if (!level.hasChunkAt(endpoint.pos())) return;
+              BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
+              if (blockEntity == null
+                  || !blockEntity
+                      .getCapability(ForgeCapabilities.ITEM_HANDLER, endpoint.side())
+                      .isPresent()) return;
               Component name = blockEntity.getBlockState().getBlock().getName();
               found.add(
                   new MachineEndpoint(
-                      entry.getKey(),
-                      List.copyOf(entry.getValue()),
+                      endpoint.pos(),
+                      endpoint.side(),
                       name,
                       blockEntity instanceof LogisticsInventoryAccess));
             });
     endpoints = List.copyOf(found);
+    migrateLegacyConfigurations(endpoints);
     sourceCursor = clampCursor(sourceCursor, endpoints.size());
     destinationCursor = clampCursor(destinationCursor, endpoints.size());
     return connectedToPipe;
@@ -151,6 +157,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     buffer.writeVarInt(endpointInfos.size());
     for (EndpointInfo endpoint : endpointInfos) {
       buffer.writeBlockPos(endpoint.pos());
+      buffer.writeEnum(endpoint.side());
       buffer.writeComponent(endpoint.name());
       buffer.writeBoolean(endpoint.supportsForced());
     }
@@ -160,41 +167,42 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     return endpoints.stream()
         .map(
             endpoint ->
-                new EndpointInfo(endpoint.pos(), endpoint.name(), endpoint.supportsForced()))
+                new EndpointInfo(
+                    endpoint.pos(), endpoint.side(), endpoint.name(), endpoint.supportsForced()))
         .toList();
   }
 
-  int flags(BlockPos pos) {
-    EndpointConfig config = configurations.get(pos);
+  int flags(BlockPos pos, Direction side) {
+    EndpointConfig config = configurations.get(key(pos, side));
     return config == null ? 0 : config.flags();
   }
 
-  void toggleInput(BlockPos pos) {
-    EndpointConfig config = config(pos);
+  void toggleInput(BlockPos pos, Direction side) {
+    EndpointConfig config = config(pos, side);
     config.input = !config.input;
     setChanged();
   }
 
-  void toggleOutput(BlockPos pos) {
-    EndpointConfig config = config(pos);
+  void toggleOutput(BlockPos pos, Direction side) {
+    EndpointConfig config = config(pos, side);
     config.output = !config.output;
     setChanged();
   }
 
-  void toggleForced(BlockPos pos, boolean supported) {
-    EndpointConfig config = config(pos);
+  void toggleForced(BlockPos pos, Direction side, boolean supported) {
+    EndpointConfig config = config(pos, side);
     if (!supported && !config.forced) return;
     config.forced = !config.forced;
     setChanged();
   }
 
-  ItemStack filter(BlockPos pos) {
-    EndpointConfig config = configurations.get(pos);
+  ItemStack filter(BlockPos pos, Direction side) {
+    EndpointConfig config = configurations.get(key(pos, side));
     return config == null ? ItemStack.EMPTY : config.filter.copy();
   }
 
-  void setFilter(BlockPos pos, ItemStack stack) {
-    EndpointConfig config = config(pos);
+  void setFilter(BlockPos pos, Direction side, ItemStack stack) {
+    EndpointConfig config = config(pos, side);
     ItemStack filter = stack.copy();
     if (!filter.isEmpty()) filter.setCount(1);
     if (ItemStack.matches(config.filter, filter)) return;
@@ -207,13 +215,17 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
       if (!config.filter.isEmpty())
         Containers.dropItemStack(
             level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), config.filter);
+    for (EndpointConfig config : legacyConfigurations.values())
+      if (!config.filter.isEmpty())
+        Containers.dropItemStack(
+            level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), config.filter);
     if (!transferBuffer.isEmpty())
       Containers.dropItemStack(
           level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), transferBuffer);
   }
 
-  private EndpointConfig config(BlockPos pos) {
-    return configurations.computeIfAbsent(pos.immutable(), ignored -> new EndpointConfig());
+  private EndpointConfig config(BlockPos pos, Direction side) {
+    return configurations.computeIfAbsent(key(pos, side), ignored -> new EndpointConfig());
   }
 
   private void extractNextItem() {
@@ -222,7 +234,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     for (int offset = 0; offset < endpoints.size(); offset++) {
       int index = (start + offset) % endpoints.size();
       MachineEndpoint endpoint = endpoints.get(index);
-      EndpointConfig config = configurations.get(endpoint.pos());
+      EndpointConfig config = configurations.get(key(endpoint.pos(), endpoint.side()));
       if (config == null || !config.output) continue;
 
       List<IItemHandler> handlers = extractionHandlers(endpoint, config.forced);
@@ -248,7 +260,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     if (level == null || transferBuffer.isEmpty()) return;
     Destination destination = findDestination(transferBuffer, bufferSource);
     if (destination == null) return;
-    IItemHandler handler = normalHandler(destination.endpoint(), destination.side());
+    IItemHandler handler = normalHandler(destination.endpoint());
     if (handler == null) return;
     int before = transferBuffer.getCount();
     transferBuffer = insert(handler, transferBuffer, false);
@@ -266,14 +278,12 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     for (int offset = 0; offset < endpoints.size(); offset++) {
       MachineEndpoint endpoint = endpoints.get((start + offset) % endpoints.size());
       if (endpoint.pos().equals(source)) continue;
-      EndpointConfig config = configurations.get(endpoint.pos());
+      EndpointConfig config = configurations.get(key(endpoint.pos(), endpoint.side()));
       if (config == null || !config.input || !matchesFilter(config, stack)) continue;
-      for (Direction side : endpoint.sides()) {
-        IItemHandler handler = normalHandler(endpoint, side);
-        if (handler == null) continue;
-        ItemStack remainder = insert(handler, stack, true);
-        if (remainder.getCount() < stack.getCount()) return new Destination(endpoint, side);
-      }
+      IItemHandler handler = normalHandler(endpoint);
+      if (handler == null) continue;
+      ItemStack remainder = insert(handler, stack, true);
+      if (remainder.getCount() < stack.getCount()) return new Destination(endpoint);
     }
     return null;
   }
@@ -281,10 +291,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   private List<IItemHandler> extractionHandlers(MachineEndpoint endpoint, boolean forced) {
     if (level == null || !level.hasChunkAt(endpoint.pos())) return List.of();
     List<IItemHandler> handlers = new ArrayList<>();
-    for (Direction side : endpoint.sides()) {
-      IItemHandler handler = normalHandler(endpoint, side);
-      if (handler != null && !containsIdentity(handlers, handler)) handlers.add(handler);
-    }
+    IItemHandler handler = normalHandler(endpoint);
+    if (handler != null) handlers.add(handler);
     BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
     if (forced && blockEntity instanceof LogisticsInventoryAccess access) {
       IItemHandler raw = access.logisticsInventory();
@@ -294,12 +302,14 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   }
 
   @Nullable
-  private IItemHandler normalHandler(MachineEndpoint endpoint, Direction side) {
+  private IItemHandler normalHandler(MachineEndpoint endpoint) {
     if (level == null || !level.hasChunkAt(endpoint.pos())) return null;
     BlockEntity blockEntity = level.getBlockEntity(endpoint.pos());
     return blockEntity == null
         ? null
-        : blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
+        : blockEntity
+            .getCapability(ForgeCapabilities.ITEM_HANDLER, endpoint.side())
+            .orElse(null);
   }
 
   private static ItemStack insert(IItemHandler handler, ItemStack stack, boolean simulate) {
@@ -322,19 +332,57 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     return size <= 0 ? 0 : Math.floorMod(cursor, size);
   }
 
+  private static EndpointKey key(BlockPos pos, Direction side) {
+    return new EndpointKey(pos.immutable(), side);
+  }
+
+  private void migrateLegacyConfigurations(List<MachineEndpoint> found) {
+    boolean migrated = false;
+    for (MachineEndpoint endpoint : found) {
+      EndpointConfig legacy = legacyConfigurations.get(endpoint.pos());
+      EndpointKey endpointKey = key(endpoint.pos(), endpoint.side());
+      if (legacy == null || configurations.containsKey(endpointKey)) continue;
+      configurations.put(endpointKey, legacy);
+      legacyConfigurations.remove(endpoint.pos());
+      migrated = true;
+    }
+    if (migrated) setChanged();
+  }
+
+  private static CompoundTag saveConfig(BlockPos pos, EndpointConfig config) {
+    CompoundTag configTag = new CompoundTag();
+    configTag.putLong("Pos", pos.asLong());
+    configTag.putBoolean("Input", config.input);
+    configTag.putBoolean("Output", config.output);
+    configTag.putBoolean("Forced", config.forced);
+    if (!config.filter.isEmpty()) configTag.put("Filter", config.filter.save(new CompoundTag()));
+    return configTag;
+  }
+
+  private static EndpointConfig loadConfig(CompoundTag configTag) {
+    EndpointConfig config = new EndpointConfig();
+    config.input = configTag.getBoolean("Input");
+    config.output = configTag.getBoolean("Output");
+    config.forced = configTag.getBoolean("Forced");
+    config.filter = ItemStack.of(configTag.getCompound("Filter"));
+    return config;
+  }
+
   @Override
   protected void saveAdditional(CompoundTag tag) {
     super.saveAdditional(tag);
     ListTag entries = new ListTag();
-    for (Map.Entry<BlockPos, EndpointConfig> entry : configurations.entrySet()) {
+    for (Map.Entry<EndpointKey, EndpointConfig> entry : configurations.entrySet()) {
       EndpointConfig config = entry.getValue();
       if (config.flags() == 0 && config.filter.isEmpty()) continue;
-      CompoundTag configTag = new CompoundTag();
-      configTag.putLong("Pos", entry.getKey().asLong());
-      configTag.putBoolean("Input", config.input);
-      configTag.putBoolean("Output", config.output);
-      configTag.putBoolean("Forced", config.forced);
-      if (!config.filter.isEmpty()) configTag.put("Filter", config.filter.save(new CompoundTag()));
+      CompoundTag configTag = saveConfig(entry.getKey().pos(), config);
+      configTag.putByte("Side", (byte) entry.getKey().side().get3DDataValue());
+      entries.add(configTag);
+    }
+    for (Map.Entry<BlockPos, EndpointConfig> entry : legacyConfigurations.entrySet()) {
+      EndpointConfig config = entry.getValue();
+      if (config.flags() == 0 && config.filter.isEmpty()) continue;
+      CompoundTag configTag = saveConfig(entry.getKey(), config);
       entries.add(configTag);
     }
     tag.put("Configurations", entries);
@@ -349,15 +397,16 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   public void load(CompoundTag tag) {
     super.load(tag);
     configurations.clear();
+    legacyConfigurations.clear();
     ListTag entries = tag.getList("Configurations", Tag.TAG_COMPOUND);
     for (int index = 0; index < entries.size(); index++) {
       CompoundTag configTag = entries.getCompound(index);
-      EndpointConfig config = new EndpointConfig();
-      config.input = configTag.getBoolean("Input");
-      config.output = configTag.getBoolean("Output");
-      config.forced = configTag.getBoolean("Forced");
-      config.filter = ItemStack.of(configTag.getCompound("Filter"));
-      configurations.put(BlockPos.of(configTag.getLong("Pos")), config);
+      BlockPos pos = BlockPos.of(configTag.getLong("Pos"));
+      EndpointConfig config = loadConfig(configTag);
+      if (configTag.contains("Side", Tag.TAG_BYTE))
+        configurations.put(
+            key(pos, Direction.from3DDataValue(configTag.getByte("Side"))), config);
+      else legacyConfigurations.put(pos, config);
     }
     transferBuffer = ItemStack.of(tag.getCompound("TransferBuffer"));
     bufferSource =

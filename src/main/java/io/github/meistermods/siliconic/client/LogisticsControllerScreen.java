@@ -160,10 +160,17 @@ public class LogisticsControllerScreen extends AbstractContainerScreen<Logistics
       if (endpoint == null) continue;
       int y = LogisticsControllerMenu.ROW_Y + row * LogisticsControllerMenu.ROW_SPACING;
       drawFittedString(g, endpoint.name(), 11, y - 1, 98, 0xffe8edf2);
+      Component positionAndSide =
+          Component.translatable(
+              "screen.siliconic.logistics_controller.position_side",
+              endpoint.pos().getX(),
+              endpoint.pos().getY(),
+              endpoint.pos().getZ(),
+              Component.translatable(
+                  "screen.siliconic.logistics_controller.side." + endpoint.side().getName()));
       drawFittedString(
           g,
-          Component.literal(
-              endpoint.pos().getX() + ", " + endpoint.pos().getY() + ", " + endpoint.pos().getZ()),
+          positionAndSide,
           11,
           y + 9,
           98,

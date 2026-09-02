@@ -279,7 +279,7 @@
   "container.siliconic.logistics_controller": "Logistics Controller",
   "message.siliconic.logistics_controller.no_pipe": "Connect a logistics pipe before opening the controller.",
   "screen.siliconic.logistics_controller.page": "%s / %s",
-  "screen.siliconic.logistics_controller.machine": "Machine",
+  "screen.siliconic.logistics_controller.machine": "Machine / Interface",
   "screen.siliconic.logistics_controller.filter": "Filter",
   "screen.siliconic.logistics_controller.input.on": "Input ON",
   "screen.siliconic.logistics_controller.input.off": "Input OFF",
@@ -287,5 +287,12 @@
   "screen.siliconic.logistics_controller.output.off": "Output OFF",
   "screen.siliconic.logistics_controller.forced.on": "Force ON",
   "screen.siliconic.logistics_controller.forced.off": "Force OFF",
+  "screen.siliconic.logistics_controller.position_side": "%1$s, %2$s, %3$s · %4$s",
+  "screen.siliconic.logistics_controller.side.down": "Bottom",
+  "screen.siliconic.logistics_controller.side.up": "Top",
+  "screen.siliconic.logistics_controller.side.north": "North",
+  "screen.siliconic.logistics_controller.side.south": "South",
+  "screen.siliconic.logistics_controller.side.west": "West",
+  "screen.siliconic.logistics_controller.side.east": "East",
   "screen.siliconic.logistics_controller.none": "No machines touch this pipe network."
 }

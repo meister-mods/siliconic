@@ -4,6 +4,7 @@ import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity.
 import io.github.meistermods.siliconic.registry.ModMenus;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -92,7 +93,11 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     List<EndpointInfo> endpoints = new ArrayList<>(count);
     for (int index = 0; index < count; index++)
       endpoints.add(
-          new EndpointInfo(buffer.readBlockPos(), buffer.readComponent(), buffer.readBoolean()));
+          new EndpointInfo(
+              buffer.readBlockPos(),
+              buffer.readEnum(Direction.class),
+              buffer.readComponent(),
+              buffer.readBoolean()));
     return new OpeningData(controller, List.copyOf(endpoints));
   }
 
@@ -115,7 +120,8 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
           if (index == 0) return serverPage;
           int endpointIndex = index - 1;
           return endpointIndex >= 0 && endpointIndex < endpoints.size()
-              ? controller.flags(endpoints.get(endpointIndex).pos())
+              ? controller.flags(
+                  endpoints.get(endpointIndex).pos(), endpoints.get(endpointIndex).side())
               : 0;
         }
         return index >= 0 && index < clientData.length ? clientData[index] : 0;
@@ -195,9 +201,10 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     if (row < 0 || row >= VISIBLE_ROWS || endpointIndex >= endpoints.size()) return false;
     EndpointInfo endpoint = endpoints.get(endpointIndex);
     switch (mode) {
-      case 0 -> controller.toggleInput(endpoint.pos());
-      case 1 -> controller.toggleOutput(endpoint.pos());
-      case 2 -> controller.toggleForced(endpoint.pos(), endpoint.supportsForced());
+      case 0 -> controller.toggleInput(endpoint.pos(), endpoint.side());
+      case 1 -> controller.toggleOutput(endpoint.pos(), endpoint.side());
+      case 2 ->
+          controller.toggleForced(endpoint.pos(), endpoint.side(), endpoint.supportsForced());
       default -> {
         return false;
       }
@@ -277,14 +284,18 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     @Override
     public ItemStack getStackInSlot(int slot) {
       checkSlot(slot);
-      return controller.filter(endpoints.get(slot).pos());
+      EndpointInfo endpoint = endpoints.get(slot);
+      return controller.filter(endpoint.pos(), endpoint.side());
     }
 
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
       checkSlot(slot);
       if (stack.isEmpty() || !getStackInSlot(slot).isEmpty()) return stack;
-      if (!simulate) controller.setFilter(endpoints.get(slot).pos(), stack.copyWithCount(1));
+      if (!simulate) {
+        EndpointInfo endpoint = endpoints.get(slot);
+        controller.setFilter(endpoint.pos(), endpoint.side(), stack.copyWithCount(1));
+      }
       ItemStack remainder = stack.copy();
       remainder.shrink(1);
       return remainder;
@@ -296,7 +307,10 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
       ItemStack filter = getStackInSlot(slot);
       if (amount <= 0 || filter.isEmpty()) return ItemStack.EMPTY;
       ItemStack result = filter.copyWithCount(1);
-      if (!simulate) controller.setFilter(endpoints.get(slot).pos(), ItemStack.EMPTY);
+      if (!simulate) {
+        EndpointInfo endpoint = endpoints.get(slot);
+        controller.setFilter(endpoint.pos(), endpoint.side(), ItemStack.EMPTY);
+      }
       return result;
     }
 
@@ -315,7 +329,8 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     @Override
     public void setStackInSlot(int slot, ItemStack stack) {
       checkSlot(slot);
-      controller.setFilter(endpoints.get(slot).pos(), stack);
+      EndpointInfo endpoint = endpoints.get(slot);
+      controller.setFilter(endpoint.pos(), endpoint.side(), stack);
     }
 
     private void checkSlot(int slot) {

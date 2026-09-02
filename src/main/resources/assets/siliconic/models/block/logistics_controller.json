@@ -2,7 +2,7 @@
   "parent": "siliconic:block/machine_with_interfaces",
   "render_type": "minecraft:cutout",
   "textures": {
-    "front_interface": "siliconic:block/redstone_clock_top_active",
-    "top_interface": "siliconic:block/wafer_duplicator_top"
+    "front_interface": "siliconic:block/logistics_controller_front",
+    "top_interface": "siliconic:block/logistics_controller_top"
   }
 }

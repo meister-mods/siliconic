@@ -2,6 +2,18 @@
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.2.3] - 2026-09-02
+
+### Fixed
+
+- Validated data-pack machine input slots and machine or reprocessing output stacks during recipe loading.
+- Correctly matched and consumed overlapping shapeless ingredients without counting one stack twice.
+- Treated damage-input counts as durability damage instead of required item counts.
+- Displayed shaped fabrication recipes in their actual JEI grid slots.
+- Checked every connected energy face while deduplicating shared receiver capabilities.
+- Made recipe type parameters explicit for stricter IDE Java analysis.
+- Prevented total-energy calculations from overflowing 32-bit integers.
+
 ## [0.2.2] - 2026-09-02
 
 ### Changed

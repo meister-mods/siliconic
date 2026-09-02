@@ -58,8 +58,8 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
               builder
                   .addInputSlot(8 + slot % 3 * 18, 6 + slot / 3 * 18)
                   .setStandardSlotBackground();
-          if (slot < process.inputs().size())
-            slotBuilder.addItemStacks(process.inputs().get(slot).stacks());
+          var input = process.inputAtSlot(slot);
+          if (input != null) slotBuilder.addItemStacks(input.stacks());
         }
       }
     } else {

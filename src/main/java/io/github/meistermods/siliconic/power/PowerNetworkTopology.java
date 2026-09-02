@@ -1,9 +1,8 @@
 package io.github.meistermods.siliconic.power;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,7 +33,7 @@ final class PowerNetworkTopology {
   }
 
   static List<Receiver> discover(Level level, BlockPos source, int maxCables) {
-    Map<BlockPos, Direction> receivers = new LinkedHashMap<>();
+    Set<Receiver> receivers = new LinkedHashSet<>();
     ArrayDeque<BlockPos> pendingCables = new ArrayDeque<>();
     Set<BlockPos> visitedCables = new HashSet<>();
 
@@ -45,7 +44,7 @@ final class PowerNetworkTopology {
       if (PowerCableBlock.connectsToward(neighborState, direction.getOpposite()))
         pendingCables.add(neighborPos);
       else if (level.getBlockEntity(neighborPos) != null)
-        receivers.putIfAbsent(neighborPos.immutable(), direction.getOpposite());
+        receivers.add(new Receiver(neighborPos, direction.getOpposite()));
     }
 
     while (!pendingCables.isEmpty() && visitedCables.size() < maxCables) {
@@ -63,14 +62,11 @@ final class PowerNetworkTopology {
         if (level.getBlockState(receiverPos).getBlock() instanceof PowerCableBlock) continue;
         if (!PowerCableBlock.connectsToward(cableState, direction)) continue;
         BlockEntity blockEntity = level.getBlockEntity(receiverPos);
-        if (blockEntity != null)
-          receivers.putIfAbsent(receiverPos.immutable(), direction.getOpposite());
+        if (blockEntity != null) receivers.add(new Receiver(receiverPos, direction.getOpposite()));
       }
     }
 
-    List<Receiver> result = new ArrayList<>(receivers.size());
-    receivers.forEach((pos, side) -> result.add(new Receiver(pos, side)));
-    return List.copyOf(result);
+    return List.copyOf(receivers);
   }
 
   private PowerNetworkTopology() {}

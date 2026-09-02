@@ -9,6 +9,7 @@ import io.github.meistermods.siliconic.registry.ModRecipes;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.WeakHashMap;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -43,9 +44,19 @@ public record ReprocessingProcess(
   private record TickCache(long gameTime, List<ReprocessingProcess> processes) {}
 
   public ReprocessingProcess {
+    Objects.requireNonNull(id, "Reprocessing process ID must not be null");
+    Objects.requireNonNull(input, "Reprocessing input must not be null");
+    Objects.requireNonNull(outputs, "Reprocessing outputs must not be null");
+    if (input == Items.AIR)
+      throw new IllegalArgumentException("Reprocessing input must not be air");
     if (inputCount < 1) throw new IllegalArgumentException("Input count must be positive");
     if (outputs.isEmpty()) throw new IllegalArgumentException("At least one output is required");
     outputs = outputs.stream().map(ItemStack::copy).toList();
+    for (ItemStack output : outputs) {
+      if (output.isEmpty()) throw new IllegalArgumentException("Outputs must not be empty");
+      if (output.getCount() > output.getMaxStackSize())
+        throw new IllegalArgumentException("Output count exceeds its maximum stack size");
+    }
     if (ticks < 1) throw new IllegalArgumentException("Process duration must be positive");
     if (energyPerTick < 1) throw new IllegalArgumentException("Energy use must be positive");
   }
@@ -111,13 +122,15 @@ public record ReprocessingProcess(
     return outputs.stream().map(ItemStack::copy).toList();
   }
 
-  public int totalEnergy() {
-    return ticks * energyPerTick;
+  public long totalEnergy() {
+    return (long) ticks * energyPerTick;
   }
 
   @Override
   public boolean matches(Container container, Level level) {
-    return !container.isEmpty() && matches(container.getItem(0));
+    return !container.isEmpty()
+        && matches(container.getItem(0))
+        && container.getItem(0).getCount() >= inputCount;
   }
 
   @Override

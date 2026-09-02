@@ -4,9 +4,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import io.github.meistermods.siliconic.registry.ModRecipes;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
@@ -24,7 +29,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 
-@SuppressWarnings({"null"})
+@SuppressWarnings({"null", "deprecated"})
 public record MachineProcess(
     ResourceLocation id,
     MachineKind machine,
@@ -37,10 +42,24 @@ public record MachineProcess(
     boolean shaped)
     implements Recipe<Container> {
   public MachineProcess {
-    inputs = List.copyOf(inputs);
-    byproducts = byproducts.stream().map(ItemStack::copy).toList();
+    Objects.requireNonNull(id, "Process ID must not be null");
+    Objects.requireNonNull(machine, "Process machine must not be null");
+    Objects.requireNonNull(resultItem, "Process output item must not be null");
+    inputs = List.copyOf(Objects.requireNonNull(inputs, "Process inputs must not be null"));
+    byproducts =
+        Objects.requireNonNull(byproducts, "Process byproducts must not be null").stream()
+            .map(ItemStack::copy)
+            .toList();
+    if (inputs.isEmpty())
+      throw new IllegalArgumentException("Process must have at least one input");
+    validateInputs(machine, inputs, shaped);
+    if (resultItem == Items.AIR)
+      throw new IllegalArgumentException("Process output must not be air");
     if (resultCount < 1)
       throw new IllegalArgumentException("Process output count must be positive");
+    if (resultCount > new ItemStack(resultItem).getMaxStackSize())
+      throw new IllegalArgumentException("Process output count exceeds its maximum stack size");
+    for (ItemStack byproduct : byproducts) validateByproduct(byproduct);
     if (ticks < 1) throw new IllegalArgumentException("Process duration must be positive");
     if (energyPerTick < 1)
       throw new IllegalArgumentException("Process energy use must be positive");
@@ -100,43 +119,31 @@ public record MachineProcess(
     return outputs;
   }
 
-  public int totalEnergy() {
-    return ticks * energyPerTick;
+  public long totalEnergy() {
+    return (long) ticks * energyPerTick;
   }
 
   public boolean matches(ItemStackHandler inventory, int inputStart, int inputSlots) {
+    if (!hasValidInputWindow(inventory, inputStart, inputSlots)) return false;
     if (shaped) {
       for (int relativeSlot = 0; relativeSlot < inputSlots; relativeSlot++) {
-        ProcessInput expected = inputAt(relativeSlot);
+        ProcessInput expected = inputAtSlot(relativeSlot);
         ItemStack actual = inventory.getStackInSlot(inputStart + relativeSlot);
         if (expected == null) {
           if (!actual.isEmpty()) return false;
-        } else if (!expected.matches(actual) || actual.getCount() < expected.count()) {
+        } else if (!expected.matches(actual) || actual.getCount() < expected.requiredItems()) {
           return false;
         }
       }
       return true;
     }
-
-    for (ProcessInput input : inputs) {
-      int available = 0;
-      for (int slot = inputStart; slot < inputStart + inputSlots; slot++) {
-        ItemStack stack = inventory.getStackInSlot(slot);
-        if (input.matches(stack)) available += stack.getCount();
-      }
-      if (available < input.count()) return false;
-    }
-    for (int slot = inputStart; slot < inputStart + inputSlots; slot++) {
-      ItemStack stack = inventory.getStackInSlot(slot);
-      if (!stack.isEmpty() && inputs.stream().noneMatch(input -> input.matches(stack)))
-        return false;
-    }
-    return true;
+    return findShapelessMatch(inventory, inputStart, inputSlots) != null;
   }
 
   public boolean accepts(int relativeSlot, ItemStack stack) {
+    if (relativeSlot < 0 || relativeSlot >= machine.inputSlots()) return false;
     if (shaped) {
-      ProcessInput input = inputAt(relativeSlot);
+      ProcessInput input = inputAtSlot(relativeSlot);
       return input != null && input.matches(stack);
     }
     return inputs.stream().anyMatch(input -> input.matches(stack));
@@ -147,15 +154,17 @@ public record MachineProcess(
       for (ProcessInput input : inputs) applyUse(inventory, inputStart + input.slot(), input);
       return;
     }
-    for (ProcessInput input : inputs) {
-      int remaining = input.count();
-      for (int slot = inputStart; slot < inputStart + inputSlots && remaining > 0; slot++) {
-        ItemStack stack = inventory.getStackInSlot(slot);
-        if (!input.matches(stack)) continue;
-        int used = Math.min(remaining, stack.getCount());
-        if (input.use() == ProcessInput.Use.CONSUME) inventory.extractItem(slot, used, false);
-        else if (input.use() == ProcessInput.Use.DAMAGE) damage(inventory, slot, used);
-        remaining -= used;
+    ShapelessMatch match = findShapelessMatch(inventory, inputStart, inputSlots);
+    if (match == null) return;
+    for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++) {
+      ProcessInput input = inputs.get(inputIndex);
+      if (input.use() == ProcessInput.Use.CATALYST) continue;
+      for (int relativeSlot = 0; relativeSlot < inputSlots; relativeSlot++) {
+        int assigned = match.allocations()[inputIndex][relativeSlot];
+        if (assigned <= 0) continue;
+        int slot = inputStart + relativeSlot;
+        if (input.use() == ProcessInput.Use.CONSUME) inventory.extractItem(slot, assigned, false);
+        else if (input.use() == ProcessInput.Use.DAMAGE) damage(inventory, slot, input.count());
       }
     }
   }
@@ -174,10 +183,114 @@ public record MachineProcess(
     inventory.setStackInSlot(slot, stack);
   }
 
-  private ProcessInput inputAt(int slot) {
+  public ProcessInput inputAtSlot(int slot) {
     for (ProcessInput input : inputs) if (input.slot() == slot) return input;
     return null;
   }
+
+  private boolean hasValidInputWindow(ItemStackHandler inventory, int inputStart, int inputSlots) {
+    return inventory != null
+        && inputStart >= 0
+        && inputSlots == machine.inputSlots()
+        && inputStart <= inventory.getSlots() - inputSlots;
+  }
+
+  /**
+   * Assigns available item counts to shapeless inputs as a small maximum-flow problem. This avoids
+   * letting one stack satisfy two overlapping ingredients at the same time.
+   */
+  private ShapelessMatch findShapelessMatch(
+      ItemStackHandler inventory, int inputStart, int inputSlots) {
+    if (!hasValidInputWindow(inventory, inputStart, inputSlots)) return null;
+    int source = 0;
+    int slotBase = 1;
+    int inputBase = slotBase + inputSlots;
+    int sink = inputBase + inputs.size();
+    int[][] residual = new int[sink + 1][sink + 1];
+    long totalRequired = 0;
+
+    for (int relativeSlot = 0; relativeSlot < inputSlots; relativeSlot++) {
+      ItemStack stack = inventory.getStackInSlot(inputStart + relativeSlot);
+      if (stack.isEmpty()) continue;
+      int slotNode = slotBase + relativeSlot;
+      residual[source][slotNode] = stack.getCount();
+      boolean accepted = false;
+      for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++) {
+        if (!inputs.get(inputIndex).matches(stack)) continue;
+        residual[slotNode][inputBase + inputIndex] = stack.getCount();
+        accepted = true;
+      }
+      if (!accepted) return null;
+    }
+    for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++) {
+      int required = inputs.get(inputIndex).requiredItems();
+      residual[inputBase + inputIndex][sink] = required;
+      totalRequired += required;
+    }
+
+    int flow = 0;
+    int[] parent = new int[residual.length];
+    while (true) {
+      Arrays.fill(parent, -1);
+      parent[source] = source;
+      ArrayDeque<Integer> pending = new ArrayDeque<>();
+      pending.add(source);
+      while (!pending.isEmpty() && parent[sink] < 0) {
+        int node = pending.removeFirst();
+        for (int next = 0; next < residual.length; next++) {
+          if (parent[next] >= 0 || residual[node][next] <= 0) continue;
+          parent[next] = node;
+          pending.addLast(next);
+        }
+      }
+      if (parent[sink] < 0) break;
+      int amount = Integer.MAX_VALUE;
+      for (int node = sink; node != source; node = parent[node])
+        amount = Math.min(amount, residual[parent[node]][node]);
+      for (int node = sink; node != source; node = parent[node]) {
+        residual[parent[node]][node] -= amount;
+        residual[node][parent[node]] += amount;
+      }
+      flow += amount;
+    }
+    if (flow != totalRequired) return null;
+
+    int[][] allocations = new int[inputs.size()][inputSlots];
+    for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++)
+      for (int relativeSlot = 0; relativeSlot < inputSlots; relativeSlot++)
+        allocations[inputIndex][relativeSlot] =
+            residual[inputBase + inputIndex][slotBase + relativeSlot];
+    return new ShapelessMatch(allocations);
+  }
+
+  private static void validateInputs(
+      MachineKind machine, List<ProcessInput> inputs, boolean shaped) {
+    Set<Integer> occupiedSlots = new HashSet<>();
+    for (ProcessInput input : inputs) {
+      if (shaped) {
+        if (input.slot() < 0 || input.slot() >= machine.inputSlots())
+          throw new IllegalArgumentException(
+              "Shaped process input slot "
+                  + input.slot()
+                  + " is outside the valid range for "
+                  + machine.id());
+        if (!occupiedSlots.add(input.slot()))
+          throw new IllegalArgumentException(
+              "Shaped process has more than one input in slot " + input.slot());
+      } else if (input.slot() != -1) {
+        throw new IllegalArgumentException("Shapeless process input slots must be -1");
+      }
+    }
+  }
+
+  private static void validateByproduct(ItemStack byproduct) {
+    if (byproduct == null || byproduct.isEmpty())
+      throw new IllegalArgumentException("Process byproducts must not be empty");
+    if (byproduct.getCount() > byproduct.getMaxStackSize())
+      throw new IllegalArgumentException("Process byproduct count exceeds its maximum stack size");
+  }
+
+  private record ShapelessMatch(int[][] allocations) {}
 
   /** Datapack serializer for {@code data/<namespace>/recipes/*.json}. */
   public static final class Serializer implements RecipeSerializer<MachineProcess> {
@@ -280,7 +393,13 @@ public record MachineProcess(
       Item item = itemId == null ? null : ForgeRegistries.ITEMS.getValue(itemId);
       if (item == null || item == Items.AIR)
         throw new JsonParseException("Unknown process output item: " + itemId);
-      return new ItemStack(item, GsonHelper.getAsInt(json, "count", 1));
+      int count = GsonHelper.getAsInt(json, "count", 1);
+      ItemStack output = new ItemStack(item);
+      int maxStackSize = output.getMaxStackSize();
+      if (count < 1 || count > maxStackSize)
+        throw new JsonParseException(
+            "Process output count for " + itemId + " must be between 1 and " + maxStackSize);
+      return output.copyWithCount(count);
     }
   }
 }

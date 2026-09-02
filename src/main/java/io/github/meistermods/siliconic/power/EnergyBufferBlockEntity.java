@@ -3,7 +3,10 @@ package io.github.meistermods.siliconic.power;
 import io.github.meistermods.siliconic.config.SiliconicConfig;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -92,13 +95,14 @@ public class EnergyBufferBlockEntity extends BlockEntity {
     if (energy.getEnergyStored() <= 0) return;
     refreshTopology(level, pos);
     List<IEnergyStorage> targets = new ArrayList<>(cachedReceivers.size());
+    Set<IEnergyStorage> seenTargets = Collections.newSetFromMap(new IdentityHashMap<>());
     for (PowerNetworkTopology.Receiver receiver : cachedReceivers) {
       if (!level.isLoaded(receiver.pos())) continue;
       BlockEntity blockEntity = level.getBlockEntity(receiver.pos());
       if (blockEntity == null || blockEntity instanceof EnergyBufferBlockEntity) continue;
       blockEntity
           .getCapability(ForgeCapabilities.ENERGY, receiver.side())
-          .filter(IEnergyStorage::canReceive)
+          .filter(target -> target.canReceive() && seenTargets.add(target))
           .ifPresent(targets::add);
     }
     distribute(targets);

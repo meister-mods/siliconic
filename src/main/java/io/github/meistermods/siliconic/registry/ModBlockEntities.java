@@ -92,8 +92,7 @@ public final class ModBlockEntities {
               "logistics_controller",
               () ->
                   BlockEntityType.Builder.of(
-                          LogisticsControllerBlockEntity::new,
-                          ModBlocks.LOGISTICS_CONTROLLER.get())
+                          LogisticsControllerBlockEntity::new, ModBlocks.LOGISTICS_CONTROLLER.get())
                       .build(null));
 
   private ModBlockEntities() {}

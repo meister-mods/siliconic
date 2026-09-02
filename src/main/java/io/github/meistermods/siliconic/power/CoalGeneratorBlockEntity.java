@@ -1,7 +1,7 @@
 package io.github.meistermods.siliconic.power;
 
-import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
+import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayDeque;
@@ -192,7 +192,8 @@ public class CoalGeneratorBlockEntity extends BlockEntity
     }
     if (ItemStack.isSameItemSameTags(remainingFuel, remainder)) {
       int moved =
-          Math.min(remainder.getCount(), remainingFuel.getMaxStackSize() - remainingFuel.getCount());
+          Math.min(
+              remainder.getCount(), remainingFuel.getMaxStackSize() - remainingFuel.getCount());
       remainingFuel.grow(moved);
       remainder.shrink(moved);
     }

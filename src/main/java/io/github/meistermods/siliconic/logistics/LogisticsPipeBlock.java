@@ -122,10 +122,7 @@ public class LogisticsPipeBlock extends Block {
           state.setValue(
               property(direction),
               connects(
-                  level,
-                  neighborPos,
-                  level.getBlockState(neighborPos),
-                  direction.getOpposite()));
+                  level, neighborPos, level.getBlockState(neighborPos), direction.getOpposite()));
     }
     return state;
   }
@@ -137,9 +134,7 @@ public class LogisticsPipeBlock extends Block {
     if (level instanceof Level loadedLevel && !loadedLevel.hasChunkAt(pos)) return false;
     BlockEntity blockEntity = level.getBlockEntity(pos);
     return blockEntity != null
-        && blockEntity
-            .getCapability(ForgeCapabilities.ITEM_HANDLER, sideFacingPipe)
-            .isPresent();
+        && blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, sideFacingPipe).isPresent();
   }
 
   private static BooleanProperty property(Direction direction) {

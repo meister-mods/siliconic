@@ -26,9 +26,7 @@ public class CoalGeneratorScreen extends AbstractContainerScreen<CoalGeneratorMe
     for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 154);
 
     int flameHeight =
-        menu.totalBurnTime() == 0
-            ? 0
-            : (int) (16L * menu.burnTime() / menu.totalBurnTime());
+        menu.totalBurnTime() == 0 ? 0 : (int) (16L * menu.burnTime() / menu.totalBurnTime());
     g.fill(leftPos + 66, topPos + 38, leftPos + 78, topPos + 54, 0xff2b3035);
     g.fill(leftPos + 66, topPos + 54 - flameHeight, leftPos + 78, topPos + 54, 0xffff9f43);
     int energyWidth = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();

@@ -214,8 +214,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     ConditionerBlockEntity updater = null;
     for (ConditionerBlockEntity conditioner : conditioners) {
       if (!conditioner.lastScan.isSealed()) continue;
-      if (updater == null
-          || conditioner.worldPosition.asLong() < updater.worldPosition.asLong())
+      if (updater == null || conditioner.worldPosition.asLong() < updater.worldPosition.asLong())
         updater = conditioner;
     }
     return updater;

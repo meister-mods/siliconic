@@ -9,8 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 @SuppressWarnings({"null"})
-public class LogisticsControllerScreen
-    extends AbstractContainerScreen<LogisticsControllerMenu> {
+public class LogisticsControllerScreen extends AbstractContainerScreen<LogisticsControllerMenu> {
   private static final int INPUT_X = 135;
   private static final int OUTPUT_X = 187;
   private static final int FORCED_X = 239;
@@ -43,7 +42,8 @@ public class LogisticsControllerScreen
                 .build());
     for (int row = 0; row < LogisticsControllerMenu.VISIBLE_ROWS; row++) {
       final int buttonRow = row;
-      int y = topPos + LogisticsControllerMenu.ROW_Y - 2 + row * LogisticsControllerMenu.ROW_SPACING;
+      int y =
+          topPos + LogisticsControllerMenu.ROW_Y - 2 + row * LogisticsControllerMenu.ROW_SPACING;
       inputButtons[row] =
           addRenderableWidget(
               Button.builder(Component.empty(), button -> sendButton(10 + buttonRow * 3))
@@ -163,11 +163,7 @@ public class LogisticsControllerScreen
       drawFittedString(
           g,
           Component.literal(
-              endpoint.pos().getX()
-                  + ", "
-                  + endpoint.pos().getY()
-                  + ", "
-                  + endpoint.pos().getZ()),
+              endpoint.pos().getX() + ", " + endpoint.pos().getY() + ", " + endpoint.pos().getZ()),
           11,
           y + 9,
           98,

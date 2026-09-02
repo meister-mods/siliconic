@@ -1,7 +1,7 @@
 package io.github.meistermods.siliconic.silicon;
 
-import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
+import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineKind.ThermalProfile;

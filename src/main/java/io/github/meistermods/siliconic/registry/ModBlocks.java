@@ -252,9 +252,7 @@ public final class ModBlocks {
           "logistics_controller",
           () ->
               new LogisticsControllerBlock(
-                  BlockBehaviour.Properties.of()
-                      .mapColor(MapColor.METAL)
-                      .strength(3.5f)));
+                  BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.5f)));
   public static final RegistryObject<Block> REDSTONE_CLOCK =
       BLOCKS.register(
           "redstone_clock",

@@ -227,8 +227,7 @@ public class PowerCableBlock extends Block {
 
   static boolean connectsToward(BlockState state, Direction direction) {
     return state.getBlock() instanceof PowerCableBlock
-        && (state.getValue(property(direction))
-            || state.getValue(ATTACHMENT).contains(direction));
+        && (state.getValue(property(direction)) || state.getValue(ATTACHMENT).contains(direction));
   }
 
   private static void addCableCoatedBlockConnections(

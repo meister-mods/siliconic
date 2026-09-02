@@ -74,19 +74,11 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     for (int index = 0; index < this.endpoints.size(); index++)
       addSlot(
           new EndpointFilterSlot(
-              filters,
-              index,
-              FILTER_X,
-              ROW_Y + (index % VISIBLE_ROWS) * ROW_SPACING,
-              index));
+              filters, index, FILTER_X, ROW_Y + (index % VISIBLE_ROWS) * ROW_SPACING, index));
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         addSlot(
-            new Slot(
-                inventory,
-                9 + row * 9 + column,
-                PLAYER_X + column * 18,
-                PLAYER_Y + row * 18));
+            new Slot(inventory, 9 + row * 9 + column, PLAYER_X + column * 18, PLAYER_Y + row * 18));
     for (int column = 0; column < 9; column++)
       addSlot(new Slot(inventory, column, PLAYER_X + column * 18, PLAYER_Y + 58));
     addDataSlots(data);
@@ -100,8 +92,7 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     List<EndpointInfo> endpoints = new ArrayList<>(count);
     for (int index = 0; index < count; index++)
       endpoints.add(
-          new EndpointInfo(
-              buffer.readBlockPos(), buffer.readComponent(), buffer.readBoolean()));
+          new EndpointInfo(buffer.readBlockPos(), buffer.readComponent(), buffer.readBoolean()));
     return new OpeningData(controller, List.copyOf(endpoints));
   }
 
@@ -147,7 +138,9 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
   }
 
   public int page() {
-    return controller != null && controller.getLevel() != null && !controller.getLevel().isClientSide
+    return controller != null
+            && controller.getLevel() != null
+            && !controller.getLevel().isClientSide
         ? serverPage
         : clientData[0];
   }
@@ -251,8 +244,7 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
   private final class EndpointFilterSlot extends SlotItemHandler {
     private final int endpointIndex;
 
-    EndpointFilterSlot(
-        IItemHandlerModifiable handler, int slot, int x, int y, int endpointIndex) {
+    EndpointFilterSlot(IItemHandlerModifiable handler, int slot, int x, int y, int endpointIndex) {
       super(handler, slot, x, y);
       this.endpointIndex = endpointIndex;
     }
@@ -272,8 +264,7 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     private final LogisticsControllerBlockEntity controller;
     private final List<EndpointInfo> endpoints;
 
-    EndpointFilterHandler(
-        LogisticsControllerBlockEntity controller, List<EndpointInfo> endpoints) {
+    EndpointFilterHandler(LogisticsControllerBlockEntity controller, List<EndpointInfo> endpoints) {
       this.controller = controller;
       this.endpoints = endpoints;
     }

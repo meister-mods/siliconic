@@ -2,8 +2,8 @@ package io.github.meistermods.siliconic.wafer;
 
 import io.github.meistermods.siliconic.cleanroom.CleanroomContamination;
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
-import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
+import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.List;

@@ -18,8 +18,8 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.Containers;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -70,10 +70,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   }
 
   public static void serverTick(
-      Level level,
-      BlockPos pos,
-      BlockState state,
-      LogisticsControllerBlockEntity controller) {
+      Level level, BlockPos pos, BlockState state, LogisticsControllerBlockEntity controller) {
     long offset = Math.floorMod(pos.asLong(), SCAN_INTERVAL);
     if (Math.floorMod(level.getGameTime(), SCAN_INTERVAL) == offset) controller.refreshNetwork();
     if (Math.floorMod(level.getGameTime(), TRANSFER_INTERVAL)
@@ -118,9 +115,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
         BlockEntity blockEntity = level.getBlockEntity(neighbor);
         Direction machineSide = direction.getOpposite();
         if (blockEntity != null
-            && blockEntity
-                .getCapability(ForgeCapabilities.ITEM_HANDLER, machineSide)
-                .isPresent())
+            && blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, machineSide).isPresent())
           machineSides
               .computeIfAbsent(neighbor.immutable(), ignored -> EnumSet.noneOf(Direction.class))
               .add(machineSide);
@@ -211,18 +206,10 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     for (EndpointConfig config : configurations.values())
       if (!config.filter.isEmpty())
         Containers.dropItemStack(
-            level,
-            worldPosition.getX(),
-            worldPosition.getY(),
-            worldPosition.getZ(),
-            config.filter);
+            level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), config.filter);
     if (!transferBuffer.isEmpty())
       Containers.dropItemStack(
-          level,
-          worldPosition.getX(),
-          worldPosition.getY(),
-          worldPosition.getZ(),
-          transferBuffer);
+          level, worldPosition.getX(), worldPosition.getY(), worldPosition.getZ(), transferBuffer);
   }
 
   private EndpointConfig config(BlockPos pos) {
@@ -347,12 +334,12 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
       configTag.putBoolean("Input", config.input);
       configTag.putBoolean("Output", config.output);
       configTag.putBoolean("Forced", config.forced);
-      if (!config.filter.isEmpty())
-        configTag.put("Filter", config.filter.save(new CompoundTag()));
+      if (!config.filter.isEmpty()) configTag.put("Filter", config.filter.save(new CompoundTag()));
       entries.add(configTag);
     }
     tag.put("Configurations", entries);
-    if (!transferBuffer.isEmpty()) tag.put("TransferBuffer", transferBuffer.save(new CompoundTag()));
+    if (!transferBuffer.isEmpty())
+      tag.put("TransferBuffer", transferBuffer.save(new CompoundTag()));
     if (bufferSource != null) tag.putLong("BufferSource", bufferSource.asLong());
     tag.putInt("SourceCursor", sourceCursor);
     tag.putInt("DestinationCursor", destinationCursor);

@@ -217,7 +217,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (lastScan.status() != RoomScanResult.Status.UNLOADED) return this;
     ConditionerBlockEntity updater = null;
     for (ConditionerBlockEntity conditioner : conditioners) {
-      if (!conditioner.lastScan.isSealed()) continue;
+      if (!conditioner.lastScan.isSealed()
+          || conditioner.lastScan.interiorPositions().isEmpty()) continue;
       if (updater == null || conditioner.worldPosition.asLong() < updater.worldPosition.asLong())
         updater = conditioner;
     }
@@ -228,7 +229,9 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
       Level level, Set<Long> conditionerPositions) {
     List<ConditionerBlockEntity> conditioners = new ArrayList<>();
     for (long conditionerPosition : conditionerPositions) {
-      BlockEntity blockEntity = level.getBlockEntity(BlockPos.of(conditionerPosition));
+      BlockPos conditionerPos = BlockPos.of(conditionerPosition);
+      if (!level.isLoaded(conditionerPos)) continue;
+      BlockEntity blockEntity = level.getBlockEntity(conditionerPos);
       if (blockEntity instanceof ConditionerBlockEntity conditioner && !conditioner.isRemoved())
         conditioners.add(conditioner);
     }

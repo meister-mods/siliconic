@@ -4,6 +4,16 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-02
+
+### Fixed
+
+- Preserved large data-pack process durations and energy costs across menu synchronization.
+- Prevented overflow in process duration, phase, and progress-bar calculations.
+- Saturated phase-specific energy adjustments instead of wrapping at the integer limit.
+- Avoided loading chunks while resolving linked cleanroom conditioners.
+- Ignored restored cleanroom scans without rebuilt interior positions when selecting a shared-state updater.
+
 ### Documentation
 
 - Refocused the bilingual READMEs on project, installation, development, contribution, and license information.

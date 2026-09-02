@@ -58,19 +58,19 @@ public class ReprocessorMenu extends AbstractContainerMenu {
   }
 
   public int progress() {
-    return reprocessor.data().get(2);
+    return MenuDataSync.combine(reprocessor.data().get(2), reprocessor.data().get(3));
   }
 
   public int maxProgress() {
-    return reprocessor.data().get(3);
+    return MenuDataSync.combine(reprocessor.data().get(4), reprocessor.data().get(5));
   }
 
   public int energyPerTick() {
-    return reprocessor.data().get(4);
+    return MenuDataSync.combine(reprocessor.data().get(6), reprocessor.data().get(7));
   }
 
   public int status() {
-    return reprocessor.data().get(5);
+    return reprocessor.data().get(8);
   }
 
   @Override

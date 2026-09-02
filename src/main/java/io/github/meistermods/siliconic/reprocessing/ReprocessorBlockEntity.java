@@ -59,7 +59,7 @@ public class ReprocessorBlockEntity extends BlockEntity
           slot -> slot >= INPUT_START && slot < INPUT_START + INPUT_SLOTS,
           slot -> slot >= OUTPUT_START && slot < OUTPUT_START + OUTPUT_SLOTS);
   private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> automationItems);
-  private final int[] clientData = new int[6];
+  private final int[] clientData = new int[9];
   private final ContainerData data =
       new ContainerData() {
         @Override
@@ -70,10 +70,13 @@ public class ReprocessorBlockEntity extends BlockEntity
           return switch (index) {
             case 0 -> MenuDataSync.low(energy.getEnergyStored());
             case 1 -> MenuDataSync.high(energy.getEnergyStored());
-            case 2 -> progress;
-            case 3 -> process == null ? 0 : process.ticks();
-            case 4 -> process == null ? 0 : process.energyPerTick();
-            case 5 -> status(process);
+            case 2 -> MenuDataSync.low(progress);
+            case 3 -> MenuDataSync.high(progress);
+            case 4 -> MenuDataSync.low(process == null ? 0 : process.ticks());
+            case 5 -> MenuDataSync.high(process == null ? 0 : process.ticks());
+            case 6 -> MenuDataSync.low(process == null ? 0 : process.energyPerTick());
+            case 7 -> MenuDataSync.high(process == null ? 0 : process.energyPerTick());
+            case 8 -> status(process);
             default -> 0;
           };
         }

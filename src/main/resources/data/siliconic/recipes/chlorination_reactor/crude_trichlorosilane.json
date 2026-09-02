@@ -1,0 +1,13 @@
+{
+  "type": "siliconic:machine_process",
+  "machine": "chlorination_reactor",
+  "shaped": true,
+  "ticks": 300,
+  "energy_per_tick": 40,
+  "inputs": [
+    {"slot": 0, "ingredient": {"item": "siliconic:metallurgical_silicon"}},
+    {"slot": 1, "ingredient": {"item": "siliconic:hydrogen_chloride"}, "count": 3}
+  ],
+  "result": {"item": "siliconic:crude_trichlorosilane"},
+  "byproducts": [{"item": "siliconic:hydrogen"}]
+}

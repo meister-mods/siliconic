@@ -1,6 +1,5 @@
 package io.github.meistermods.siliconic.client;
 
-import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
 import io.github.meistermods.siliconic.power.CoalGeneratorMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -46,8 +45,7 @@ public class CoalGeneratorScreen extends AbstractContainerScreen<CoalGeneratorMe
         font, Component.translatable("screen.siliconic.generator.fuel"), 43, 25, 0xffaeb7c0);
     g.drawString(
         font,
-        Component.translatable(
-            "screen.siliconic.generator.output", CoalGeneratorBlockEntity.GENERATION_PER_TICK),
+        Component.translatable("screen.siliconic.generator.output", menu.generationPerTick()),
         86,
         42,
         0xff66e69a,

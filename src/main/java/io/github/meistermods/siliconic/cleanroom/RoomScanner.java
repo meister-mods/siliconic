@@ -2,6 +2,7 @@ package io.github.meistermods.siliconic.cleanroom;
 
 import io.github.meistermods.siliconic.cleanroom.RoomScanResult.OpenableStats;
 import io.github.meistermods.siliconic.cleanroom.RoomScanResult.Status;
+import io.github.meistermods.siliconic.config.SiliconicConfig;
 import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +33,13 @@ public final class RoomScanner {
   }
 
   public static RoomScanResult scan(Level level, BlockPos origin) {
-    return scan(level, origin, DEFAULT_LIMITS);
+    return scan(level, origin, configuredLimits());
+  }
+
+  public static Limits configuredLimits() {
+    return new Limits(
+        SiliconicConfig.VALUES.cleanroomMaxVolume.get(),
+        SiliconicConfig.VALUES.cleanroomMaxDistance.get());
   }
 
   /**
@@ -89,7 +96,13 @@ public final class RoomScanner {
             (id, stats) -> sortedOpenables.put(id, new OpenableStats(stats.total, stats.open)));
     Status status = determineStatus(flags, discovered.isEmpty());
     return new RoomScanResult(
-        status, volume, discovered.size(), sortedSurfaces, sortedOpenables, discovered);
+        status,
+        volume,
+        discovered.size(),
+        sortedSurfaces,
+        sortedOpenables,
+        discovered,
+        flags.diagnosticPosition(status));
   }
 
   private static void inspectNeighbor(
@@ -105,11 +118,11 @@ public final class RoomScanner {
       ScanFlags flags) {
     if (candidate.equals(origin)) return;
     if (level.isOutsideBuildHeight(candidate)) {
-      flags.worldOpen = true;
+      flags.markWorldOpen(candidate);
       return;
     }
     if (!level.isLoaded(candidate)) {
-      flags.unloaded = true;
+      flags.markUnloaded(candidate);
       return;
     }
     BlockState state = level.getBlockState(candidate);
@@ -119,13 +132,13 @@ public final class RoomScanner {
       return;
     }
     if (distance(origin, candidate) > limits.maxDistance()) {
-      flags.limitReached = true;
+      flags.markLimitReached(candidate);
       return;
     }
     long key = candidate.asLong();
     if (discovered.contains(key)) return;
     if (discovered.size() >= limits.maxVolume()) {
-      flags.limitReached = true;
+      flags.markLimitReached(candidate);
       return;
     }
     discovered.add(key);
@@ -195,6 +208,33 @@ public final class RoomScanner {
     boolean limitReached;
     boolean unloaded;
     boolean worldOpen;
+    BlockPos limitPosition;
+    BlockPos unloadedPosition;
+    BlockPos worldOpenPosition;
+
+    void markLimitReached(BlockPos pos) {
+      limitReached = true;
+      if (limitPosition == null) limitPosition = pos.immutable();
+    }
+
+    void markUnloaded(BlockPos pos) {
+      unloaded = true;
+      if (unloadedPosition == null) unloadedPosition = pos.immutable();
+    }
+
+    void markWorldOpen(BlockPos pos) {
+      worldOpen = true;
+      if (worldOpenPosition == null) worldOpenPosition = pos.immutable();
+    }
+
+    BlockPos diagnosticPosition(Status status) {
+      return switch (status) {
+        case WORLD_OPEN -> worldOpenPosition;
+        case UNLOADED -> unloadedPosition;
+        case LIMIT_REACHED -> limitPosition;
+        default -> null;
+      };
+    }
   }
 
   private RoomScanner() {}

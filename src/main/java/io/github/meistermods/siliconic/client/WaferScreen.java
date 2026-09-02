@@ -28,6 +28,8 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
   private static final int GUI_HEIGHT = 180;
   private final int size, grid;
   private int gridX, gridY;
+  private int lastDraggedCell = -1;
+  private int dragButton = -1;
   private EditBox nameBox;
 
   public WaferScreen(WaferMenu menu, Inventory inventory, Component title) {
@@ -65,6 +67,19 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
                         new CompleteWaferPacket(menu.position(), nameBox.getValue())))
             .bounds(leftPos + 267, topPos + 14, 48, 18)
             .build());
+    addRenderableWidget(
+        Button.builder(Component.literal("↶"), button -> sendMenuButton(WaferMenu.BUTTON_UNDO))
+            .bounds(leftPos + 267, topPos + 36, 22, 12)
+            .build());
+    addRenderableWidget(
+        Button.builder(Component.literal("↷"), button -> sendMenuButton(WaferMenu.BUTTON_REDO))
+            .bounds(leftPos + 293, topPos + 36, 22, 12)
+            .build());
+  }
+
+  private void sendMenuButton(int id) {
+    if (minecraft != null && minecraft.gameMode != null)
+      minecraft.gameMode.handleInventoryButtonClick(menu.containerId, id);
   }
 
   @Override
@@ -269,9 +284,9 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
   @Override
   public boolean mouseClicked(double mx, double my, int button) {
     if (menu.wafer().hasWafer() && insideGrid((int) mx, (int) my) && (button == 0 || button == 1)) {
-      int x = (int) (mx - gridX) / CELL, y = (int) (my - gridY) / CELL;
-      ModNetwork.CHANNEL.sendToServer(
-          new CellInteractionPacket(menu.position(), y * size + x, button == 1));
+      dragButton = button;
+      lastDraggedCell = -1;
+      sendCellEdit(mx, my, button);
       return true;
     }
     if (button == 0 && menu.wafer().hasWafer()) {
@@ -282,6 +297,32 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       }
     }
     return super.mouseClicked(mx, my, button);
+  }
+
+  @Override
+  public boolean mouseDragged(double mx, double my, int button, double dragX, double dragY) {
+    if (button == dragButton && (button == 0 || button == 1) && sendCellEdit(mx, my, button))
+      return true;
+    return super.mouseDragged(mx, my, button, dragX, dragY);
+  }
+
+  @Override
+  public boolean mouseReleased(double mx, double my, int button) {
+    if (button == dragButton) {
+      dragButton = -1;
+      lastDraggedCell = -1;
+    }
+    return super.mouseReleased(mx, my, button);
+  }
+
+  private boolean sendCellEdit(double mx, double my, int button) {
+    if (!menu.wafer().hasWafer() || !insideGrid((int) mx, (int) my)) return false;
+    int x = (int) (mx - gridX) / CELL, y = (int) (my - gridY) / CELL;
+    int cell = y * size + x;
+    if (cell == lastDraggedCell) return true;
+    lastDraggedCell = cell;
+    ModNetwork.CHANNEL.sendToServer(new CellInteractionPacket(menu.position(), cell, button == 1));
+    return true;
   }
 
   @Override

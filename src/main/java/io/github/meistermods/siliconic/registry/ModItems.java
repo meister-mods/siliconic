@@ -184,6 +184,10 @@ public final class ModItems {
   public static final RegistryObject<Item> POWER_CABLE =
       ITEMS.register(
           "power_cable", () -> new BlockItem(ModBlocks.POWER_CABLE.get(), new Item.Properties()));
+  public static final RegistryObject<Item> ENERGY_BUFFER =
+      ITEMS.register(
+          "energy_buffer",
+          () -> new BlockItem(ModBlocks.ENERGY_BUFFER.get(), new Item.Properties()));
   public static final RegistryObject<Item> LOGISTICS_PIPE =
       ITEMS.register(
           "logistics_pipe",

@@ -1,0 +1,16 @@
+{
+  "type": "siliconic:machine_process",
+  "machine": "siemens_reactor",
+  "shaped": true,
+  "ticks": 400,
+  "energy_per_tick": 60,
+  "inputs": [
+    {"slot": 0, "ingredient": {"item": "siliconic:partial_polysilicon_rod"}},
+    {"slot": 1, "ingredient": {"item": "siliconic:purified_trichlorosilane"}, "count": 2}
+  ],
+  "result": {"item": "siliconic:high_purity_silicon"},
+  "byproducts": [
+    {"item": "siliconic:silicon_tetrachloride"},
+    {"item": "siliconic:hydrogen"}
+  ]
+}

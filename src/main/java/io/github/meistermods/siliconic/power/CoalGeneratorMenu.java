@@ -54,6 +54,10 @@ public class CoalGeneratorMenu extends AbstractContainerMenu {
     return generator.data().get(6);
   }
 
+  public int generationPerTick() {
+    return generator.data().get(7);
+  }
+
   @Override
   public ItemStack quickMoveStack(Player player, int index) {
     if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;

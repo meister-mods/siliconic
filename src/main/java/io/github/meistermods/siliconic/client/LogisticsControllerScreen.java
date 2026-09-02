@@ -4,25 +4,31 @@ import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity.
 import io.github.meistermods.siliconic.logistics.LogisticsControllerMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 
 @SuppressWarnings({"null"})
 public class LogisticsControllerScreen extends AbstractContainerScreen<LogisticsControllerMenu> {
-  private static final int INPUT_X = 135;
-  private static final int OUTPUT_X = 187;
-  private static final int FORCED_X = 239;
+  private static final int INPUT_X = 133;
+  private static final int OUTPUT_X = 177;
+  private static final int FORCED_X = 221;
+  private static final int BLACKLIST_X = 277;
+  private static final int PRIORITY_X = 337;
   private final Button[] inputButtons = new Button[LogisticsControllerMenu.VISIBLE_ROWS];
   private final Button[] outputButtons = new Button[LogisticsControllerMenu.VISIBLE_ROWS];
   private final Button[] forcedButtons = new Button[LogisticsControllerMenu.VISIBLE_ROWS];
+  private final Button[] blacklistButtons = new Button[LogisticsControllerMenu.VISIBLE_ROWS];
+  private final Button[] priorityButtons = new Button[LogisticsControllerMenu.VISIBLE_ROWS];
   private Button previousButton;
   private Button nextButton;
+  private EditBox searchBox;
 
   public LogisticsControllerScreen(
       LogisticsControllerMenu menu, Inventory inventory, Component title) {
     super(menu, inventory, title);
-    imageWidth = 310;
+    imageWidth = 408;
     imageHeight = 250;
     inventoryLabelY = 154;
   }
@@ -33,34 +39,76 @@ public class LogisticsControllerScreen extends AbstractContainerScreen<Logistics
     previousButton =
         addRenderableWidget(
             Button.builder(Component.literal("<"), button -> sendButton(0))
-                .bounds(leftPos + 245, topPos + 5, 20, 16)
+                .bounds(leftPos + 343, topPos + 5, 20, 16)
                 .build());
     nextButton =
         addRenderableWidget(
             Button.builder(Component.literal(">"), button -> sendButton(1))
-                .bounds(leftPos + 283, topPos + 5, 20, 16)
+                .bounds(leftPos + 381, topPos + 5, 20, 16)
                 .build());
+    searchBox =
+        new EditBox(
+            font,
+            leftPos + 145,
+            topPos + 4,
+            145,
+            18,
+            Component.translatable("screen.siliconic.logistics_controller.search"));
+    searchBox.setHint(Component.translatable("screen.siliconic.logistics_controller.search"));
+    searchBox.setResponder(this::jumpToSearchMatch);
+    addRenderableWidget(searchBox);
     for (int row = 0; row < LogisticsControllerMenu.VISIBLE_ROWS; row++) {
       final int buttonRow = row;
       int y =
           topPos + LogisticsControllerMenu.ROW_Y - 2 + row * LogisticsControllerMenu.ROW_SPACING;
       inputButtons[row] =
           addRenderableWidget(
-              Button.builder(Component.empty(), button -> sendButton(10 + buttonRow * 3))
-                  .bounds(leftPos + INPUT_X, y, 50, 20)
+              Button.builder(Component.empty(), button -> sendButton(10 + buttonRow * 5))
+                  .bounds(leftPos + INPUT_X, y, 42, 20)
                   .build());
       outputButtons[row] =
           addRenderableWidget(
-              Button.builder(Component.empty(), button -> sendButton(11 + buttonRow * 3))
-                  .bounds(leftPos + OUTPUT_X, y, 50, 20)
+              Button.builder(Component.empty(), button -> sendButton(11 + buttonRow * 5))
+                  .bounds(leftPos + OUTPUT_X, y, 42, 20)
                   .build());
       forcedButtons[row] =
           addRenderableWidget(
-              Button.builder(Component.empty(), button -> sendButton(12 + buttonRow * 3))
-                  .bounds(leftPos + FORCED_X, y, 62, 20)
+              Button.builder(Component.empty(), button -> sendButton(12 + buttonRow * 5))
+                  .bounds(leftPos + FORCED_X, y, 54, 20)
+                  .build());
+      blacklistButtons[row] =
+          addRenderableWidget(
+              Button.builder(Component.empty(), button -> sendButton(13 + buttonRow * 5))
+                  .bounds(leftPos + BLACKLIST_X, y, 58, 20)
+                  .build());
+      priorityButtons[row] =
+          addRenderableWidget(
+              Button.builder(Component.empty(), button -> sendButton(14 + buttonRow * 5))
+                  .bounds(leftPos + PRIORITY_X, y, 60, 20)
                   .build());
     }
     updateButtons();
+  }
+
+  private void jumpToSearchMatch(String query) {
+    String normalized = query.strip().toLowerCase(java.util.Locale.ROOT);
+    if (normalized.isEmpty()) return;
+    for (int index = 0; index < menu.endpoints().size(); index++) {
+      EndpointInfo endpoint = menu.endpoints().get(index);
+      String searchable =
+          (endpoint.name().getString()
+                  + " "
+                  + endpoint.pos().getX()
+                  + " "
+                  + endpoint.pos().getY()
+                  + " "
+                  + endpoint.pos().getZ())
+              .toLowerCase(java.util.Locale.ROOT);
+      if (searchable.contains(normalized)) {
+        sendButton(1_000 + index / LogisticsControllerMenu.VISIBLE_ROWS);
+        return;
+      }
+    }
   }
 
   private void sendButton(int id) {
@@ -84,11 +132,17 @@ public class LogisticsControllerScreen extends AbstractContainerScreen<Logistics
       inputButtons[row].visible = visible;
       outputButtons[row].visible = visible;
       forcedButtons[row].visible = visible;
+      blacklistButtons[row].visible = visible;
+      priorityButtons[row].visible = visible;
       if (!visible) continue;
       inputButtons[row].setMessage(modeText("input", menu.inputEnabled(row)));
       outputButtons[row].setMessage(modeText("output", menu.outputEnabled(row)));
       forcedButtons[row].setMessage(modeText("forced", menu.forcedEnabled(row)));
       forcedButtons[row].active = endpoint.supportsForced() || menu.forcedEnabled(row);
+      blacklistButtons[row].setMessage(modeText("blacklist", menu.blacklistEnabled(row)));
+      priorityButtons[row].setMessage(
+          Component.translatable(
+              "screen.siliconic.logistics_controller.priority." + menu.priority(row)));
     }
   }
 
@@ -131,7 +185,7 @@ public class LogisticsControllerScreen extends AbstractContainerScreen<Logistics
     Component page =
         Component.translatable(
             "screen.siliconic.logistics_controller.page", menu.page() + 1, menu.pageCount());
-    g.drawCenteredString(font, page, 274, 9, 0xffaeb7c0);
+    g.drawCenteredString(font, page, 372, 9, 0xffaeb7c0);
     g.drawString(
         font,
         Component.translatable("screen.siliconic.logistics_controller.machine"),

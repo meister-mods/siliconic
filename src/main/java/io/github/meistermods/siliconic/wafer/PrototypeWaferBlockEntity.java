@@ -6,6 +6,7 @@ import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
 import io.github.meistermods.siliconic.registry.ModItems;
+import io.github.meistermods.siliconic.wafer.WaferCircuitLogic.SignalPulse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -45,6 +46,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   public static final String DESIGN_TAG = "SiliconicDesign";
   public static final String COMPLETED_TAG = "SiliconicCompleted";
   public static final String RUNTIME_TAG = "SiliconicRuntime";
+  public static final String DESIGN_VERSION_TAG = "DesignVersion";
+  public static final int CURRENT_DESIGN_VERSION = 2;
   private static final int MAX_SIGNAL_STRENGTH = 15;
   private static final int MAX_DROP_AMOUNT = 16;
   private static final int MAX_CONDUCTOR_ATTENUATION_INTERVAL = 6;
@@ -281,10 +284,6 @@ public class PrototypeWaferBlockEntity extends BlockEntity
 
   private record WireState(int[] signals, int[][] strength, int[][] remaining) {}
 
-  private record Pulse(int strength, CellType material, int remaining) {
-    static final Pulse NONE = new Pulse(0, CellType.EMPTY, 0);
-  }
-
   public PrototypeWaferBlockEntity(BlockPos pos, BlockState state) {
     super(ModBlockEntities.WAFER_ASSEMBLER.get(), pos, state);
   }
@@ -295,6 +294,18 @@ public class PrototypeWaferBlockEntity extends BlockEntity
 
   public ItemStack getWafer() {
     return wafer;
+  }
+
+  public boolean restoreWaferSnapshot(ItemStack snapshot) {
+    if (snapshot.isEmpty() || wafer.isEmpty() || !snapshot.is(wafer.getItem())) return false;
+    wafer = snapshot.copyWithCount(1);
+    powered = false;
+    int count = getGridSize() * getGridSize();
+    signals = new int[count];
+    horizontalSignals = new int[count];
+    verticalSignals = new int[count];
+    changedAndSync();
+    return true;
   }
 
   public int getWaferLevel() {
@@ -841,7 +852,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
                     chipOutputs,
                     pinCell(size, pin),
                     pin)
-                .strength;
+                .strength();
     int[] horizontal = new int[count], vertical = new int[count];
     for (int cell = 0; cell < count; cell++) {
       if (cellType(design, size, cell).isConductor()) {
@@ -998,55 +1009,26 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       CellType target,
       int[][] nextStrength,
       int[][] nextRemaining) {
-    for (int[] group : conductorGroups(conductorMode(d, size, cell))) {
-      Pulse best = Pulse.NONE;
+    for (int[] group : WaferCircuitLogic.conductorGroups(conductorMode(d, size, cell))) {
+      SignalPulse best = SignalPulse.NONE;
       for (int side : group) {
         int direct = pinInputFrom(d, size, ext, cell, side);
-        if (direct > best.strength)
-          best = new Pulse(direct, target, target.attenuationInterval() - 1);
+        if (direct > best.strength())
+          best = new SignalPulse(direct, target, target.attenuationInterval() - 1);
         int n = neighbor(size, cell, side);
         if (n < 0) continue;
-        Pulse incoming =
+        SignalPulse incoming =
             emitted(d, size, values, wireStrength, wireRemaining, chips, n, (side + 2) & 3);
-        Pulse candidate = enterConductor(incoming, target);
-        if (candidate.strength > best.strength
-            || (candidate.strength == best.strength && candidate.remaining > best.remaining))
-          best = candidate;
+        SignalPulse candidate = WaferCircuitLogic.enterConductor(incoming, target);
+        if (candidate.strength() > best.strength()
+            || (candidate.strength() == best.strength()
+                && candidate.remaining() > best.remaining())) best = candidate;
       }
       for (int side : group) {
-        nextStrength[cell][side] = best.strength;
-        nextRemaining[cell][side] = best.remaining;
+        nextStrength[cell][side] = best.strength();
+        nextRemaining[cell][side] = best.remaining();
       }
     }
-  }
-
-  private int[][] conductorGroups(ConductorMode mode) {
-    return switch (mode) {
-      case PLUS -> new int[][] {{0, 1, 2, 3}};
-      case VERTICAL -> new int[][] {{0, 2}};
-      case HORIZONTAL -> new int[][] {{1, 3}};
-      case CROSSOVER -> new int[][] {{0, 2}, {1, 3}};
-      case CORNER_NE -> new int[][] {{0, 1}};
-      case CORNER_ES -> new int[][] {{1, 2}};
-      case CORNER_SW -> new int[][] {{2, 3}};
-      case CORNER_WN -> new int[][] {{3, 0}};
-    };
-  }
-
-  private Pulse enterConductor(Pulse incoming, CellType target) {
-    if (incoming.strength <= 0) return Pulse.NONE;
-    if (incoming.material == target) {
-      if (incoming.remaining > 0)
-        return new Pulse(incoming.strength, target, incoming.remaining - 1);
-      int attenuated = incoming.strength - 1;
-      return attenuated > 0
-          ? new Pulse(attenuated, target, target.attenuationInterval() - 1)
-          : Pulse.NONE;
-    }
-    int strength = incoming.material.isConductor() ? incoming.strength / 2 : incoming.strength;
-    return strength > 0
-        ? new Pulse(strength, target, target.attenuationInterval() - 1)
-        : Pulse.NONE;
   }
 
   private int gateOutput(
@@ -1064,9 +1046,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       a =
           readFrom(
               d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 2) & 3);
-      if (type == CellType.NOT) return a == 0 ? 15 : 0;
-      if (type == CellType.BUFFER) return a > 0 ? 15 : 0;
-      return Math.max(0, a - dropAmount(d, size, cell));
+      return WaferCircuitLogic.evaluateGate(type, a, 0, 0, 0, dropAmount(d, size, cell));
     }
     if (type == CellType.SWITCH) {
       int input =
@@ -1078,16 +1058,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       int rightControl =
           readFrom(
               d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 1) & 3);
-      return leftControl > 0 || rightControl > 0 ? input : 0;
+      return WaferCircuitLogic.evaluateGate(
+          type, input, 0, leftControl, rightControl, dropAmount(d, size, cell));
     }
     a = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 3) & 3);
     b = readFrom(d, size, values, wireStrength, wireRemaining, chips, ext, cell, (facing + 1) & 3);
-    return switch (type) {
-      case AND -> a > 0 && b > 0 ? 15 : 0;
-      case OR -> a > 0 || b > 0 ? 15 : 0;
-      case XOR -> (a > 0) ^ (b > 0) ? 15 : 0;
-      default -> 0;
-    };
+    return WaferCircuitLogic.evaluateGate(type, a, b, 0, 0, 0);
   }
 
   private int readFrom(
@@ -1106,10 +1082,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity
         n < 0
             ? 0
             : emitted(d, size, values, wireStrength, wireRemaining, chips, n, (side + 2) & 3)
-                .strength);
+                .strength());
   }
 
-  private Pulse emitted(
+  private SignalPulse emitted(
       CompoundTag d,
       int size,
       int[] values,
@@ -1120,20 +1096,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       int side) {
     CellType type = cellType(d, size, cell);
     if (type.isConductor())
-      return new Pulse(wireStrength[cell][side], type, wireRemaining[cell][side]);
+      return new SignalPulse(wireStrength[cell][side], type, wireRemaining[cell][side]);
     if (type.isGate() && rotation(d, size, cell) == side)
-      return new Pulse(values[cell], CellType.EMPTY, 0);
-    if (type == CellType.CHIP) return new Pulse(chips[cell][side], CellType.EMPTY, 0);
-    return Pulse.NONE;
+      return new SignalPulse(values[cell], CellType.EMPTY, 0);
+    if (type == CellType.CHIP) return new SignalPulse(chips[cell][side], CellType.EMPTY, 0);
+    return SignalPulse.NONE;
   }
-
-  // private int pinInput(CompoundTag d, int size, int[] ext, int cell) {
-  //   int value = 0;
-  //   for (int pin = 0; pin < 4; pin++)
-  //     if (pinCell(size, pin) == cell && pinMode(d, pin) == PinMode.INPUT)
-  //       value = Math.max(value, ext[pin]);
-  //   return value;
-  // }
 
   private int pinInputFrom(CompoundTag d, int size, int[] ext, int cell, int side) {
     return side >= 0 && side < 4 && pinCell(size, side) == cell && pinMode(d, side) == PinMode.INPUT
@@ -1193,7 +1161,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
     List<ItemStack> result = new ArrayList<>();
     CompoundTag design = wafer.getTagElement(DESIGN_TAG);
     if (design == null) return result;
-    migrateLegacyGrid(design);
+    migrateDesign(design);
     byte[] cells = design.getByteArray("Cells");
     CompoundTag chips = design.getCompound("Chips");
     for (int cell = 0; cell < Math.min(cells.length, GRID_SIZE * GRID_SIZE); cell++) {
@@ -1250,7 +1218,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
     clearRuntimeState(stack);
     CompoundTag design = stack.getTagElement(DESIGN_TAG);
     if (design == null) return;
-    migrateLegacyGrid(design);
+    migrateDesign(design);
     int count = GRID_SIZE * GRID_SIZE;
     byte[] oldCells = design.getByteArray("Cells");
     byte[] oldRotations = design.getByteArray("Rotations");
@@ -1259,14 +1227,15 @@ public class PrototypeWaferBlockEntity extends BlockEntity
     byte[] newCells = new byte[count], newRotations = new byte[count], newModes = new byte[count];
     byte[] newDropAmounts = new byte[count];
     for (int oldCell = 0; oldCell < count; oldCell++) {
-      int newCell = mirroredCell(oldCell);
+      int newCell = WaferCircuitLogic.mirroredCell(oldCell, GRID_SIZE);
       if (oldCells.length == count) newCells[newCell] = oldCells[oldCell];
       if (oldRotations.length == count)
-        newRotations[newCell] = (byte) mirrorRotation(Byte.toUnsignedInt(oldRotations[oldCell]));
+        newRotations[newCell] =
+            (byte) WaferCircuitLogic.mirrorRotation(Byte.toUnsignedInt(oldRotations[oldCell]));
       if (oldModes.length == count)
         newModes[newCell] =
             (byte)
-                mirrorConductorMode(
+                WaferCircuitLogic.mirrorConductorMode(
                         ConductorMode.values()[
                             Math.min(
                                 Byte.toUnsignedInt(oldModes[oldCell]),
@@ -1292,7 +1261,9 @@ public class PrototypeWaferBlockEntity extends BlockEntity
         if (oldCell < 0 || oldCell >= count) continue;
         ItemStack chip = ItemStack.of(oldChips.getCompound(key));
         mirrorHorizontally(chip);
-        newChips.put(Integer.toString(mirroredCell(oldCell)), chip.save(new CompoundTag()));
+        newChips.put(
+            Integer.toString(WaferCircuitLogic.mirroredCell(oldCell, GRID_SIZE)),
+            chip.save(new CompoundTag()));
       } catch (NumberFormatException ignored) {
         // Ignore malformed legacy chip indices.
       }
@@ -1300,27 +1271,9 @@ public class PrototypeWaferBlockEntity extends BlockEntity
     design.put("Chips", newChips);
   }
 
-  private static int mirroredCell(int cell) {
-    int x = cell % GRID_SIZE, y = cell / GRID_SIZE;
-    return y * GRID_SIZE + (GRID_SIZE - 1 - x);
-  }
-
-  private static int mirrorRotation(int rotation) {
-    return switch (rotation & 3) {
-      case 1 -> 3;
-      case 3 -> 1;
-      default -> rotation & 3;
-    };
-  }
-
-  private static ConductorMode mirrorConductorMode(ConductorMode mode) {
-    return switch (mode) {
-      case CORNER_NE -> ConductorMode.CORNER_WN;
-      case CORNER_ES -> ConductorMode.CORNER_SW;
-      case CORNER_SW -> ConductorMode.CORNER_ES;
-      case CORNER_WN -> ConductorMode.CORNER_NE;
-      default -> mode;
-    };
+  private static void migrateDesign(CompoundTag design) {
+    if (design.getInt(DESIGN_VERSION_TAG) < CURRENT_DESIGN_VERSION) migrateLegacyGrid(design);
+    design.putInt(DESIGN_VERSION_TAG, CURRENT_DESIGN_VERSION);
   }
 
   private static void migrateLegacyGrid(CompoundTag design) {
@@ -1391,7 +1344,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   private byte[] cells(CompoundTag d, int size) {
-    migrateLegacyGrid(d);
+    migrateDesign(d);
     int count = size * size;
     byte[] value = d.getByteArray("Cells");
     if (value.length == count) return value;
@@ -1447,7 +1400,9 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   private CompoundTag design() {
-    return wafer.getOrCreateTagElement(DESIGN_TAG);
+    CompoundTag design = wafer.getOrCreateTagElement(DESIGN_TAG);
+    migrateDesign(design);
+    return design;
   }
 
   private Direction[] directions() {

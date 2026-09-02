@@ -26,7 +26,7 @@ public record CellInteractionPacket(BlockPos pos, int cell, boolean rotate) {
           if (sender != null
               && sender.containerMenu instanceof WaferMenu menu
               && menu.tryBeginMutation(sender, packet.pos))
-            menu.wafer().interactCell(packet.cell, packet.rotate, sender);
+            menu.interactCell(sender, packet.cell, packet.rotate);
         });
     context.setPacketHandled(true);
   }

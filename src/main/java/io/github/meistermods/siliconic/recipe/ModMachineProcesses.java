@@ -2,7 +2,11 @@ package io.github.meistermods.siliconic.recipe;
 
 import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.registry.ModItems;
+import io.github.meistermods.siliconic.registry.ModRecipes;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -10,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,37 +28,89 @@ public final class ModMachineProcesses {
   private static final TagKey<Item> COPPER_NUGGETS =
       TagKey.create(
           Registries.ITEM, ResourceLocation.fromNamespaceAndPath("forge", "nuggets/copper"));
+  private static final Map<Level, TickCache> LEVEL_CACHE = new WeakHashMap<>();
+
+  private record TickCache(long gameTime, List<MachineProcess> processes) {}
 
   public static List<MachineProcess> all() {
-    return Holder.ALL;
+    return all(null);
+  }
+
+  /** Returns built-in defaults with datapack recipes added or replacing matching recipe IDs. */
+  public static List<MachineProcess> all(@Nullable Level level) {
+    if (level == null) return Holder.ALL;
+    long gameTime = level.getGameTime();
+    synchronized (LEVEL_CACHE) {
+      TickCache cached = LEVEL_CACHE.get(level);
+      if (cached != null && cached.gameTime() == gameTime) return cached.processes();
+    }
+    Map<ResourceLocation, MachineProcess> merged = new LinkedHashMap<>();
+    Holder.ALL.forEach(process -> merged.put(process.id(), process));
+    level
+        .getRecipeManager()
+        .getAllRecipesFor(ModRecipes.MACHINE_PROCESS_TYPE.get())
+        .forEach(process -> merged.put(process.id(), process));
+    List<MachineProcess> processes = List.copyOf(merged.values());
+    synchronized (LEVEL_CACHE) {
+      LEVEL_CACHE.put(level, new TickCache(gameTime, processes));
+    }
+    return processes;
   }
 
   public static List<MachineProcess> forMachine(MachineKind machine) {
-    return all().stream().filter(process -> process.machine() == machine).toList();
+    return forMachine(null, machine);
+  }
+
+  public static List<MachineProcess> forMachine(@Nullable Level level, MachineKind machine) {
+    return all(level).stream().filter(process -> process.machine() == machine).toList();
   }
 
   public static MachineProcess primary(MachineKind machine) {
-    for (MachineProcess process : all()) if (process.machine() == machine) return process;
+    return primary(null, machine);
+  }
+
+  public static MachineProcess primary(@Nullable Level level, MachineKind machine) {
+    for (MachineProcess process : all(level)) if (process.machine() == machine) return process;
     throw new IllegalArgumentException("No processes registered for " + machine);
   }
 
   @Nullable
   public static MachineProcess findMatching(
       MachineKind machine, ItemStackHandler inventory, int inputStart, int inputSlots) {
-    for (MachineProcess process : all())
+    return findMatching(null, machine, inventory, inputStart, inputSlots);
+  }
+
+  @Nullable
+  public static MachineProcess findMatching(
+      @Nullable Level level,
+      MachineKind machine,
+      ItemStackHandler inventory,
+      int inputStart,
+      int inputSlots) {
+    for (MachineProcess process : all(level))
       if (process.machine() == machine && process.matches(inventory, inputStart, inputSlots))
         return process;
     return null;
   }
 
   public static boolean accepts(MachineKind machine, int relativeSlot, ItemStack stack) {
-    for (MachineProcess process : all())
+    return accepts(null, machine, relativeSlot, stack);
+  }
+
+  public static boolean accepts(
+      @Nullable Level level, MachineKind machine, int relativeSlot, ItemStack stack) {
+    for (MachineProcess process : all(level))
       if (process.machine() == machine && process.accepts(relativeSlot, stack)) return true;
     return false;
   }
 
   public static boolean usesInputSlot(MachineKind machine, int relativeSlot) {
-    for (MachineProcess process : all())
+    return usesInputSlot(null, machine, relativeSlot);
+  }
+
+  public static boolean usesInputSlot(
+      @Nullable Level level, MachineKind machine, int relativeSlot) {
+    for (MachineProcess process : all(level))
       for (ProcessInput input : process.inputs())
         if (process.machine() == machine && input.slot() == relativeSlot) return true;
     return false;

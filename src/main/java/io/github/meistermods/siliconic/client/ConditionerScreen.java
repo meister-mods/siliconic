@@ -146,6 +146,15 @@ public class ConditionerScreen extends AbstractContainerScreen<ConditionerMenu> 
 
   private List<Component> detailRows(RoomScanResult result) {
     List<Component> rows = new ArrayList<>();
+    if (!result.isSealed() && result.diagnosticPosition() != null) {
+      var position = result.diagnosticPosition();
+      rows.add(
+          Component.translatable(
+              "screen.siliconic.conditioner.diagnostic_position",
+              position.getX(),
+              position.getY(),
+              position.getZ()));
+    }
     rows.add(Component.translatable("screen.siliconic.conditioner.materials"));
     if (result.surfaceMaterials().isEmpty())
       rows.add(Component.translatable("screen.siliconic.conditioner.none"));

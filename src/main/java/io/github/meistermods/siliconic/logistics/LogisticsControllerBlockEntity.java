@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.logistics;
 
+import io.github.meistermods.siliconic.config.SiliconicConfig;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -31,10 +32,6 @@ import org.jetbrains.annotations.Nullable;
 @SuppressWarnings({"null"})
 public class LogisticsControllerBlockEntity extends BlockEntity implements MenuProvider {
   public static final int MAX_ENDPOINTS = 128;
-  private static final int MAX_PIPES = 4_096;
-  private static final int SCAN_INTERVAL = 40;
-  private static final int TRANSFER_INTERVAL = 10;
-  private static final int TRANSFER_LIMIT = 8;
 
   public record EndpointInfo(
       BlockPos pos, Direction side, Component name, boolean supportsForced) {}
@@ -50,10 +47,16 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     private boolean input;
     private boolean output;
     private boolean forced;
+    private boolean blacklist;
+    private int priority;
     private ItemStack filter = ItemStack.EMPTY;
 
     int flags() {
-      return (input ? 1 : 0) | (output ? 2 : 0) | (forced ? 4 : 0);
+      return (input ? 1 : 0)
+          | (output ? 2 : 0)
+          | (forced ? 4 : 0)
+          | (blacklist ? 8 : 0)
+          | ((priority & 0xf) << 4);
     }
   }
 
@@ -72,10 +75,12 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, LogisticsControllerBlockEntity controller) {
-    long offset = Math.floorMod(pos.asLong(), SCAN_INTERVAL);
-    if (Math.floorMod(level.getGameTime(), SCAN_INTERVAL) == offset) controller.refreshNetwork();
-    if (Math.floorMod(level.getGameTime(), TRANSFER_INTERVAL)
-        != Math.floorMod(pos.asLong(), TRANSFER_INTERVAL)) return;
+    int scanInterval = SiliconicConfig.VALUES.logisticsScanInterval.get();
+    long offset = Math.floorMod(pos.asLong(), scanInterval);
+    if (Math.floorMod(level.getGameTime(), scanInterval) == offset) controller.refreshNetwork();
+    int transferInterval = SiliconicConfig.VALUES.logisticsTransferInterval.get();
+    if (Math.floorMod(level.getGameTime(), transferInterval)
+        != Math.floorMod(pos.asLong(), transferInterval)) return;
     if (!controller.connectedToPipe) return;
     if (!controller.transferBuffer.isEmpty()) {
       controller.moveBufferedItem();
@@ -98,7 +103,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     }
     connectedToPipe = !pending.isEmpty();
 
-    while (!pending.isEmpty() && visited.size() < MAX_PIPES) {
+    int maxPipes = SiliconicConfig.VALUES.logisticsMaxPipes.get();
+    while (!pending.isEmpty() && visited.size() < maxPipes) {
       BlockPos pipePos = pending.removeFirst();
       if (!visited.add(pipePos) || !level.isLoaded(pipePos)) continue;
       if (!(level.getBlockState(pipePos).getBlock() instanceof LogisticsPipeBlock)) continue;
@@ -192,6 +198,18 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     setChanged();
   }
 
+  void toggleBlacklist(BlockPos pos, Direction side) {
+    EndpointConfig config = config(pos, side);
+    config.blacklist = !config.blacklist;
+    setChanged();
+  }
+
+  void cyclePriority(BlockPos pos, Direction side) {
+    EndpointConfig config = config(pos, side);
+    config.priority = config.priority >= 2 ? -2 : config.priority + 1;
+    setChanged();
+  }
+
   ItemStack filter(BlockPos pos, Direction side) {
     EndpointConfig config = configurations.get(key(pos, side));
     return config == null ? ItemStack.EMPTY : config.filter.copy();
@@ -227,8 +245,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   private void extractNextItem() {
     if (level == null || endpoints.isEmpty()) return;
     int start = clampCursor(sourceCursor, endpoints.size());
-    for (int offset = 0; offset < endpoints.size(); offset++) {
-      int index = (start + offset) % endpoints.size();
+    for (int index : endpointOrder(start)) {
       MachineEndpoint endpoint = endpoints.get(index);
       EndpointConfig config = configurations.get(key(endpoint.pos(), endpoint.side()));
       if (config == null || !config.output) continue;
@@ -236,7 +253,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
       List<IItemHandler> handlers = extractionHandlers(endpoint, config.forced);
       for (IItemHandler handler : handlers)
         for (int slot = 0; slot < handler.getSlots(); slot++) {
-          ItemStack simulated = handler.extractItem(slot, TRANSFER_LIMIT, true);
+          ItemStack simulated =
+              handler.extractItem(slot, SiliconicConfig.VALUES.logisticsTransferLimit.get(), true);
           if (simulated.isEmpty() || !matchesFilter(config, simulated)) continue;
           if (findDestination(simulated, endpoint.pos()) == null) continue;
           ItemStack extracted = handler.extractItem(slot, simulated.getCount(), false);
@@ -271,8 +289,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   private Destination findDestination(ItemStack stack, @Nullable BlockPos source) {
     if (endpoints.isEmpty()) return null;
     int start = clampCursor(destinationCursor, endpoints.size());
-    for (int offset = 0; offset < endpoints.size(); offset++) {
-      MachineEndpoint endpoint = endpoints.get((start + offset) % endpoints.size());
+    for (int index : endpointOrder(start)) {
+      MachineEndpoint endpoint = endpoints.get(index);
       if (endpoint.pos().equals(source)) continue;
       EndpointConfig config = configurations.get(key(endpoint.pos(), endpoint.side()));
       if (config == null || !config.input || !matchesFilter(config, stack)) continue;
@@ -282,6 +300,21 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
       if (remainder.getCount() < stack.getCount()) return new Destination(endpoint);
     }
     return null;
+  }
+
+  private List<Integer> endpointOrder(int fairnessStart) {
+    List<Integer> order = new ArrayList<>(endpoints.size());
+    for (int index = 0; index < endpoints.size(); index++) order.add(index);
+    order.sort(
+        Comparator.<Integer>comparingInt(
+                index -> {
+                  MachineEndpoint endpoint = endpoints.get(index);
+                  EndpointConfig config = configurations.get(key(endpoint.pos(), endpoint.side()));
+                  return config == null ? 0 : config.priority;
+                })
+            .reversed()
+            .thenComparingInt(index -> Math.floorMod(index - fairnessStart, endpoints.size())));
+    return order;
   }
 
   private List<IItemHandler> extractionHandlers(MachineEndpoint endpoint, boolean forced) {
@@ -314,7 +347,9 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   }
 
   private static boolean matchesFilter(EndpointConfig config, ItemStack stack) {
-    return config.filter.isEmpty() || ItemStack.isSameItem(config.filter, stack);
+    if (config.filter.isEmpty()) return true;
+    boolean matches = ItemStack.isSameItem(config.filter, stack);
+    return config.blacklist ? !matches : matches;
   }
 
   private static boolean containsIdentity(List<IItemHandler> handlers, IItemHandler candidate) {
@@ -349,6 +384,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     configTag.putBoolean("Input", config.input);
     configTag.putBoolean("Output", config.output);
     configTag.putBoolean("Forced", config.forced);
+    configTag.putBoolean("Blacklist", config.blacklist);
+    configTag.putInt("Priority", config.priority);
     if (!config.filter.isEmpty()) configTag.put("Filter", config.filter.save(new CompoundTag()));
     return configTag;
   }
@@ -358,6 +395,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     config.input = configTag.getBoolean("Input");
     config.output = configTag.getBoolean("Output");
     config.forced = configTag.getBoolean("Forced");
+    config.blacklist = configTag.getBoolean("Blacklist");
+    config.priority = Math.max(-2, Math.min(2, configTag.getInt("Priority")));
     config.filter = ItemStack.of(configTag.getCompound("Filter"));
     return config;
   }

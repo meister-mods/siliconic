@@ -1,0 +1,11 @@
+{
+  "type": "siliconic:machine_process",
+  "machine": "distillation_tower",
+  "shaped": true,
+  "ticks": 400,
+  "energy_per_tick": 40,
+  "inputs": [
+    {"slot": 0, "ingredient": {"item": "siliconic:crude_trichlorosilane"}, "count": 4}
+  ],
+  "result": {"item": "siliconic:purified_trichlorosilane", "count": 4}
+}

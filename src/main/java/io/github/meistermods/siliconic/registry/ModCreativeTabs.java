@@ -23,6 +23,7 @@ public final class ModCreativeTabs {
                       (parameters, output) -> {
                         output.accept(ModItems.COAL_GENERATOR.get());
                         output.accept(ModItems.POWER_CABLE.get());
+                        output.accept(ModItems.ENERGY_BUFFER.get());
                         output.accept(ModItems.LOGISTICS_PIPE.get());
                         output.accept(ModItems.LOGISTICS_CONTROLLER.get());
                         output.accept(ModItems.REDSTONE_CLOCK.get());

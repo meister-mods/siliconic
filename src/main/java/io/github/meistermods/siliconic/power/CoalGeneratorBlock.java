@@ -62,6 +62,20 @@ public class CoalGeneratorBlock extends BaseEntityBlock {
   }
 
   @Override
+  public void neighborChanged(
+      BlockState state,
+      Level level,
+      BlockPos pos,
+      net.minecraft.world.level.block.Block neighborBlock,
+      BlockPos neighborPos,
+      boolean moving) {
+    super.neighborChanged(state, level, pos, neighborBlock, neighborPos, moving);
+    if (!level.isClientSide
+        && level.getBlockEntity(pos) instanceof CoalGeneratorBlockEntity generator)
+      generator.invalidateNetworkCache();
+  }
+
+  @Override
   public void onRemove(
       BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
     if (!state.is(newState.getBlock())

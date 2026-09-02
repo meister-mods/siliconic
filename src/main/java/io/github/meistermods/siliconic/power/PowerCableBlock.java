@@ -120,6 +120,7 @@ public class PowerCableBlock extends Block {
       LevelAccessor level,
       BlockPos pos,
       BlockPos neighborPos) {
+    if (level instanceof Level actualLevel) PowerNetworkTopology.invalidate(actualLevel);
     Attachment valid = validAttachment(state.getValue(ATTACHMENT), level, pos);
     if (valid == null) return Blocks.AIR.defaultBlockState();
     return connections(state.setValue(ATTACHMENT, valid), level, pos);
@@ -326,6 +327,7 @@ public class PowerCableBlock extends Block {
 
   private void scheduleNearbyCableUpdates(Level level, BlockPos pos) {
     if (level.isClientSide) return;
+    PowerNetworkTopology.invalidate(level);
     for (int dx = -1; dx <= 1; dx++)
       for (int dy = -1; dy <= 1; dy++)
         for (int dz = -1; dz <= 1; dz++) {

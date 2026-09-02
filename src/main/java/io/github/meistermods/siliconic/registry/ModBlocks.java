@@ -7,6 +7,7 @@ import io.github.meistermods.siliconic.fabrication.FabricationStationBlock;
 import io.github.meistermods.siliconic.logistics.LogisticsControllerBlock;
 import io.github.meistermods.siliconic.logistics.LogisticsPipeBlock;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlock;
+import io.github.meistermods.siliconic.power.EnergyBufferBlock;
 import io.github.meistermods.siliconic.power.PowerCableBlock;
 import io.github.meistermods.siliconic.power.RedstoneClockBlock;
 import io.github.meistermods.siliconic.recipe.MachineKind;
@@ -238,6 +239,16 @@ public final class ModBlocks {
                       .strength(0.2f)
                       .noCollission()
                       .noOcclusion()));
+  public static final RegistryObject<Block> ENERGY_BUFFER =
+      BLOCKS.register(
+          "energy_buffer",
+          () ->
+              new EnergyBufferBlock(
+                  BlockBehaviour.Properties.of()
+                      .mapColor(MapColor.METAL)
+                      .strength(4.0f)
+                      .sound(SoundType.METAL)
+                      .requiresCorrectToolForDrops()));
   public static final RegistryObject<Block> LOGISTICS_PIPE =
       BLOCKS.register(
           "logistics_pipe",

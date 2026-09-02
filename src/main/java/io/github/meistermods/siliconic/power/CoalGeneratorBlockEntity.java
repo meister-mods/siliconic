@@ -1,16 +1,12 @@
 package io.github.meistermods.siliconic.power;
 
+import io.github.meistermods.siliconic.config.SiliconicConfig;
 import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -43,8 +39,6 @@ public class CoalGeneratorBlockEntity extends BlockEntity
   public static final int SLOT_COUNT = 1;
   public static final int ENERGY_CAPACITY = 40_000;
   public static final int GENERATION_PER_TICK = 40;
-  private static final int TRANSFER_PER_CONNECTION = 200;
-  private static final int MAX_CABLES_PER_NETWORK = 4_096;
 
   private final GeneratorEnergyStorage energy = new GeneratorEnergyStorage();
   private final ItemStackHandler items =
@@ -67,7 +61,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
   private LazyOptional<net.minecraftforge.energy.IEnergyStorage> energyCapability =
       LazyOptional.of(() -> energy);
   private LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> automationItems);
-  private final int[] clientData = new int[7];
+  private final int[] clientData = new int[8];
   private final ContainerData data =
       new ContainerData() {
         @Override
@@ -82,6 +76,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
             case 4 -> MenuDataSync.low(totalBurnTime);
             case 5 -> MenuDataSync.high(totalBurnTime);
             case 6 -> status();
+            case 7 -> SiliconicConfig.VALUES.generatorOutputPerTick.get();
             default -> 0;
           };
         }
@@ -99,10 +94,13 @@ public class CoalGeneratorBlockEntity extends BlockEntity
   private int burnTime;
   private int totalBurnTime;
   private int distributionCursor;
+  private List<PowerNetworkTopology.Receiver> cachedReceivers = List.of();
+  private long cachedTopologyRevision = Long.MIN_VALUE;
+  private long lastTopologyScan = Long.MIN_VALUE;
 
   private static final class GeneratorEnergyStorage extends EnergyStorage {
     GeneratorEnergyStorage() {
-      super(ENERGY_CAPACITY, 0, 200);
+      super(ENERGY_CAPACITY, 0, SiliconicConfig.VALUES.powerTransferPerConnection.get());
     }
 
     void addInternal(int amount) {
@@ -111,6 +109,10 @@ public class CoalGeneratorBlockEntity extends BlockEntity
 
     void setStored(int amount) {
       energy = Math.max(0, Math.min(capacity, amount));
+    }
+
+    void extractInternal(int amount) {
+      energy = Math.max(0, energy - Math.max(0, amount));
     }
   }
 
@@ -170,7 +172,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
     if (generator.burnTime > 0
         && generator.energy.getEnergyStored() < generator.energy.getMaxEnergyStored()) {
       generator.burnTime--;
-      generator.energy.addInternal(GENERATION_PER_TICK);
+      generator.energy.addInternal(SiliconicConfig.VALUES.generatorOutputPerTick.get());
       generator.setChanged();
     }
     boolean lit =
@@ -202,48 +204,26 @@ public class CoalGeneratorBlockEntity extends BlockEntity
   }
 
   private void pushEnergy(Level level, BlockPos pos) {
-    Map<BlockPos, Direction> receivers = new LinkedHashMap<>();
-    ArrayDeque<BlockPos> pendingCables = new ArrayDeque<>();
-    Set<BlockPos> visitedCables = new HashSet<>();
-
-    for (Direction direction : Direction.values()) {
-      BlockPos neighborPos = pos.relative(direction);
-      if (!level.isLoaded(neighborPos)) continue;
-      BlockState neighborState = level.getBlockState(neighborPos);
-      if (PowerCableBlock.connectsToward(neighborState, direction.getOpposite()))
-        pendingCables.add(neighborPos);
-      else if (level.getBlockEntity(neighborPos) != null)
-        receivers.putIfAbsent(neighborPos, direction.getOpposite());
+    long revision = PowerNetworkTopology.revision(level);
+    int cacheTicks = SiliconicConfig.VALUES.powerNetworkCacheTicks.get();
+    long gameTime = level.getGameTime();
+    if (revision != cachedTopologyRevision
+        || lastTopologyScan == Long.MIN_VALUE
+        || gameTime < lastTopologyScan
+        || gameTime - lastTopologyScan >= cacheTicks) {
+      cachedReceivers =
+          PowerNetworkTopology.discover(
+              level, pos, SiliconicConfig.VALUES.powerNetworkMaxCables.get());
+      cachedTopologyRevision = revision;
+      lastTopologyScan = gameTime;
     }
 
-    while (!pendingCables.isEmpty() && visitedCables.size() < MAX_CABLES_PER_NETWORK) {
-      BlockPos cablePos = pendingCables.removeFirst();
-      if (!visitedCables.add(cablePos) || !level.isLoaded(cablePos)) continue;
-      BlockState cableState = level.getBlockState(cablePos);
-      if (!(cableState.getBlock() instanceof PowerCableBlock)) continue;
-
-      for (BlockPos connected : PowerCableBlock.connectedCables(level, cablePos, cableState))
-        if (!visitedCables.contains(connected)) pendingCables.addLast(connected);
-
-      for (Direction direction : Direction.values()) {
-        BlockPos receiverPos = cablePos.relative(direction);
-        if (!level.isLoaded(receiverPos)) continue;
-        if (receiverPos.equals(pos)
-            || level.getBlockState(receiverPos).getBlock() instanceof PowerCableBlock) continue;
-        if (!PowerCableBlock.connectsToward(cableState, direction)) continue;
-        if (level.getBlockEntity(receiverPos) != null)
-          receivers.putIfAbsent(receiverPos, direction.getOpposite());
-      }
-    }
-
-    List<IEnergyStorage> targets = new ArrayList<>(receivers.size());
-    for (Map.Entry<BlockPos, Direction> receiver : receivers.entrySet()) {
-      if (!level.isLoaded(receiver.getKey())) continue;
-      BlockEntity blockEntity = level.getBlockEntity(receiver.getKey());
+    List<IEnergyStorage> targets = new ArrayList<>(cachedReceivers.size());
+    for (PowerNetworkTopology.Receiver receiver : cachedReceivers) {
+      if (!level.isLoaded(receiver.pos())) continue;
+      BlockEntity blockEntity = level.getBlockEntity(receiver.pos());
       if (blockEntity == null) continue;
-      blockEntity
-          .getCapability(ForgeCapabilities.ENERGY, receiver.getValue())
-          .ifPresent(targets::add);
+      blockEntity.getCapability(ForgeCapabilities.ENERGY, receiver.side()).ifPresent(targets::add);
     }
     distributeEnergyEvenly(targets);
   }
@@ -251,21 +231,19 @@ public class CoalGeneratorBlockEntity extends BlockEntity
   private void distributeEnergyEvenly(List<IEnergyStorage> targets) {
     if (targets.isEmpty() || energy.getEnergyStored() <= 0) return;
     int[] demands = new int[targets.size()];
-    int totalDemand = 0;
+    long totalDemand = 0;
+    int transferLimit = SiliconicConfig.VALUES.powerTransferPerConnection.get();
     for (int index = 0; index < targets.size(); index++) {
       demands[index] =
           Math.max(
-              0,
-              Math.min(
-                  TRANSFER_PER_CONNECTION,
-                  targets.get(index).receiveEnergy(TRANSFER_PER_CONNECTION, true)));
+              0, Math.min(transferLimit, targets.get(index).receiveEnergy(transferLimit, true)));
       totalDemand += demands[index];
     }
-    int budget = Math.min(energy.getEnergyStored(), totalDemand);
+    int budget = (int) Math.min(energy.getEnergyStored(), totalDemand);
     if (budget <= 0) return;
 
     int start = Math.floorMod(distributionCursor, targets.size());
-    int[] allocations = balancedAllocations(demands, budget, start);
+    int[] allocations = BalancedEnergyDistributor.allocate(demands, budget, start);
     boolean transferred = false;
     for (int offset = 0; offset < targets.size(); offset++) {
       int index = (start + offset) % targets.size();
@@ -273,7 +251,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
       if (offered <= 0) continue;
       int accepted = Math.min(offered, targets.get(index).receiveEnergy(offered, false));
       if (accepted <= 0) continue;
-      energy.extractEnergy(accepted, false);
+      energy.extractInternal(accepted);
       transferred = true;
     }
     int advance = budget % targets.size();
@@ -281,54 +259,8 @@ public class CoalGeneratorBlockEntity extends BlockEntity
     if (transferred) setChanged();
   }
 
-  private static int[] balancedAllocations(int[] demands, int budget, int start) {
-    int[] allocations = new int[demands.length];
-    boolean[] active = new boolean[demands.length];
-    int activeCount = 0;
-    for (int index = 0; index < demands.length; index++) {
-      active[index] = demands[index] > 0;
-      if (active[index]) activeCount++;
-    }
-
-    int remaining = budget;
-    while (remaining > 0 && activeCount > 0) {
-      int share = remaining / activeCount;
-      if (share == 0) {
-        for (int offset = 0; offset < demands.length && remaining > 0; offset++) {
-          int index = (start + offset) % demands.length;
-          if (!active[index]) continue;
-          allocations[index]++;
-          remaining--;
-        }
-        break;
-      }
-
-      boolean cappedReceiver = false;
-      for (int index = 0; index < demands.length; index++) {
-        if (!active[index]) continue;
-        int unmetDemand = demands[index] - allocations[index];
-        if (unmetDemand > share) continue;
-        allocations[index] += unmetDemand;
-        remaining -= unmetDemand;
-        active[index] = false;
-        activeCount--;
-        cappedReceiver = true;
-      }
-      if (cappedReceiver) continue;
-
-      for (int index = 0; index < demands.length; index++)
-        if (active[index]) {
-          allocations[index] += share;
-          remaining -= share;
-        }
-      for (int offset = 0; offset < demands.length && remaining > 0; offset++) {
-        int index = (start + offset) % demands.length;
-        if (!active[index]) continue;
-        allocations[index]++;
-        remaining--;
-      }
-    }
-    return allocations;
+  public void invalidateNetworkCache() {
+    cachedTopologyRevision = Long.MIN_VALUE;
   }
 
   @Override
@@ -354,6 +286,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
     totalBurnTime = Math.max(burnTime, tag.getInt("TotalBurnTime"));
     distributionCursor = Math.max(0, tag.getInt("DistributionCursor"));
     energy.setStored(tag.getInt("Energy"));
+    invalidateNetworkCache();
   }
 
   @Override

@@ -1,0 +1,11 @@
+{
+  "type": "siliconic:reprocessing",
+  "input": {"item": "siliconic:contaminated_gate"},
+  "outputs": [
+    {"item": "siliconic:high_purity_silicon"},
+    {"item": "minecraft:redstone"},
+    {"item": "siliconic:copper_nugget", "count": 2}
+  ],
+  "ticks": 240,
+  "energy_per_tick": 50
+}

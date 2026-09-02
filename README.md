@@ -1,6 +1,6 @@
 # Siliconic
 
-English | [한국어](README.kr.md)
+English | [Korean](README.kr.md)
 
 > Refine silicon, engineer cleanrooms, and build working redstone circuits inside programmable wafers.
 
@@ -42,6 +42,8 @@ Siliconic is a technology mod for Minecraft Forge 1.20.1 centered on semiconduct
 
 - Generate power with coal generators and distribute it through surface-mounted cable networks.
 - Share available power fairly among multiple connected machines instead of filling only the first machine in the network.
+- Store and redistribute energy with buffers, then read their charge by interaction or comparator output.
+- Configure logistics ports for input, output, forced access, allow/deny filters, and priority, with device-name and coordinate search.
 - Monitor energy, progress, inputs, outputs, and machine status through dedicated interfaces.
 - Automate production with hoppers while protected workpiece and material slots remain inside their machines.
 - Inspect machine processes and material costs through optional JEI integration.
@@ -97,7 +99,7 @@ With JDK 17 installed, run:
 .\gradlew.bat build
 ```
 
-The built mod file will be generated in `build/libs`. Use `.\gradlew.bat runClient` to launch the development client.
+The runnable mod is generated as `build/libs/siliconic-1.20.1-0.2.1.jar`. The `-sources.jar` is for development and should not be placed in `mods`. Use `.\gradlew.bat runClient` for the development client or `.\gradlew.bat runGameTestServer` for automated regression tests. See [`docs/MACHINE_PROCESSES.md`](docs/MACHINE_PROCESSES.md) for the data-pack process format.
 
 ## Development Status
 

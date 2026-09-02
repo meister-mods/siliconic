@@ -5,6 +5,7 @@ import io.github.meistermods.siliconic.cleanroom.ConditionerBlockEntity;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
 import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
+import io.github.meistermods.siliconic.power.EnergyBufferBlockEntity;
 import io.github.meistermods.siliconic.reprocessing.ReprocessorBlockEntity;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
@@ -36,6 +37,13 @@ public final class ModBlockEntities {
           () ->
               BlockEntityType.Builder.of(
                       CoalGeneratorBlockEntity::new, ModBlocks.COAL_GENERATOR.get())
+                  .build(null));
+  public static final RegistryObject<BlockEntityType<EnergyBufferBlockEntity>> ENERGY_BUFFER =
+      BLOCK_ENTITIES.register(
+          "energy_buffer",
+          () ->
+              BlockEntityType.Builder.of(
+                      EnergyBufferBlockEntity::new, ModBlocks.ENERGY_BUFFER.get())
                   .build(null));
   public static final RegistryObject<BlockEntityType<WaferInverterBlockEntity>> WAFER_INVERTER =
       BLOCK_ENTITIES.register(

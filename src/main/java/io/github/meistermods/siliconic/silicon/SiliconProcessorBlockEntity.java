@@ -67,7 +67,8 @@ public class SiliconProcessorBlockEntity extends BlockEntity
         public boolean isItemValid(int slot, ItemStack stack) {
           if (slot >= OUTPUT_START) return false;
           if (slot == MAGMA_SLOT) return requiresMagma() && magmaValue(stack) > 0;
-          return ModMachineProcesses.accepts(machineKind(), slot, stack);
+          return ModMachineProcesses.accepts(
+              SiliconProcessorBlockEntity.this.level, machineKind(), slot, stack);
         }
 
         @Override
@@ -169,7 +170,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   }
 
   public boolean hasInputSlot(int relativeSlot) {
-    return ModMachineProcesses.usesInputSlot(machineKind(), relativeSlot);
+    return ModMachineProcesses.usesInputSlot(level, machineKind(), relativeSlot);
   }
 
   public int visibleInputSlots() {
@@ -204,8 +205,8 @@ public class SiliconProcessorBlockEntity extends BlockEntity
     if (ventedTicks > 0) return 7;
     MachineProcess process = currentProcess();
     if (process == null) {
-      if (!ModMachineProcesses.accepts(machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT)))
-        return 0;
+      if (!ModMachineProcesses.accepts(
+          level, machineKind(), INPUT_SLOT, items.getStackInSlot(INPUT_SLOT))) return 0;
       return 1;
     }
     List<ItemStack> outputs = pendingResults.isEmpty() ? dynamicOutputs(process) : pendingResults;
@@ -366,7 +367,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   }
 
   private MachineProcess primaryProcess() {
-    return ModMachineProcesses.primary(machineKind());
+    return ModMachineProcesses.primary(level, machineKind());
   }
 
   private MachineProcess displayProcess() {
@@ -376,7 +377,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
 
   @Nullable
   private MachineProcess currentProcess() {
-    return ModMachineProcesses.findMatching(machineKind(), items, INPUT_SLOT, INPUT_SLOTS);
+    return ModMachineProcesses.findMatching(level, machineKind(), items, INPUT_SLOT, INPUT_SLOTS);
   }
 
   private int effectiveMaxTicks(MachineProcess process) {

@@ -42,7 +42,7 @@ public class ReprocessorBlockEntity extends BlockEntity
         public boolean isItemValid(int slot, ItemStack stack) {
           return slot >= INPUT_START
               && slot < INPUT_START + INPUT_SLOTS
-              && ReprocessingProcess.accepts(stack);
+              && ReprocessingProcess.accepts(ReprocessorBlockEntity.this.level, stack);
         }
 
         @Override
@@ -169,7 +169,7 @@ public class ReprocessorBlockEntity extends BlockEntity
 
   @Nullable
   private ReprocessingProcess currentProcess() {
-    return ReprocessingProcess.find(items, INPUT_START, INPUT_SLOTS);
+    return ReprocessingProcess.find(level, items, INPUT_START, INPUT_SLOTS);
   }
 
   private void resetProgress() {

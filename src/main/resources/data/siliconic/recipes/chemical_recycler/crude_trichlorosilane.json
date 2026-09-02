@@ -1,0 +1,13 @@
+{
+  "type": "siliconic:machine_process",
+  "machine": "chemical_recycler",
+  "shaped": true,
+  "ticks": 300,
+  "energy_per_tick": 40,
+  "inputs": [
+    {"slot": 0, "ingredient": {"item": "siliconic:silicon_tetrachloride"}},
+    {"slot": 1, "ingredient": {"item": "siliconic:hydrogen"}}
+  ],
+  "result": {"item": "siliconic:crude_trichlorosilane"},
+  "byproducts": [{"item": "siliconic:hydrogen_chloride"}]
+}

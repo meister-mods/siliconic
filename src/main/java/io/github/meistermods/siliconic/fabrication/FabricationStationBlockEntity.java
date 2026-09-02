@@ -47,7 +47,11 @@ public class FabricationStationBlockEntity extends BlockEntity
         public boolean isItemValid(int slot, ItemStack stack) {
           return slot >= INPUT_START
               && slot < INPUT_START + INPUT_SLOTS
-              && ModMachineProcesses.accepts(machineKind(), slot - INPUT_START, stack);
+              && ModMachineProcesses.accepts(
+                  FabricationStationBlockEntity.this.level,
+                  machineKind(),
+                  slot - INPUT_START,
+                  stack);
         }
 
         @Override
@@ -196,7 +200,7 @@ public class FabricationStationBlockEntity extends BlockEntity
 
   @Nullable
   private MachineProcess currentProcess() {
-    return ModMachineProcesses.findMatching(machineKind(), items, INPUT_START, INPUT_SLOTS);
+    return ModMachineProcesses.findMatching(level, machineKind(), items, INPUT_START, INPUT_SLOTS);
   }
 
   private boolean canFitOutput(ItemStack result) {

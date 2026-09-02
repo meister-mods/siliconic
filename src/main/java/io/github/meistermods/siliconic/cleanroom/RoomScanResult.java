@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import javax.annotation.Nullable;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -35,6 +37,7 @@ public final class RoomScanResult {
   private final Map<ResourceLocation, Integer> surfaceMaterials;
   private final Map<ResourceLocation, OpenableStats> openables;
   private final Set<Long> interiorPositions;
+  @Nullable private final BlockPos diagnosticPosition;
 
   public RoomScanResult(
       Status status,
@@ -43,12 +46,24 @@ public final class RoomScanResult {
       Map<ResourceLocation, Integer> surfaceMaterials,
       Map<ResourceLocation, OpenableStats> openables,
       Set<Long> interiorPositions) {
+    this(status, volume, scannedPositions, surfaceMaterials, openables, interiorPositions, null);
+  }
+
+  public RoomScanResult(
+      Status status,
+      int volume,
+      int scannedPositions,
+      Map<ResourceLocation, Integer> surfaceMaterials,
+      Map<ResourceLocation, OpenableStats> openables,
+      Set<Long> interiorPositions,
+      @Nullable BlockPos diagnosticPosition) {
     this.status = status;
     this.volume = Math.max(0, volume);
     this.scannedPositions = Math.max(0, scannedPositions);
     this.surfaceMaterials = immutableCopy(surfaceMaterials);
     this.openables = immutableCopy(openables);
     this.interiorPositions = Collections.unmodifiableSet(new HashSet<>(interiorPositions));
+    this.diagnosticPosition = diagnosticPosition == null ? null : diagnosticPosition.immutable();
   }
 
   public static RoomScanResult notScanned() {
@@ -88,6 +103,12 @@ public final class RoomScanResult {
     return interiorPositions;
   }
 
+  /** First position that explains an open, unloaded, or size-limited scan failure. */
+  @Nullable
+  public BlockPos diagnosticPosition() {
+    return diagnosticPosition;
+  }
+
   public int openableCount() {
     return openables.values().stream().mapToInt(OpenableStats::total).sum();
   }
@@ -101,6 +122,7 @@ public final class RoomScanResult {
     tag.putString("Status", status.name());
     tag.putInt("Volume", volume);
     tag.putInt("ScannedPositions", scannedPositions);
+    if (diagnosticPosition != null) tag.putLong("DiagnosticPosition", diagnosticPosition.asLong());
     ListTag surfaces = new ListTag();
     surfaceMaterials.forEach(
         (id, faces) -> {
@@ -145,12 +167,17 @@ public final class RoomScanResult {
       if (id != null)
         openables.put(id, new OpenableStats(entry.getInt("Total"), entry.getInt("Open")));
     }
+    BlockPos diagnosticPosition =
+        tag.contains("DiagnosticPosition", Tag.TAG_LONG)
+            ? BlockPos.of(tag.getLong("DiagnosticPosition"))
+            : null;
     return new RoomScanResult(
         status,
         tag.getInt("Volume"),
         tag.getInt("ScannedPositions"),
         surfaces,
         openables,
-        Set.of());
+        Set.of(),
+        diagnosticPosition);
   }
 }

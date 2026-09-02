@@ -24,7 +24,7 @@ public record CompleteWaferPacket(BlockPos pos, String name) {
           var sender = context.getSender();
           if (sender != null
               && sender.containerMenu instanceof WaferMenu menu
-              && menu.tryBeginMutation(sender, packet.pos)) menu.wafer().completeWafer(packet.name);
+              && menu.tryBeginMutation(sender, packet.pos)) menu.completeWafer(packet.name);
         });
     context.setPacketHandled(true);
   }

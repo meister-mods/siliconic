@@ -1,0 +1,10 @@
+{
+  "type": "siliconic:reprocessing",
+  "input": {"item": "siliconic:contaminated_wafer"},
+  "outputs": [
+    {"item": "siliconic:high_purity_silicon", "count": 2},
+    {"item": "minecraft:redstone"}
+  ],
+  "ticks": 300,
+  "energy_per_tick": 60
+}

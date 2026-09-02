@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.cleanroom;
 
+import io.github.meistermods.siliconic.config.SiliconicConfig;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
@@ -53,7 +54,6 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
       LazyOptional.of(() -> energy);
   private boolean powered;
   private boolean sharedPowered;
-  private int scanCooldown;
   private int cleanliness;
   private int cleanlinessLimit = BASE_CLEANLINESS_LIMIT;
   private int coatingCoverage;
@@ -65,7 +65,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   private double cleanlinessRecoveryProgress;
   private RoomScanResult lastScan = RoomScanResult.notScanned();
   private final Set<Long> claimedInteriorPositions = new HashSet<>();
-  private final int[] clientData = new int[10];
+  private final int[] clientData = new int[13];
   private final ContainerData data =
       new ContainerData() {
         @Override
@@ -83,6 +83,9 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
             case 7 -> conditionerCount;
             case 8 -> equipmentPollutionSources;
             case 9 -> blockPollutionSources;
+            case 10 -> SiliconicConfig.VALUES.cleanroomEnergyPerTick.get();
+            case 11 -> SiliconicConfig.VALUES.cleanroomEntityContamination.get();
+            case 12 -> SiliconicConfig.VALUES.cleanroomSourceContamination.get();
             default -> 0;
           };
         }
@@ -108,7 +111,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     }
 
     boolean consumeInternal(int amount) {
-      if (amount <= 0 || energy < amount) return false;
+      if (amount < 0 || energy < amount) return false;
       energy -= amount;
       return true;
     }
@@ -147,14 +150,16 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
 
   public static void serverTick(
       Level level, BlockPos pos, BlockState state, ConditionerBlockEntity conditioner) {
-    boolean nextPowered = conditioner.energy.consumeInternal(ENERGY_PER_TICK);
+    boolean nextPowered =
+        conditioner.energy.consumeInternal(SiliconicConfig.VALUES.cleanroomEnergyPerTick.get());
     boolean powerChanged = nextPowered != conditioner.powered;
     conditioner.powered = nextPowered;
     if (state.getValue(ConditionerBlock.ACTIVE) != nextPowered)
       level.setBlock(pos, state.setValue(ConditionerBlock.ACTIVE, nextPowered), 3);
 
-    if (conditioner.scanCooldown > 0) conditioner.scanCooldown--;
-    if (conditioner.scanCooldown == 0) {
+    int scanInterval = SiliconicConfig.VALUES.cleanroomScanInterval.get();
+    long scanOffset = Math.floorMod(pos.asLong(), scanInterval);
+    if (Math.floorMod(level.getGameTime(), scanInterval) == scanOffset) {
       conditioner.lastScan = RoomScanner.scan(level, pos);
       if (conditioner.lastScan.isSealed()) {
         conditioner.claimedInteriorPositions.clear();
@@ -165,7 +170,6 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
           CleanroomOccupancy.update(
               level, pos, conditioner.claimedInteriorPositions, conditioner.cleanliness);
       conditioner.synchronizeGroup(level, conditionerGroup);
-      conditioner.scanCooldown = SCAN_INTERVAL;
       conditioner.sync();
     } else if (powerChanged) conditioner.sync();
     if (nextPowered) conditioner.setChanged();
@@ -186,7 +190,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     long gameTime = level.getGameTime();
     if (snapshot.updatedAt() < 0L
         || gameTime < snapshot.updatedAt()
-        || gameTime - snapshot.updatedAt() >= SCAN_INTERVAL) {
+        || gameTime - snapshot.updatedAt() >= SiliconicConfig.VALUES.cleanroomScanInterval.get()) {
       ConditionerBlockEntity updater = cleanlinessUpdater(conditioners);
       if (updater != null) {
         updater.updateCleanliness(level, roomPowered);
@@ -302,8 +306,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
       int contamination =
           Math.min(
               MAX_CLEANLINESS,
-              unprotectedEntities * CONTAMINATION_PER_UNPROTECTED_ENTITY
-                  + pollution.total() * CONTAMINATION_PER_POLLUTION_SOURCE);
+              unprotectedEntities * SiliconicConfig.VALUES.cleanroomEntityContamination.get()
+                  + pollution.total() * SiliconicConfig.VALUES.cleanroomSourceContamination.get());
       cleanliness = Math.max(0, cleanliness - contamination);
     } else {
       unprotectedEntities = 0;
@@ -437,7 +441,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     claimedInteriorPositions.clear();
     if (lastScan.isSealed() || lastScan.status() == RoomScanResult.Status.UNLOADED) {
       long[] savedClaims = tag.getLongArray(CLAIMED_INTERIOR_TAG);
-      int savedClaimLimit = Math.min(savedClaims.length, RoomScanner.DEFAULT_LIMITS.maxVolume());
+      RoomScanner.Limits limits = RoomScanner.configuredLimits();
+      int savedClaimLimit = Math.min(savedClaims.length, limits.maxVolume());
       for (int index = 0; index < savedClaimLimit; index++) {
         BlockPos savedPosition = BlockPos.of(savedClaims[index]);
         int savedDistance =
@@ -446,8 +451,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
                     Math.abs(worldPosition.getX() - savedPosition.getX()),
                     Math.abs(worldPosition.getY() - savedPosition.getY())),
                 Math.abs(worldPosition.getZ() - savedPosition.getZ()));
-        if (savedDistance <= RoomScanner.DEFAULT_LIMITS.maxDistance())
-          claimedInteriorPositions.add(savedClaims[index]);
+        if (savedDistance <= limits.maxDistance()) claimedInteriorPositions.add(savedClaims[index]);
       }
     }
   }

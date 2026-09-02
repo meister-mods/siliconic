@@ -34,7 +34,7 @@ public class ConditionerMenu extends AbstractContainerMenu {
   }
 
   public int energyPerTick() {
-    return ConditionerBlockEntity.ENERGY_PER_TICK;
+    return conditioner.data().get(10);
   }
 
   public boolean powered() {
@@ -72,9 +72,8 @@ public class ConditionerMenu extends AbstractContainerMenu {
   public int totalContaminationPerScan() {
     return Math.min(
         ConditionerBlockEntity.MAX_CLEANLINESS,
-        unprotectedEntities() * ConditionerBlockEntity.CONTAMINATION_PER_UNPROTECTED_ENTITY
-            + (equipmentPollutionSources() + blockPollutionSources())
-                * ConditionerBlockEntity.CONTAMINATION_PER_POLLUTION_SOURCE);
+        unprotectedEntities() * conditioner.data().get(11)
+            + (equipmentPollutionSources() + blockPollutionSources()) * conditioner.data().get(12));
   }
 
   public RoomScanResult lastScan() {

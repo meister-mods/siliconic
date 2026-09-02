@@ -1,7 +1,10 @@
 package io.github.meistermods.siliconic.wafer;
 
+import io.github.meistermods.siliconic.config.SiliconicConfig;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModMenus;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,14 +16,19 @@ import net.minecraft.world.item.ItemStack;
 
 @SuppressWarnings({"null"})
 public class WaferMenu extends AbstractContainerMenu {
-  private static final int MAX_MUTATIONS_PER_TICK = 16;
   public static final int INVENTORY_X = 153;
   public static final int MAIN_INVENTORY_Y = 50;
   public static final int HOTBAR_Y = 112;
+  public static final int BUTTON_UNDO = 0;
+  public static final int BUTTON_REDO = 1;
+  private static final int HISTORY_LIMIT = 32;
 
   private final PrototypeWaferBlockEntity wafer;
   private long mutationTick = Long.MIN_VALUE;
   private int mutationsThisTick;
+  private final Deque<ItemStack> undoHistory = new ArrayDeque<>();
+  private final Deque<ItemStack> redoHistory = new ArrayDeque<>();
+  private ItemStack historyBaseline;
 
   public WaferMenu(int id, Inventory inventory, FriendlyByteBuf data) {
     this(
@@ -32,6 +40,7 @@ public class WaferMenu extends AbstractContainerMenu {
   public WaferMenu(int id, Inventory inventory, PrototypeWaferBlockEntity wafer) {
     super(ModMenus.WAFER.get(), id);
     this.wafer = wafer;
+    historyBaseline = wafer.getWafer().copy();
     for (int row = 0; row < 3; row++)
       for (int column = 0; column < 9; column++)
         addSlot(
@@ -84,8 +93,79 @@ public class WaferMenu extends AbstractContainerMenu {
       mutationTick = gameTime;
       mutationsThisTick = 0;
     }
-    if (mutationsThisTick >= MAX_MUTATIONS_PER_TICK) return false;
+    if (mutationsThisTick >= SiliconicConfig.VALUES.waferMutationsPerTick.get()) return false;
     mutationsThisTick++;
+    return true;
+  }
+
+  public void interactCell(ServerPlayer player, int cell, boolean rotate) {
+    resetHistoryAfterExternalChange();
+    ItemStack before = wafer.getWafer().copy();
+    PrototypeWaferBlockEntity.CellType beforeType = wafer.getCellType(cell);
+    wafer.interactCell(cell, rotate, player);
+    if (ItemStack.matches(before, wafer.getWafer())) return;
+    if (rotate && beforeType == wafer.getCellType(cell)) addUndoSnapshot(before);
+    else clearHistory();
+    historyBaseline = wafer.getWafer().copy();
+  }
+
+  public void cyclePinMode(int pin) {
+    recordMutation(() -> wafer.cyclePinMode(pin));
+  }
+
+  public void completeWafer(String name) {
+    recordMutation(() -> wafer.completeWafer(name));
+  }
+
+  private void recordMutation(Runnable mutation) {
+    resetHistoryAfterExternalChange();
+    ItemStack before = wafer.getWafer().copy();
+    mutation.run();
+    if (ItemStack.matches(before, wafer.getWafer())) return;
+    addUndoSnapshot(before);
+    historyBaseline = wafer.getWafer().copy();
+  }
+
+  private void addUndoSnapshot(ItemStack before) {
+    undoHistory.addFirst(before);
+    while (undoHistory.size() > HISTORY_LIMIT) undoHistory.removeLast();
+    redoHistory.clear();
+  }
+
+  private void resetHistoryAfterExternalChange() {
+    if (!ItemStack.matches(historyBaseline, wafer.getWafer())) {
+      clearHistory();
+      historyBaseline = wafer.getWafer().copy();
+    }
+  }
+
+  private void clearHistory() {
+    undoHistory.clear();
+    redoHistory.clear();
+  }
+
+  @Override
+  public boolean clickMenuButton(Player player, int id) {
+    if (!(player instanceof ServerPlayer serverPlayer)
+        || (id != BUTTON_UNDO && id != BUTTON_REDO)
+        || !tryBeginMutation(serverPlayer, position())) return false;
+    if (!ItemStack.matches(historyBaseline, wafer.getWafer())) {
+      clearHistory();
+      historyBaseline = wafer.getWafer().copy();
+      return false;
+    }
+    Deque<ItemStack> source = id == BUTTON_UNDO ? undoHistory : redoHistory;
+    Deque<ItemStack> destination = id == BUTTON_UNDO ? redoHistory : undoHistory;
+    if (source.isEmpty()) return false;
+    ItemStack current = wafer.getWafer().copy();
+    ItemStack snapshot = source.removeFirst();
+    if (!wafer.restoreWaferSnapshot(snapshot)) {
+      source.addFirst(snapshot);
+      return false;
+    }
+    destination.addFirst(current);
+    while (destination.size() > HISTORY_LIMIT) destination.removeLast();
+    historyBaseline = wafer.getWafer().copy();
     return true;
   }
 

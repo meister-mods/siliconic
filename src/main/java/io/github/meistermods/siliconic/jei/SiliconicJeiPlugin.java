@@ -12,6 +12,7 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
@@ -62,8 +63,10 @@ public final class SiliconicJeiPlugin implements IModPlugin {
   @Override
   public void registerRecipes(IRecipeRegistration registration) {
     for (MachineKind machine : MachineKind.values())
-      registration.addRecipes(recipeType(machine), ModMachineProcesses.forMachine(machine));
-    registration.addRecipes(REPROCESSOR, ReprocessingProcess.all());
+      registration.addRecipes(
+          recipeType(machine),
+          ModMachineProcesses.forMachine(Minecraft.getInstance().level, machine));
+    registration.addRecipes(REPROCESSOR, ReprocessingProcess.all(Minecraft.getInstance().level));
     registerProcessInformation(registration);
   }
 

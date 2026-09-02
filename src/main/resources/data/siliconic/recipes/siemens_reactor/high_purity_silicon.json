@@ -1,0 +1,16 @@
+{
+  "type": "siliconic:machine_process",
+  "machine": "siemens_reactor",
+  "shaped": true,
+  "ticks": 600,
+  "energy_per_tick": 80,
+  "inputs": [
+    {"slot": 0, "ingredient": {"item": "siliconic:purified_trichlorosilane"}, "count": 4},
+    {"slot": 1, "ingredient": {"item": "siliconic:quartz_deposition_filament"}, "use": "catalyst"}
+  ],
+  "result": {"item": "siliconic:high_purity_silicon"},
+  "byproducts": [
+    {"item": "siliconic:silicon_tetrachloride", "count": 3},
+    {"item": "siliconic:hydrogen", "count": 2}
+  ]
+}

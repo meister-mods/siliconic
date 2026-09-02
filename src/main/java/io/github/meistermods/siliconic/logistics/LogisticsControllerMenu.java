@@ -24,11 +24,12 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
   public static final int FILTER_X = 114;
   public static final int ROW_Y = 35;
   public static final int ROW_SPACING = 24;
-  public static final int PLAYER_X = 74;
+  public static final int PLAYER_X = 123;
   public static final int PLAYER_Y = 166;
   private static final int BUTTON_PREVIOUS = 0;
   private static final int BUTTON_NEXT = 1;
   private static final int BUTTON_MODE_START = 10;
+  private static final int BUTTON_PAGE_START = 1_000;
 
   private record OpeningData(
       @Nullable LogisticsControllerBlockEntity controller, List<EndpointInfo> endpoints) {}
@@ -175,6 +176,15 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     return (flagsAtRow(row) & 4) != 0;
   }
 
+  public boolean blacklistEnabled(int row) {
+    return (flagsAtRow(row) & 8) != 0;
+  }
+
+  public int priority(int row) {
+    int encoded = (flagsAtRow(row) >>> 4) & 0xf;
+    return encoded >= 8 ? encoded - 16 : encoded;
+  }
+
   private int flagsAtRow(int row) {
     int index = page() * VISIBLE_ROWS + row;
     if (index < 0 || index >= endpoints.size()) return 0;
@@ -193,10 +203,16 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
       serverPage++;
       return true;
     }
+    if (id >= BUTTON_PAGE_START) {
+      int requestedPage = id - BUTTON_PAGE_START;
+      if (requestedPage < 0 || requestedPage >= pageCount()) return false;
+      serverPage = requestedPage;
+      return true;
+    }
     if (controller == null || id < BUTTON_MODE_START) return false;
     int offset = id - BUTTON_MODE_START;
-    int row = offset / 3;
-    int mode = offset % 3;
+    int row = offset / 5;
+    int mode = offset % 5;
     int endpointIndex = serverPage * VISIBLE_ROWS + row;
     if (row < 0 || row >= VISIBLE_ROWS || endpointIndex >= endpoints.size()) return false;
     EndpointInfo endpoint = endpoints.get(endpointIndex);
@@ -204,6 +220,8 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
       case 0 -> controller.toggleInput(endpoint.pos(), endpoint.side());
       case 1 -> controller.toggleOutput(endpoint.pos(), endpoint.side());
       case 2 -> controller.toggleForced(endpoint.pos(), endpoint.side(), endpoint.supportsForced());
+      case 3 -> controller.toggleBlacklist(endpoint.pos(), endpoint.side());
+      case 4 -> controller.cyclePriority(endpoint.pos(), endpoint.side());
       default -> {
         return false;
       }

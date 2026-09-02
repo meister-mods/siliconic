@@ -1,0 +1,14 @@
+{
+  "type": "siliconic:machine_process",
+  "machine": "silicon_arc_furnace",
+  "shaped": true,
+  "ticks": 300,
+  "energy_per_tick": 40,
+  "inputs": [
+    {"slot": 0, "ingredient": {"item": "minecraft:quartz"}, "count": 4},
+    {"slot": 1, "ingredient": {"item": "minecraft:charcoal"}, "count": 4},
+    {"slot": 2, "ingredient": {"item": "siliconic:carbon_electrode"}, "use": "damage"}
+  ],
+  "result": {"item": "siliconic:metallurgical_silicon", "count": 4},
+  "byproducts": [{"item": "siliconic:silicon_slag", "count": 2}]
+}

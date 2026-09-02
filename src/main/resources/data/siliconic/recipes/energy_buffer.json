@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": ["LRL", "CBC", "LRL"],
+  "key": {
+    "L": {"tag": "forge:ingots/lead"},
+    "R": {"item": "minecraft:redstone_block"},
+    "C": {"tag": "forge:ingots/copper"},
+    "B": {"item": "minecraft:barrel"}
+  },
+  "result": {"item": "siliconic:energy_buffer"}
+}

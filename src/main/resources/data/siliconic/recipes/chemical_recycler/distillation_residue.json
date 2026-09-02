@@ -1,0 +1,11 @@
+{
+  "type": "siliconic:machine_process",
+  "machine": "chemical_recycler",
+  "shaped": true,
+  "ticks": 220,
+  "energy_per_tick": 35,
+  "inputs": [
+    {"slot": 0, "ingredient": {"item": "siliconic:distillation_residue"}}
+  ],
+  "result": {"item": "siliconic:crude_trichlorosilane"}
+}

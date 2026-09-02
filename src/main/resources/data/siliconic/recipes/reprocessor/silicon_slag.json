@@ -1,0 +1,10 @@
+{
+  "type": "siliconic:reprocessing",
+  "input": {"item": "siliconic:silicon_slag", "count": 4},
+  "outputs": [
+    {"item": "minecraft:quartz"},
+    {"item": "minecraft:charcoal"}
+  ],
+  "ticks": 240,
+  "energy_per_tick": 40
+}

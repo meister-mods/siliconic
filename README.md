@@ -99,7 +99,7 @@ With JDK 17 installed, run:
 .\gradlew.bat build
 ```
 
-The runnable mod is generated as `build/libs/siliconic-1.20.1-0.2.1.jar`. The `-sources.jar` is for development and should not be placed in `mods`. Use `.\gradlew.bat runClient` for the development client or `.\gradlew.bat runGameTestServer` for automated regression tests. See [`docs/MACHINE_PROCESSES.md`](docs/MACHINE_PROCESSES.md) for the data-pack process format.
+The runnable mod is generated as `build/libs/siliconic-1.20.1-*.jar`. The `-sources.jar` is for development and should not be placed in `mods`. Use `.\gradlew.bat runClient` for the development client or `.\gradlew.bat runGameTestServer` for automated regression tests. See [`docs/MACHINE_PROCESSES.md`](docs/MACHINE_PROCESSES.md) for the data-pack process format.
 
 ## Development Status
 

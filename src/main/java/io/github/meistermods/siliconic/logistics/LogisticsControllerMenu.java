@@ -203,8 +203,7 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     switch (mode) {
       case 0 -> controller.toggleInput(endpoint.pos(), endpoint.side());
       case 1 -> controller.toggleOutput(endpoint.pos(), endpoint.side());
-      case 2 ->
-          controller.toggleForced(endpoint.pos(), endpoint.side(), endpoint.supportsForced());
+      case 2 -> controller.toggleForced(endpoint.pos(), endpoint.side(), endpoint.supportsForced());
       default -> {
         return false;
       }

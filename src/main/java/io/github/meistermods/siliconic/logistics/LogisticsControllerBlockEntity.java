@@ -398,8 +398,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
       BlockPos pos = BlockPos.of(configTag.getLong("Pos"));
       EndpointConfig config = loadConfig(configTag);
       if (configTag.contains("Side", Tag.TAG_BYTE))
-        configurations.put(
-            key(pos, Direction.from3DDataValue(configTag.getByte("Side"))), config);
+        configurations.put(key(pos, Direction.from3DDataValue(configTag.getByte("Side"))), config);
       else legacyConfigurations.put(pos, config);
     }
     transferBuffer = ItemStack.of(tag.getCompound("TransferBuffer"));

@@ -168,13 +168,7 @@ public class LogisticsControllerScreen extends AbstractContainerScreen<Logistics
               endpoint.pos().getZ(),
               Component.translatable(
                   "screen.siliconic.logistics_controller.side." + endpoint.side().getName()));
-      drawFittedString(
-          g,
-          positionAndSide,
-          11,
-          y + 9,
-          98,
-          0xff89939c);
+      drawFittedString(g, positionAndSide, 11, y + 9, 98, 0xff89939c);
     }
     g.drawString(
         font,

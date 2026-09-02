@@ -99,7 +99,7 @@ JDK 17 환경에서 다음 명령으로 빌드할 수 있습니다.
 .\gradlew.bat build
 ```
 
-완성된 실행용 모드 파일은 `build/libs/siliconic-1.20.1-0.2.1.jar`에 생성됩니다. `-sources.jar`는 개발용 소스 묶음이므로 `mods` 폴더에 넣지 않습니다. 개발 클라이언트는 `.\gradlew.bat runClient`, 자동 회귀 테스트는 `.\gradlew.bat runGameTestServer`로 실행할 수 있습니다. 데이터팩 공정 형식은 [`docs/MACHINE_PROCESSES.md`](docs/MACHINE_PROCESSES.md)를 참고하세요.
+완성된 실행용 모드 파일은 `build/libs/siliconic-1.20.1-*.jar`에 생성됩니다. `-sources.jar`는 개발용 소스 묶음이므로 `mods` 폴더에 넣지 않습니다. 개발 클라이언트는 `.\gradlew.bat runClient`, 자동 회귀 테스트는 `.\gradlew.bat runGameTestServer`로 실행할 수 있습니다. 데이터팩 공정 형식은 [`docs/MACHINE_PROCESSES.md`](docs/MACHINE_PROCESSES.md)를 참고하세요.
 
 ## 개발 상태
 

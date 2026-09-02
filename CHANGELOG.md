@@ -2,6 +2,12 @@
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] - 2026-09-02
+
+### Changed
+
+- Limited the GitHub Actions build workflow to pushes targeting the `master` branch.
+
 ## [0.2.1] - 2026-09-02
 
 ### Fixed

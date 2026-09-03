@@ -108,7 +108,7 @@ public class PowerCableBlock extends Block {
   @Override
   public boolean canSurvive(BlockState state, LevelReader level, BlockPos pos) {
     for (Direction support : state.getValue(ATTACHMENT).faces())
-      if (canAttachTo(level, pos, support)) return true;
+      if (canRemainAttachedTo(level, pos, support)) return true;
     return false;
   }
 
@@ -319,8 +319,14 @@ public class PowerCableBlock extends Block {
   private Attachment validAttachment(Attachment attachment, LevelReader level, BlockPos pos) {
     List<Direction> valid = new ArrayList<>();
     for (Direction support : attachment.faces())
-      if (canAttachTo(level, pos, support)) valid.add(support);
+      if (canRemainAttachedTo(level, pos, support)) valid.add(support);
     return Attachment.from(valid);
+  }
+
+  private boolean canRemainAttachedTo(LevelReader level, BlockPos pos, Direction support) {
+    BlockPos supportPos = pos.relative(support);
+    return !isPositionLoaded(level, supportPos)
+        || level.getBlockState(supportPos).isFaceSturdy(level, supportPos, support.getOpposite());
   }
 
   private boolean canAttachTo(LevelReader level, BlockPos pos, Direction support) {

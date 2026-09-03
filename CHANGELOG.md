@@ -4,6 +4,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserved power-cable attachments while an adjacent supporting chunk is temporarily unavailable.
+
 ## [0.2.5] - 2026-09-03
 
 ### Fixed

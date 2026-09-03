@@ -1,6 +1,7 @@
 package io.github.meistermods.siliconic.gametest;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.power.BalancedEnergyDistributor;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
@@ -166,6 +167,18 @@ public final class SiliconicGameTests {
     }
     helper.assertTrue(
         rejectedInvalidSlot, "Industrial machine recipes must reject slots outside 0 through 2");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void preservesLargeMenuValues(GameTestHelper helper) {
+    int value = 2_000_000_000;
+    helper.assertTrue(
+        MenuDataSync.combine(MenuDataSync.low(value), MenuDataSync.high(value)) == value,
+        "Menu data must preserve values larger than a signed 16-bit field");
+    helper.assertTrue(
+        MenuDataSync.scale(Integer.MAX_VALUE - 1, Integer.MAX_VALUE, 92) == 91,
+        "Progress scaling must not overflow for large data-pack durations");
     helper.succeed();
   }
 

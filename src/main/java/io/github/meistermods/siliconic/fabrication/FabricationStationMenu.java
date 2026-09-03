@@ -61,19 +61,19 @@ public class FabricationStationMenu extends AbstractContainerMenu {
   }
 
   public int progress() {
-    return station.data().get(2);
+    return MenuDataSync.combine(station.data().get(2), station.data().get(3));
   }
 
   public int maxProgress() {
-    return station.data().get(3);
+    return MenuDataSync.combine(station.data().get(4), station.data().get(5));
   }
 
   public int energyPerTick() {
-    return station.data().get(4);
+    return MenuDataSync.combine(station.data().get(6), station.data().get(7));
   }
 
   public int status() {
-    return station.data().get(5);
+    return station.data().get(8);
   }
 
   @Override

@@ -13,5 +13,11 @@ public final class MenuDataSync {
     return (low & 0xffff) | ((high & 0xffff) << 16);
   }
 
+  /** Scales a non-negative value without overflowing and clamps it to the target range. */
+  public static int scale(int value, int maximum, int targetMaximum) {
+    if (value <= 0 || maximum <= 0 || targetMaximum <= 0) return 0;
+    return (int) Math.min(targetMaximum, (long) value * targetMaximum / maximum);
+  }
+
   private MenuDataSync() {}
 }

@@ -49,7 +49,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   private static final int MAX_SYNCED_TEMPERATURE = Short.MAX_VALUE;
 
   private int progress;
-  private final int[] clientData = new int[15];
+  private final int[] clientData = new int[18];
   private int magmaHeat;
   private int temperature;
   private int stability;
@@ -104,19 +104,22 @@ public class SiliconProcessorBlockEntity extends BlockEntity
           return switch (index) {
             case 0 -> MenuDataSync.low(energy.getEnergyStored());
             case 1 -> MenuDataSync.high(energy.getEnergyStored());
-            case 2 -> progress;
-            case 3 -> effectiveMaxTicks(process);
-            case 4 -> dynamicEnergyPerTick(process);
-            case 5 -> status();
-            case 6 -> magmaHeat;
-            case 7 -> MAGMA_CAPACITY;
-            case 8 -> profile == null ? 0 : profile.magmaPerHeatingTick();
-            case 9 -> temperature;
-            case 10 -> profile == null ? 0 : profile.targetTemperature();
-            case 11 -> stability;
-            case 12 -> pressure;
-            case 13 -> operationMode;
-            case 14 -> phase();
+            case 2 -> MenuDataSync.low(progress);
+            case 3 -> MenuDataSync.high(progress);
+            case 4 -> MenuDataSync.low(effectiveMaxTicks(process));
+            case 5 -> MenuDataSync.high(effectiveMaxTicks(process));
+            case 6 -> MenuDataSync.low(dynamicEnergyPerTick(process));
+            case 7 -> MenuDataSync.high(dynamicEnergyPerTick(process));
+            case 8 -> status();
+            case 9 -> magmaHeat;
+            case 10 -> MAGMA_CAPACITY;
+            case 11 -> profile == null ? 0 : profile.magmaPerHeatingTick();
+            case 12 -> temperature;
+            case 13 -> profile == null ? 0 : profile.targetTemperature();
+            case 14 -> stability;
+            case 15 -> pressure;
+            case 16 -> operationMode;
+            case 17 -> phase();
             default -> 0;
           };
         }
@@ -128,7 +131,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
 
         @Override
         public int getCount() {
-          return 15;
+          return clientData.length;
         }
       };
 
@@ -383,7 +386,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   private int effectiveMaxTicks(MachineProcess process) {
     if (machineKind() != MachineKind.DISTILLATION_TOWER) return process.ticks();
     if (operationMode == 1) return Math.max(1, process.ticks() / 2);
-    return Math.max(1, process.ticks() - process.ticks() * stability / 4_000);
+    return Math.max(1, (int) (process.ticks() - (long) process.ticks() * stability / 4_000));
   }
 
   private int dynamicEnergyPerTick(MachineProcess process) {
@@ -391,13 +394,13 @@ public class SiliconProcessorBlockEntity extends BlockEntity
     if (machineKind() == MachineKind.SILICON_ARC_FURNACE)
       return switch (currentPhase) {
         case 0, 1 -> process.energyPerTick();
-        case 2 -> process.energyPerTick() + 50;
-        case 3 -> process.energyPerTick() + 25;
+        case 2 -> saturatedEnergyAdjustment(process.energyPerTick(), 50);
+        case 3 -> saturatedEnergyAdjustment(process.energyPerTick(), 25);
         default -> Math.max(10, process.energyPerTick() - 10);
       };
     if (machineKind() == MachineKind.SIEMENS_REACTOR)
       return switch (currentPhase) {
-        case 0, 1 -> process.energyPerTick() + 10;
+        case 0, 1 -> saturatedEnergyAdjustment(process.energyPerTick(), 10);
         case 2 -> Math.max(20, process.energyPerTick() - 20);
         case 3 -> process.energyPerTick();
         case 4 -> 10;
@@ -406,19 +409,23 @@ public class SiliconProcessorBlockEntity extends BlockEntity
     return process.energyPerTick();
   }
 
+  private static int saturatedEnergyAdjustment(int energyPerTick, int adjustment) {
+    return (int) Math.min(Integer.MAX_VALUE, (long) energyPerTick + adjustment);
+  }
+
   private int phase() {
     MachineProcess process = currentProcess();
     int max = process == null ? primaryProcess().ticks() : effectiveMaxTicks(process);
     if (progress <= 0) return 0;
     if (machineKind() == MachineKind.SILICON_ARC_FURNACE) {
-      int percent = progress * 100 / Math.max(1, max);
+      int percent = MenuDataSync.scale(progress, max, 100);
       if (percent < 17) return 1;
       if (percent < 55) return 2;
       if (percent < 88) return 3;
       return 4;
     }
     if (machineKind() == MachineKind.SIEMENS_REACTOR) {
-      int percent = progress * 100 / Math.max(1, max);
+      int percent = MenuDataSync.scale(progress, max, 100);
       if (percent < 19) return 1;
       if (percent < 32) return 2;
       if (percent < 82) return 3;
@@ -573,7 +580,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
     }
     MachineProcess process = currentProcess();
     if (process == null || progress == 0) return 0;
-    return Math.max(1, Math.min(14, progress * 14 / effectiveMaxTicks(process)));
+    return Math.max(1, MenuDataSync.scale(progress, effectiveMaxTicks(process), 14));
   }
 
   private static List<ItemStack> copyStacks(List<ItemStack> stacks) {

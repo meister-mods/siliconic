@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.client;
 
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.reprocessing.ReprocessorMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -30,7 +31,7 @@ public class ReprocessorScreen extends AbstractContainerScreen<ReprocessorMenu> 
     for (int column = 0; column < 9; column++) slotBox(g, leftPos + 8 + column * 18, topPos + 195);
 
     g.drawString(font, "→", leftPos + 98, topPos + 56, 0xffe8edf2, false);
-    int progressWidth = menu.maxProgress() == 0 ? 0 : 24 * menu.progress() / menu.maxProgress();
+    int progressWidth = MenuDataSync.scale(menu.progress(), menu.maxProgress(), 24);
     g.fill(leftPos + 84, topPos + 70, leftPos + 108, topPos + 74, 0xff2b3035);
     g.fill(leftPos + 84, topPos + 70, leftPos + 84 + progressWidth, topPos + 74, 0xff66d99a);
     int energyWidth = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();

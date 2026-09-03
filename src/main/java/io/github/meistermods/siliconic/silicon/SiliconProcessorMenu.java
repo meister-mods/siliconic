@@ -92,55 +92,55 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
   }
 
   public int progress() {
-    return processor.data().get(2);
+    return MenuDataSync.combine(processor.data().get(2), processor.data().get(3));
   }
 
   public int maxProgress() {
-    return processor.data().get(3);
+    return MenuDataSync.combine(processor.data().get(4), processor.data().get(5));
   }
 
   public int energyPerTick() {
-    return processor.data().get(4);
+    return MenuDataSync.combine(processor.data().get(6), processor.data().get(7));
   }
 
   public int status() {
-    return processor.data().get(5);
-  }
-
-  public int magmaHeat() {
-    return processor.data().get(6);
-  }
-
-  public int magmaCapacity() {
-    return processor.data().get(7);
-  }
-
-  public int magmaPerTick() {
     return processor.data().get(8);
   }
 
-  public int temperature() {
+  public int magmaHeat() {
     return processor.data().get(9);
   }
 
-  public int targetTemperature() {
+  public int magmaCapacity() {
     return processor.data().get(10);
   }
 
-  public int stability() {
+  public int magmaPerTick() {
     return processor.data().get(11);
   }
 
-  public int pressure() {
+  public int temperature() {
     return processor.data().get(12);
   }
 
-  public int operationMode() {
+  public int targetTemperature() {
     return processor.data().get(13);
   }
 
-  public int phase() {
+  public int stability() {
     return processor.data().get(14);
+  }
+
+  public int pressure() {
+    return processor.data().get(15);
+  }
+
+  public int operationMode() {
+    return processor.data().get(16);
+  }
+
+  public int phase() {
+    return processor.data().get(17);
   }
 
   @Override

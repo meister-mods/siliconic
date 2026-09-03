@@ -1,5 +1,6 @@
 package io.github.meistermods.siliconic.client;
 
+import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorMenu;
@@ -96,7 +97,7 @@ public class SiliconProcessorScreen extends AbstractContainerScreen<SiliconProce
           false);
     g.drawString(font, "→", leftPos + 97, topPos + 41, 0xffe8edf2, false);
 
-    int progressWidth = menu.maxProgress() == 0 ? 0 : 92 * menu.progress() / menu.maxProgress();
+    int progressWidth = MenuDataSync.scale(menu.progress(), menu.maxProgress(), 92);
     bar(g, leftPos + 8, topPos + 56, 92, progressWidth, 0xff66d99a);
     int energyWidth = menu.capacity() == 0 ? 0 : 160 * menu.energy() / menu.capacity();
     bar(g, leftPos + 8, topPos + 121, 160, energyWidth, 0xffd94f67);

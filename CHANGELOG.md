@@ -9,6 +9,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Preserved power-cable attachments while an adjacent supporting chunk is temporarily unavailable.
 - Exposed every machine input slot needed by shapeless data-pack processes.
 - Preserved data-pack process progress when block entities reload before their level is attached.
+- Restored saved cleanroom occupancy immediately when conditioner chunks reload.
 
 ## [0.2.5] - 2026-09-03
 

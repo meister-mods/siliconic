@@ -1,6 +1,8 @@
 package io.github.meistermods.siliconic.gametest;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
+import io.github.meistermods.siliconic.cleanroom.ConditionerBlockEntity;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.power.BalancedEnergyDistributor;
@@ -244,6 +246,34 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         MenuDataSync.combine(reprocessor.data().get(2), reprocessor.data().get(3)) == 42,
         "Reprocessing progress must survive loading before a level is attached");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void restoresCleanroomClaimsOnLoad(GameTestHelper helper) {
+    BlockPos conditionerPos = BlockPos.ZERO;
+    BlockPos interiorPos = conditionerPos.above();
+    CompoundTag lastScan = new CompoundTag();
+    lastScan.putString("Status", "SEALED");
+    CompoundTag saved = new CompoundTag();
+    saved.putInt("Cleanliness", 80);
+    saved.putLongArray("ClaimedInterior", new long[] {interiorPos.asLong()});
+    saved.put("LastScan", lastScan);
+
+    ConditionerBlockEntity conditioner =
+        new ConditionerBlockEntity(
+            conditionerPos, ModBlocks.CONDITIONER.get().defaultBlockState());
+    conditioner.load(saved);
+    conditioner.setLevel(helper.getLevel());
+    conditioner.onLoad();
+    helper.assertTrue(
+        CleanroomOccupancy.isMachineInside(helper.getLevel(), interiorPos),
+        "Saved cleanroom claims must be restored as soon as a conditioner loads");
+
+    conditioner.setRemoved();
+    helper.assertTrue(
+        !CleanroomOccupancy.isMachineInside(helper.getLevel(), interiorPos),
+        "Removing a conditioner must release its restored cleanroom claims");
     helper.succeed();
   }
 

@@ -70,15 +70,30 @@ public class LogisticsPipeBlock extends Block {
       LevelAccessor level,
       BlockPos pos,
       BlockPos neighborPos) {
-    return state.setValue(
-        property(direction), connects(level, neighborPos, neighborState, direction.getOpposite()));
+    BlockState updated =
+        state.setValue(
+            property(direction),
+            connects(level, neighborPos, neighborState, direction.getOpposite()));
+    if (updated != state && level instanceof Level actualLevel)
+      LogisticsNetworkTopology.invalidate(actualLevel);
+    return updated;
   }
 
   @Override
   public void onPlace(
       BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moving) {
     super.onPlace(state, level, pos, oldState, moving);
-    if (!level.isClientSide && !oldState.is(this)) level.scheduleTick(pos, this, 1);
+    if (!level.isClientSide && !oldState.is(this)) {
+      LogisticsNetworkTopology.invalidate(level);
+      level.scheduleTick(pos, this, 1);
+    }
+  }
+
+  @Override
+  public void onRemove(
+      BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
+    if (!level.isClientSide && !newState.is(this)) LogisticsNetworkTopology.invalidate(level);
+    super.onRemove(state, level, pos, newState, moving);
   }
 
   @Override
@@ -96,7 +111,10 @@ public class LogisticsPipeBlock extends Block {
   @Override
   public void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
     BlockState updated = connections(state, level, pos);
-    if (updated != state) level.setBlock(pos, updated, 2);
+    if (updated != state) {
+      LogisticsNetworkTopology.invalidate(level);
+      level.setBlock(pos, updated, 2);
+    }
   }
 
   @Override

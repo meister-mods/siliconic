@@ -68,6 +68,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   @Nullable private BlockPos bufferSource;
   private int sourceCursor;
   private int destinationCursor;
+  private long cachedTopologyRevision = Long.MIN_VALUE;
 
   public LogisticsControllerBlockEntity(BlockPos pos, BlockState state) {
     super(ModBlockEntities.LOGISTICS_CONTROLLER.get(), pos, state);
@@ -77,7 +78,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
       Level level, BlockPos pos, BlockState state, LogisticsControllerBlockEntity controller) {
     int scanInterval = SiliconicConfig.VALUES.logisticsScanInterval.get();
     long offset = Math.floorMod(pos.asLong(), scanInterval);
-    if (Math.floorMod(level.getGameTime(), scanInterval) == offset) controller.refreshNetwork();
+    if (controller.cachedTopologyRevision != LogisticsNetworkTopology.revision(level)
+        || Math.floorMod(level.getGameTime(), scanInterval) == offset) controller.refreshNetwork();
     int transferInterval = SiliconicConfig.VALUES.logisticsTransferInterval.get();
     if (Math.floorMod(level.getGameTime(), transferInterval)
         != Math.floorMod(pos.asLong(), transferInterval)) return;
@@ -150,6 +152,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     migrateLegacyConfigurations(endpoints);
     sourceCursor = clampCursor(sourceCursor, endpoints.size());
     destinationCursor = clampCursor(destinationCursor, endpoints.size());
+    cachedTopologyRevision = LogisticsNetworkTopology.revision(level);
     return connectedToPipe;
   }
 
@@ -449,6 +452,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     destinationCursor = Math.max(0, tag.getInt("DestinationCursor"));
     connectedToPipe = false;
     endpoints = List.of();
+    cachedTopologyRevision = Long.MIN_VALUE;
   }
 
   @Override

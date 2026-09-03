@@ -101,7 +101,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
   private long cachedTopologyRevision = Long.MIN_VALUE;
   private long lastTopologyScan = Long.MIN_VALUE;
 
-  private static final class GeneratorEnergyStorage extends EnergyStorage {
+  private final class GeneratorEnergyStorage extends EnergyStorage {
     GeneratorEnergyStorage() {
       super(ENERGY_CAPACITY, 0, SiliconicConfig.VALUES.powerTransferPerConnection.get());
     }
@@ -116,6 +116,13 @@ public class CoalGeneratorBlockEntity extends BlockEntity
 
     void extractInternal(int amount) {
       energy = Math.max(0, energy - Math.max(0, amount));
+    }
+
+    @Override
+    public int extractEnergy(int amount, boolean simulate) {
+      int extracted = super.extractEnergy(amount, simulate);
+      if (extracted > 0 && !simulate) CoalGeneratorBlockEntity.this.setChanged();
+      return extracted;
     }
   }
 

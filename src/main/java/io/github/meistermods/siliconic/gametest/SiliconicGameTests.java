@@ -4,8 +4,10 @@ import io.github.meistermods.siliconic.Siliconic;
 import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.cleanroom.ConditionerBlockEntity;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
+import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.power.BalancedEnergyDistributor;
+import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ProcessInput;
@@ -29,7 +31,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.items.IItemHandler;
@@ -56,6 +61,54 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         Arrays.equals(largeDemands, new int[] {5, 5}),
         "Large aggregate demand must not overflow the fair-share calculation");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void persistsExternalGeneratorExtraction(GameTestHelper helper) {
+    helper.setBlock(BlockPos.ZERO, ModBlocks.COAL_GENERATOR.get());
+    BlockPos generatorPos = helper.absolutePos(BlockPos.ZERO);
+    CoalGeneratorBlockEntity generator =
+        (CoalGeneratorBlockEntity) helper.getLevel().getBlockEntity(generatorPos);
+    CompoundTag saved = new CompoundTag();
+    saved.putInt("Energy", 1_000);
+    generator.load(saved);
+    helper.getLevel().getChunkAt(generatorPos).setUnsaved(false);
+
+    IEnergyStorage storage =
+        generator
+            .getCapability(ForgeCapabilities.ENERGY, null)
+            .orElseThrow(() -> new IllegalStateException("Generator energy capability is missing"));
+    int extracted = storage.extractEnergy(100, false);
+
+    helper.assertTrue(extracted == 100, "The generator must expose its stored energy");
+    helper.assertTrue(
+        helper.getLevel().getChunkAt(generatorPos).isUnsaved(),
+        "External energy extraction must mark the generator chunk for saving");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void invalidatesDisconnectedLogisticsEndpoints(GameTestHelper helper) {
+    BlockPos controllerRelative = BlockPos.ZERO;
+    BlockPos controllerPos = helper.absolutePos(controllerRelative);
+    helper.setBlock(controllerRelative, ModBlocks.LOGISTICS_CONTROLLER.get());
+    helper.setBlock(controllerRelative.east(), ModBlocks.LOGISTICS_PIPE.get());
+    helper.setBlock(controllerRelative.east(2), Blocks.CHEST);
+    LogisticsControllerBlockEntity controller =
+        (LogisticsControllerBlockEntity) helper.getLevel().getBlockEntity(controllerPos);
+    controller.refreshNetwork();
+    helper.assertTrue(
+        controller.endpointInfos().size() == 1,
+        "A connected inventory must be discovered before testing invalidation");
+
+    helper.setBlock(controllerRelative.east(), Blocks.AIR);
+    LogisticsControllerBlockEntity.serverTick(
+        helper.getLevel(), controllerPos, controller.getBlockState(), controller);
+
+    helper.assertTrue(
+        controller.endpointInfos().isEmpty(),
+        "Removing a pipe must invalidate disconnected endpoints before another transfer");
     helper.succeed();
   }
 

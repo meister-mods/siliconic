@@ -4,6 +4,15 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.5] - 2026-09-03
+
+### Fixed
+
+- Preserved completed fabrication results by locking process inputs while output space is unavailable.
+- Prevented power-cable connection updates from loading neighboring chunks.
+- Prevented durability damage from overflowing for large data-pack process values.
+- Bounded nested wafer simulation work per signal update to protect server tick time.
+
 ## [0.2.4] - 2026-09-02
 
 ### Fixed

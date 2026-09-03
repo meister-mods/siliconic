@@ -177,9 +177,9 @@ public record MachineProcess(
   private void damage(ItemStackHandler inventory, int slot, int amount) {
     ItemStack stack = inventory.getStackInSlot(slot).copy();
     if (!stack.isDamageableItem()) return;
-    int damage = stack.getDamageValue() + amount;
+    long damage = (long) stack.getDamageValue() + amount;
     if (damage >= stack.getMaxDamage()) stack.shrink(1);
-    else stack.setDamageValue(damage);
+    else stack.setDamageValue((int) damage);
     inventory.setStackInSlot(slot, stack);
   }
 

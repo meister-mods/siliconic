@@ -135,6 +135,32 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         shapedInventory.getStackInSlot(0).getDamageValue() == 5,
         "A damage input must apply its configured durability damage");
+
+    MachineProcess overflowingToolProcess =
+        new MachineProcess(
+            ResourceLocation.fromNamespaceAndPath(
+                Siliconic.MOD_ID, "test/overflowing_damage_input"),
+            MachineKind.SILICON_ARC_FURNACE,
+            List.of(
+                new ProcessInput(
+                    0,
+                    Ingredient.of(Items.WOODEN_PICKAXE),
+                    Integer.MAX_VALUE,
+                    ProcessInput.Use.DAMAGE)),
+            Items.DIAMOND,
+            1,
+            List.of(),
+            1,
+            1,
+            true);
+    ItemStack damagedTool = new ItemStack(Items.WOODEN_PICKAXE);
+    damagedTool.setDamageValue(1);
+    shapedInventory.setStackInSlot(0, damagedTool);
+    overflowingToolProcess.consume(shapedInventory, 0, 3);
+    helper.assertTrue(
+        shapedInventory.getStackInSlot(0).isEmpty(),
+        "Large durability damage must break the tool instead of overflowing");
+
     MachineProcess longEnergyProcess =
         new MachineProcess(
             ResourceLocation.fromNamespaceAndPath(Siliconic.MOD_ID, "test/large_energy"),

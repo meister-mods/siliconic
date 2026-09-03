@@ -51,6 +51,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   private static final int MAX_SIGNAL_STRENGTH = 15;
   private static final int MAX_DROP_AMOUNT = 16;
   private static final int MAX_CONDUCTOR_ATTENUATION_INTERVAL = 6;
+  // One shared budget prevents deeply nested wafer NBT from monopolizing a server tick.
+  private static final int MAX_SIMULATION_CELL_PASSES = 100_000;
   private static final TagKey<Item> REDSTONE_DUSTS = materialTag("dusts/redstone");
   private static final TagKey<Item> COPPER_NUGGETS = materialTag("nuggets/copper");
   private static final TagKey<Item> LEAD_NUGGETS = materialTag("nuggets/lead");
@@ -283,6 +285,27 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       int[] signals, int[][] wireStrength, int[][] wireRemaining, int[][] chipOutputs) {}
 
   private record WireState(int[] signals, int[][] strength, int[][] remaining) {}
+
+  private static final class SimulationBudget {
+    private int remainingCellPasses;
+
+    private SimulationBudget(int remainingCellPasses) {
+      this.remainingCellPasses = remainingCellPasses;
+    }
+
+    private boolean consume(int cells) {
+      if (cells <= 0 || remainingCellPasses < cells) {
+        remainingCellPasses = 0;
+        return false;
+      }
+      remainingCellPasses -= cells;
+      return true;
+    }
+
+    private boolean exhausted() {
+      return remainingCellPasses == 0;
+    }
+  }
 
   public PrototypeWaferBlockEntity(BlockPos pos, BlockState state) {
     super(ModBlockEntities.WAFER_ASSEMBLER.get(), pos, state);
@@ -685,7 +708,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity
               : 0;
     if (!simulationDirty && Arrays.equals(inputs, nextInputs)) return false;
     System.arraycopy(nextInputs, 0, inputs, 0, inputs.length);
-    Simulation result = simulateWafer(wafer, inputs, getWaferLevel());
+    Simulation result =
+        simulateWafer(
+            wafer,
+            inputs,
+            getWaferLevel(),
+            new SimulationBudget(MAX_SIMULATION_CELL_PASSES));
     simulationDirty = false;
     signals = result.signals.clone();
     horizontalSignals = result.horizontalSignals.clone();
@@ -697,11 +725,20 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   private Simulation simulateWafer(
-      ItemStack stack, int[] externalInputs, int containingWaferLevel) {
+      ItemStack stack,
+      int[] externalInputs,
+      int containingWaferLevel,
+      SimulationBudget budget) {
     int size = sizeOf(stack);
     CompoundTag design = stack.getOrCreateTagElement(DESIGN_TAG);
     Simulation result =
-        simulate(design, size, externalInputs, containingWaferLevel, readRuntimeState(stack, size));
+        simulate(
+            design,
+            size,
+            externalInputs,
+            containingWaferLevel,
+            readRuntimeState(stack, size),
+            budget);
     writeRuntimeState(stack, result);
     return result;
   }
@@ -711,7 +748,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       int size,
       int[] externalInputs,
       int containingWaferLevel,
-      RuntimeState previous) {
+      RuntimeState previous,
+      SimulationBudget budget) {
     int count = size * size;
     boolean hasNestedChips = false;
     for (int cell = 0; cell < count; cell++)
@@ -732,6 +770,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
     boolean networkStable = false;
     int maxSettlePasses = count + MAX_SIGNAL_STRENGTH * MAX_CONDUCTOR_ATTENUATION_INTERVAL + 8;
     for (int pass = 0; pass < maxSettlePasses; pass++) {
+      if (!budget.consume(count)) break;
       CompoundTag designBeforePass = hasNestedChips ? design.copy() : null;
       int[][] nextChips = new int[count][4];
       for (int cell = 0; cell < count; cell++)
@@ -761,7 +800,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
           if (Arrays.equals(lastChipInputs[cell], childInputs)) {
             nestedOutputs = lastNestedOutputs[cell];
           } else {
-            nestedOutputs = simulateWafer(chip, childInputs, childLevel).outputs.clone();
+            nestedOutputs = simulateWafer(chip, childInputs, childLevel, budget).outputs.clone();
             lastChipInputs[cell] = childInputs.clone();
             lastNestedOutputs[cell] = nestedOutputs;
             storeChip(design, cell, chip);
@@ -832,9 +871,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       chipOutputs = nextChips;
       history.add(nextFrame);
     }
-    if (!networkStable) {
+    if (!networkStable && !budget.exhausted()) {
       WireState settledWires =
-          settleWires(design, size, values, chipOutputs, externalInputs, maxSettlePasses);
+          settleWires(
+              design, size, values, chipOutputs, externalInputs, maxSettlePasses, budget);
       values = settledWires.signals;
       wireStrength = settledWires.strength;
       wireRemaining = settledWires.remaining;
@@ -957,11 +997,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       int[] fixedSignals,
       int[][] chipOutputs,
       int[] externalInputs,
-      int maxPasses) {
+      int maxPasses,
+      SimulationBudget budget) {
     int count = size * size;
     int[][] strength = new int[count][4];
     int[][] remaining = new int[count][4];
     for (int pass = 0; pass < maxPasses; pass++) {
+      if (!budget.consume(count)) break;
       int[][] nextStrength = new int[count][4];
       int[][] nextRemaining = new int[count][4];
       for (int cell = 0; cell < count; cell++) {

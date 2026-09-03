@@ -297,6 +297,7 @@ public class PowerCableBlock extends Block {
   private boolean connectsDirectly(
       LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
     BlockPos neighborPos = pos.relative(direction);
+    if (!isPositionLoaded(level, neighborPos)) return false;
     BlockState neighbor = level.getBlockState(neighborPos);
     if (neighbor.getBlock() instanceof PowerCableBlock)
       return neighbor.getValue(ATTACHMENT).contains(support);
@@ -307,7 +308,9 @@ public class PowerCableBlock extends Block {
 
   private boolean connectsAroundCorner(
       LevelAccessor level, BlockPos pos, Direction support, Direction direction) {
-    BlockState corner = level.getBlockState(pos.relative(direction).relative(support));
+    BlockPos cornerPos = pos.relative(direction).relative(support);
+    if (!isPositionLoaded(level, cornerPos)) return false;
+    BlockState corner = level.getBlockState(cornerPos);
     return corner.getBlock() instanceof PowerCableBlock
         && corner.getValue(ATTACHMENT).contains(direction.getOpposite());
   }
@@ -322,7 +325,12 @@ public class PowerCableBlock extends Block {
 
   private boolean canAttachTo(LevelReader level, BlockPos pos, Direction support) {
     BlockPos supportPos = pos.relative(support);
+    if (!isPositionLoaded(level, supportPos)) return false;
     return level.getBlockState(supportPos).isFaceSturdy(level, supportPos, support.getOpposite());
+  }
+
+  private static boolean isPositionLoaded(LevelReader level, BlockPos pos) {
+    return !(level instanceof Level loadedLevel) || loadedLevel.isLoaded(pos);
   }
 
   private void scheduleNearbyCableUpdates(Level level, BlockPos pos) {
@@ -334,6 +342,7 @@ public class PowerCableBlock extends Block {
           int distance = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);
           if (distance > 2) continue;
           BlockPos candidate = pos.offset(dx, dy, dz);
+          if (!level.isLoaded(candidate)) continue;
           if (level.getBlockState(candidate).is(this)) level.scheduleTick(candidate, this, 1);
         }
   }

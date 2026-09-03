@@ -14,6 +14,7 @@ import io.github.meistermods.siliconic.registry.ModItems;
 import io.github.meistermods.siliconic.reprocessing.ReprocessorBlockEntity;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlock;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
+import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.ConductorMode;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic;
@@ -94,6 +95,46 @@ public final class SiliconicGameTests {
                 == ConductorMode.CORNER_WN
             && WaferCircuitLogic.mirroredCell(0, 9) == 8,
         "Horizontal mirroring must flip cells, rotations, and corner conductors together");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void boundsNestedWaferTransforms(GameTestHelper helper) {
+    ItemStack validChild = waferWithCell(new ItemStack(ModItems.VLSI_WAFER.get()), CellType.NOT);
+    ItemStack invalidChild = waferWithCell(new ItemStack(ModItems.ULSI_WAFER.get()), CellType.AND);
+    ItemStack parent = new ItemStack(ModItems.ULSI_WAFER.get());
+    CompoundTag parentDesign = parent.getOrCreateTagElement(PrototypeWaferBlockEntity.DESIGN_TAG);
+    byte[] parentCells =
+        new byte[PrototypeWaferBlockEntity.GRID_SIZE * PrototypeWaferBlockEntity.GRID_SIZE];
+    parentCells[0] = (byte) CellType.CHIP.ordinal();
+    parentCells[1] = (byte) CellType.CHIP.ordinal();
+    parentDesign.putByteArray("Cells", parentCells);
+    CompoundTag chips = new CompoundTag();
+    chips.put("0", validChild.save(new CompoundTag()));
+    chips.put("1", invalidChild.save(new CompoundTag()));
+    parentDesign.put("Chips", chips);
+
+    PrototypeWaferBlockEntity.mirrorHorizontally(parent);
+
+    CompoundTag mirroredChips =
+        parent.getTagElement(PrototypeWaferBlockEntity.DESIGN_TAG).getCompound("Chips");
+    ItemStack mirroredValidChild = ItemStack.of(mirroredChips.getCompound("8"));
+    ItemStack preservedInvalidChild = ItemStack.of(mirroredChips.getCompound("7"));
+    byte[] validCells =
+        mirroredValidChild
+            .getTagElement(PrototypeWaferBlockEntity.DESIGN_TAG)
+            .getByteArray("Cells");
+    byte[] invalidCells =
+        preservedInvalidChild
+            .getTagElement(PrototypeWaferBlockEntity.DESIGN_TAG)
+            .getByteArray("Cells");
+    helper.assertTrue(
+        Byte.toUnsignedInt(validCells[8]) == CellType.NOT.ordinal(),
+        "A valid lower-tier chip must be mirrored recursively");
+    helper.assertTrue(
+        Byte.toUnsignedInt(invalidCells[0]) == CellType.AND.ordinal()
+            && Byte.toUnsignedInt(invalidCells[8]) == CellType.EMPTY.ordinal(),
+        "A malformed same-tier chip must remain opaque instead of extending recursion");
     helper.succeed();
   }
 
@@ -335,6 +376,15 @@ public final class SiliconicGameTests {
                 .is(ModItems.METALLURGICAL_SILICON.get()),
         "The machine must still consume its locked inputs when the process completes");
     helper.succeed();
+  }
+
+  private static ItemStack waferWithCell(ItemStack wafer, CellType type) {
+    CompoundTag design = wafer.getOrCreateTagElement(PrototypeWaferBlockEntity.DESIGN_TAG);
+    byte[] cells =
+        new byte[PrototypeWaferBlockEntity.GRID_SIZE * PrototypeWaferBlockEntity.GRID_SIZE];
+    cells[0] = (byte) type.ordinal();
+    design.putByteArray("Cells", cells);
+    return wafer;
   }
 
   private SiliconicGameTests() {}

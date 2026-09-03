@@ -11,6 +11,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Preserved data-pack process progress when block entities reload before their level is attached.
 - Restored saved cleanroom occupancy immediately when conditioner chunks reload.
 - Prevented forced logistics from modifying locked industrial process inputs.
+- Bounded nested wafer transformations to valid tier relationships and canonical grid cells.
+- Restricted wafer mutation packets to the client-to-server direction.
+- Rejected negative logistics endpoint counts while opening the controller menu.
 
 ## [0.2.5] - 2026-09-03
 

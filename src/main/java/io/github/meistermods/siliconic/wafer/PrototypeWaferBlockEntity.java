@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -1242,13 +1243,17 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   private static void removeRuntimeStateRecursively(ItemStack stack) {
+    int waferLevel = levelOf(stack);
+    if (waferLevel == 0) return;
     clearRuntimeState(stack);
     CompoundTag design = stack.getTagElement(DESIGN_TAG);
     if (design == null) return;
     CompoundTag chips = design.getCompound("Chips");
-    for (String key : chips.getAllKeys()) {
+    for (int cell = 0; cell < GRID_SIZE * GRID_SIZE; cell++) {
+      String key = Integer.toString(cell);
+      if (!chips.contains(key, Tag.TAG_COMPOUND)) continue;
       ItemStack child = ItemStack.of(chips.getCompound(key));
-      if (child.isEmpty()) continue;
+      if (!canEmbedWafer(waferLevel, levelOf(child))) continue;
       removeRuntimeStateRecursively(child);
       chips.put(key, child.save(new CompoundTag()));
     }
@@ -1256,7 +1261,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   public static void mirrorHorizontally(ItemStack stack) {
-    if (levelOf(stack) == 0) return;
+    int waferLevel = levelOf(stack);
+    if (waferLevel == 0) return;
     clearRuntimeState(stack);
     CompoundTag design = stack.getTagElement(DESIGN_TAG);
     if (design == null) return;
@@ -1297,18 +1303,16 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       design.putIntArray("PinModes", pinModes);
     }
     CompoundTag oldChips = design.getCompound("Chips"), newChips = new CompoundTag();
-    for (String key : oldChips.getAllKeys()) {
-      try {
-        int oldCell = Integer.parseInt(key);
-        if (oldCell < 0 || oldCell >= count) continue;
-        ItemStack chip = ItemStack.of(oldChips.getCompound(key));
+    for (int oldCell = 0; oldCell < count; oldCell++) {
+      String key = Integer.toString(oldCell);
+      if (!oldChips.contains(key, Tag.TAG_COMPOUND)) continue;
+      ItemStack chip = ItemStack.of(oldChips.getCompound(key));
+      if (canEmbedWafer(waferLevel, levelOf(chip))) {
         mirrorHorizontally(chip);
-        newChips.put(
-            Integer.toString(WaferCircuitLogic.mirroredCell(oldCell, GRID_SIZE)),
-            chip.save(new CompoundTag()));
-      } catch (NumberFormatException ignored) {
-        // Ignore malformed legacy chip indices.
       }
+      newChips.put(
+          Integer.toString(WaferCircuitLogic.mirroredCell(oldCell, GRID_SIZE)),
+          chip.save(new CompoundTag()));
     }
     design.put("Chips", newChips);
   }

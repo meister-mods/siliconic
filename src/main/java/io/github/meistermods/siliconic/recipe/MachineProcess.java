@@ -149,6 +149,13 @@ public record MachineProcess(
     return inputs.stream().anyMatch(input -> input.matches(stack));
   }
 
+  /** Returns whether this process can use the given machine-relative input slot. */
+  public boolean usesInputSlot(int relativeSlot) {
+    return relativeSlot >= 0
+        && relativeSlot < machine.inputSlots()
+        && (!shaped || inputAtSlot(relativeSlot) != null);
+  }
+
   public void consume(ItemStackHandler inventory, int inputStart, int inputSlots) {
     if (shaped) {
       for (ProcessInput input : inputs) applyUse(inventory, inputStart + input.slot(), input);

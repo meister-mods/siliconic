@@ -1,19 +1,25 @@
 package io.github.meistermods.siliconic.gametest;
 
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.power.BalancedEnergyDistributor;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ProcessInput;
+import io.github.meistermods.siliconic.registry.ModBlocks;
+import io.github.meistermods.siliconic.reprocessing.ReprocessorBlockEntity;
+import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.ConductorMode;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic.SignalPulse;
 import java.util.Arrays;
 import java.util.List;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -107,6 +113,9 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         overlapping.matches(shapelessInventory, 0, 9),
         "Overlapping shapeless ingredients must be assigned to distinct items");
+    helper.assertTrue(
+        overlapping.usesInputSlot(0) && overlapping.usesInputSlot(8),
+        "Shapeless processes must expose every input slot in their machine");
     overlapping.consume(shapelessInventory, 0, 9);
     helper.assertTrue(
         shapelessInventory.getStackInSlot(0).isEmpty()
@@ -205,6 +214,36 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         MenuDataSync.scale(Integer.MAX_VALUE - 1, Integer.MAX_VALUE, 92) == 91,
         "Progress scaling must not overflow for large data-pack durations");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void restoresMachineProgressBeforeLevelAttachment(GameTestHelper helper) {
+    CompoundTag saved = new CompoundTag();
+    saved.putInt("Progress", 42);
+
+    FabricationStationBlockEntity fabrication =
+        new FabricationStationBlockEntity(
+            BlockPos.ZERO, ModBlocks.WAFER_FABRICATOR.get().defaultBlockState());
+    fabrication.load(saved);
+    helper.assertTrue(
+        MenuDataSync.combine(fabrication.data().get(2), fabrication.data().get(3)) == 42,
+        "Fabrication progress must survive loading before a level is attached");
+
+    SiliconProcessorBlockEntity processor =
+        new SiliconProcessorBlockEntity(
+            BlockPos.ZERO, ModBlocks.SILICON_ARC_FURNACE.get().defaultBlockState());
+    processor.load(saved);
+    helper.assertTrue(
+        MenuDataSync.combine(processor.data().get(2), processor.data().get(3)) == 42,
+        "Industrial process progress must survive loading before a level is attached");
+
+    ReprocessorBlockEntity reprocessor =
+        new ReprocessorBlockEntity(BlockPos.ZERO, ModBlocks.REPROCESSOR.get().defaultBlockState());
+    reprocessor.load(saved);
+    helper.assertTrue(
+        MenuDataSync.combine(reprocessor.data().get(2), reprocessor.data().get(3)) == 42,
+        "Reprocessing progress must survive loading before a level is attached");
     helper.succeed();
   }
 

@@ -288,11 +288,10 @@ public class FabricationStationBlockEntity extends BlockEntity
     items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
     pendingResult = ItemStack.of(tag.getCompound("PendingResult"));
-    MachineProcess process = currentProcess();
     progress =
-        process == null || !pendingResult.isEmpty()
-            ? 0
-            : Math.max(0, Math.min(process.ticks() - 1, tag.getInt("Progress")));
+        pendingResult.isEmpty()
+            ? Math.max(0, Math.min(Integer.MAX_VALUE - 1, tag.getInt("Progress")))
+            : 0;
   }
 
   @Override

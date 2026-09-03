@@ -111,8 +111,7 @@ public final class ModMachineProcesses {
   public static boolean usesInputSlot(
       @Nullable Level level, MachineKind machine, int relativeSlot) {
     for (MachineProcess process : all(level))
-      for (ProcessInput input : process.inputs())
-        if (process.machine() == machine && input.slot() == relativeSlot) return true;
+      if (process.machine() == machine && process.usesInputSlot(relativeSlot)) return true;
     return false;
   }
 

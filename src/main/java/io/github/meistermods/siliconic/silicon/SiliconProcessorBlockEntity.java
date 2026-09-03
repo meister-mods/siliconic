@@ -630,11 +630,10 @@ public class SiliconProcessorBlockEntity extends BlockEntity
       if (!legacyResult.isEmpty()) loadedResults.add(legacyResult);
     }
     pendingResults = List.copyOf(loadedResults);
-    MachineProcess process = currentProcess();
     progress =
-        process == null || !pendingResults.isEmpty()
-            ? 0
-            : Math.max(0, Math.min(effectiveMaxTicks(process) - 1, tag.getInt("Progress")));
+        pendingResults.isEmpty()
+            ? Math.max(0, Math.min(Integer.MAX_VALUE - 1, tag.getInt("Progress")))
+            : 0;
   }
 
   private void migrateLegacySlots() {

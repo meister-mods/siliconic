@@ -90,7 +90,9 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     BlockEntity blockEntity = inventory.player.level().getBlockEntity(buffer.readBlockPos());
     LogisticsControllerBlockEntity controller =
         blockEntity instanceof LogisticsControllerBlockEntity found ? found : null;
-    int count = Math.min(LogisticsControllerBlockEntity.MAX_ENDPOINTS, buffer.readVarInt());
+    int count =
+        Math.max(
+            0, Math.min(LogisticsControllerBlockEntity.MAX_ENDPOINTS, buffer.readVarInt()));
     List<EndpointInfo> endpoints = new ArrayList<>(count);
     for (int index = 0; index < count; index++)
       endpoints.add(

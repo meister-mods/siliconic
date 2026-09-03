@@ -59,16 +59,38 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   private int tickCounter;
   private int lastComparatorSignal = -1;
   private List<ItemStack> pendingResults = List.of();
+  private boolean consumingProcessInputs;
 
   private final ProcessorEnergyStorage energy = new ProcessorEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
+          if (isProcessInputSlot(slot) && !canModifyInputs()) return false;
           if (slot >= OUTPUT_START) return false;
           if (slot == MAGMA_SLOT) return requiresMagma() && magmaValue(stack) > 0;
           return ModMachineProcesses.accepts(
               SiliconProcessorBlockEntity.this.level, machineKind(), slot, stack);
+        }
+
+        @Override
+        public void setStackInSlot(int slot, ItemStack stack) {
+          if (isProcessInputSlot(slot) && !canModifyInputs()) return;
+          super.setStackInSlot(slot, stack);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+          return isProcessInputSlot(slot) && !canModifyInputs()
+              ? stack
+              : super.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+          return isProcessInputSlot(slot) && !canModifyInputs()
+              ? ItemStack.EMPTY
+              : super.extractItem(slot, amount, simulate);
         }
 
         @Override
@@ -197,7 +219,11 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   }
 
   public boolean canModifyInputs() {
-    return progress == 0 && pendingResults.isEmpty();
+    return consumingProcessInputs || (progress == 0 && pendingResults.isEmpty());
+  }
+
+  private static boolean isProcessInputSlot(int slot) {
+    return slot >= INPUT_SLOT && slot < INPUT_SLOT + INPUT_SLOTS;
   }
 
   public ContainerData data() {
@@ -507,7 +533,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
 
   private void finishProcess(MachineProcess process, List<ItemStack> results) {
     if (!canFitOutputs(results)) return;
-    process.consume(items, INPUT_SLOT, INPUT_SLOTS);
+    consumeProcessInputs(process);
     results.forEach(this::insertOutput);
     progress = 0;
     pendingResults = List.of();
@@ -515,7 +541,7 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   }
 
   private void ventBatch(MachineProcess process) {
-    process.consume(items, INPUT_SLOT, INPUT_SLOTS);
+    consumeProcessInputs(process);
     progress = 0;
     pressure = 200;
     pendingResults = List.of();
@@ -560,13 +586,22 @@ public class SiliconProcessorBlockEntity extends BlockEntity
       MachineProcess process = currentProcess();
       ItemStack partial = new ItemStack(ModItems.PARTIAL_POLYSILICON_ROD.get());
       if (process == null || !canFitOutputs(List.of(partial))) return false;
-      process.consume(items, INPUT_SLOT, INPUT_SLOTS);
+      consumeProcessInputs(process);
       insertOutput(partial);
       progress = 0;
       setChanged();
       return true;
     }
     return false;
+  }
+
+  private void consumeProcessInputs(MachineProcess process) {
+    consumingProcessInputs = true;
+    try {
+      process.consume(items, INPUT_SLOT, INPUT_SLOTS);
+    } finally {
+      consumingProcessInputs = false;
+    }
   }
 
   public int analogSignal() {
@@ -608,6 +643,8 @@ public class SiliconProcessorBlockEntity extends BlockEntity
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
+    progress = 0;
+    pendingResults = List.of();
     CompoundTag itemData = tag.getCompound("Items").copy();
     itemData.putInt("Size", SLOT_COUNT);
     items.deserializeNBT(itemData);
@@ -630,11 +667,10 @@ public class SiliconProcessorBlockEntity extends BlockEntity
       if (!legacyResult.isEmpty()) loadedResults.add(legacyResult);
     }
     pendingResults = List.copyOf(loadedResults);
-    MachineProcess process = currentProcess();
     progress =
-        process == null || !pendingResults.isEmpty()
-            ? 0
-            : Math.max(0, Math.min(effectiveMaxTicks(process) - 1, tag.getInt("Progress")));
+        pendingResults.isEmpty()
+            ? Math.max(0, Math.min(Integer.MAX_VALUE - 1, tag.getInt("Progress")))
+            : 0;
   }
 
   private void migrateLegacySlots() {

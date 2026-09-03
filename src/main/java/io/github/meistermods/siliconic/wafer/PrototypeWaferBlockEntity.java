@@ -15,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -51,6 +52,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   private static final int MAX_SIGNAL_STRENGTH = 15;
   private static final int MAX_DROP_AMOUNT = 16;
   private static final int MAX_CONDUCTOR_ATTENUATION_INTERVAL = 6;
+  // One shared budget prevents deeply nested wafer NBT from monopolizing a server tick.
+  private static final int MAX_SIMULATION_CELL_PASSES = 100_000;
   private static final TagKey<Item> REDSTONE_DUSTS = materialTag("dusts/redstone");
   private static final TagKey<Item> COPPER_NUGGETS = materialTag("nuggets/copper");
   private static final TagKey<Item> LEAD_NUGGETS = materialTag("nuggets/lead");
@@ -283,6 +286,27 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       int[] signals, int[][] wireStrength, int[][] wireRemaining, int[][] chipOutputs) {}
 
   private record WireState(int[] signals, int[][] strength, int[][] remaining) {}
+
+  private static final class SimulationBudget {
+    private int remainingCellPasses;
+
+    private SimulationBudget(int remainingCellPasses) {
+      this.remainingCellPasses = remainingCellPasses;
+    }
+
+    private boolean consume(int cells) {
+      if (cells <= 0 || remainingCellPasses < cells) {
+        remainingCellPasses = 0;
+        return false;
+      }
+      remainingCellPasses -= cells;
+      return true;
+    }
+
+    private boolean exhausted() {
+      return remainingCellPasses == 0;
+    }
+  }
 
   public PrototypeWaferBlockEntity(BlockPos pos, BlockState state) {
     super(ModBlockEntities.WAFER_ASSEMBLER.get(), pos, state);
@@ -685,7 +709,12 @@ public class PrototypeWaferBlockEntity extends BlockEntity
               : 0;
     if (!simulationDirty && Arrays.equals(inputs, nextInputs)) return false;
     System.arraycopy(nextInputs, 0, inputs, 0, inputs.length);
-    Simulation result = simulateWafer(wafer, inputs, getWaferLevel());
+    Simulation result =
+        simulateWafer(
+            wafer,
+            inputs,
+            getWaferLevel(),
+            new SimulationBudget(MAX_SIMULATION_CELL_PASSES));
     simulationDirty = false;
     signals = result.signals.clone();
     horizontalSignals = result.horizontalSignals.clone();
@@ -697,11 +726,20 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   private Simulation simulateWafer(
-      ItemStack stack, int[] externalInputs, int containingWaferLevel) {
+      ItemStack stack,
+      int[] externalInputs,
+      int containingWaferLevel,
+      SimulationBudget budget) {
     int size = sizeOf(stack);
     CompoundTag design = stack.getOrCreateTagElement(DESIGN_TAG);
     Simulation result =
-        simulate(design, size, externalInputs, containingWaferLevel, readRuntimeState(stack, size));
+        simulate(
+            design,
+            size,
+            externalInputs,
+            containingWaferLevel,
+            readRuntimeState(stack, size),
+            budget);
     writeRuntimeState(stack, result);
     return result;
   }
@@ -711,7 +749,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       int size,
       int[] externalInputs,
       int containingWaferLevel,
-      RuntimeState previous) {
+      RuntimeState previous,
+      SimulationBudget budget) {
     int count = size * size;
     boolean hasNestedChips = false;
     for (int cell = 0; cell < count; cell++)
@@ -732,6 +771,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
     boolean networkStable = false;
     int maxSettlePasses = count + MAX_SIGNAL_STRENGTH * MAX_CONDUCTOR_ATTENUATION_INTERVAL + 8;
     for (int pass = 0; pass < maxSettlePasses; pass++) {
+      if (!budget.consume(count)) break;
       CompoundTag designBeforePass = hasNestedChips ? design.copy() : null;
       int[][] nextChips = new int[count][4];
       for (int cell = 0; cell < count; cell++)
@@ -761,7 +801,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
           if (Arrays.equals(lastChipInputs[cell], childInputs)) {
             nestedOutputs = lastNestedOutputs[cell];
           } else {
-            nestedOutputs = simulateWafer(chip, childInputs, childLevel).outputs.clone();
+            nestedOutputs = simulateWafer(chip, childInputs, childLevel, budget).outputs.clone();
             lastChipInputs[cell] = childInputs.clone();
             lastNestedOutputs[cell] = nestedOutputs;
             storeChip(design, cell, chip);
@@ -832,9 +872,10 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       chipOutputs = nextChips;
       history.add(nextFrame);
     }
-    if (!networkStable) {
+    if (!networkStable && !budget.exhausted()) {
       WireState settledWires =
-          settleWires(design, size, values, chipOutputs, externalInputs, maxSettlePasses);
+          settleWires(
+              design, size, values, chipOutputs, externalInputs, maxSettlePasses, budget);
       values = settledWires.signals;
       wireStrength = settledWires.strength;
       wireRemaining = settledWires.remaining;
@@ -957,11 +998,13 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       int[] fixedSignals,
       int[][] chipOutputs,
       int[] externalInputs,
-      int maxPasses) {
+      int maxPasses,
+      SimulationBudget budget) {
     int count = size * size;
     int[][] strength = new int[count][4];
     int[][] remaining = new int[count][4];
     for (int pass = 0; pass < maxPasses; pass++) {
+      if (!budget.consume(count)) break;
       int[][] nextStrength = new int[count][4];
       int[][] nextRemaining = new int[count][4];
       for (int cell = 0; cell < count; cell++) {
@@ -1200,13 +1243,17 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   private static void removeRuntimeStateRecursively(ItemStack stack) {
+    int waferLevel = levelOf(stack);
+    if (waferLevel == 0) return;
     clearRuntimeState(stack);
     CompoundTag design = stack.getTagElement(DESIGN_TAG);
     if (design == null) return;
     CompoundTag chips = design.getCompound("Chips");
-    for (String key : chips.getAllKeys()) {
+    for (int cell = 0; cell < GRID_SIZE * GRID_SIZE; cell++) {
+      String key = Integer.toString(cell);
+      if (!chips.contains(key, Tag.TAG_COMPOUND)) continue;
       ItemStack child = ItemStack.of(chips.getCompound(key));
-      if (child.isEmpty()) continue;
+      if (!canEmbedWafer(waferLevel, levelOf(child))) continue;
       removeRuntimeStateRecursively(child);
       chips.put(key, child.save(new CompoundTag()));
     }
@@ -1214,7 +1261,8 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   public static void mirrorHorizontally(ItemStack stack) {
-    if (levelOf(stack) == 0) return;
+    int waferLevel = levelOf(stack);
+    if (waferLevel == 0) return;
     clearRuntimeState(stack);
     CompoundTag design = stack.getTagElement(DESIGN_TAG);
     if (design == null) return;
@@ -1255,18 +1303,16 @@ public class PrototypeWaferBlockEntity extends BlockEntity
       design.putIntArray("PinModes", pinModes);
     }
     CompoundTag oldChips = design.getCompound("Chips"), newChips = new CompoundTag();
-    for (String key : oldChips.getAllKeys()) {
-      try {
-        int oldCell = Integer.parseInt(key);
-        if (oldCell < 0 || oldCell >= count) continue;
-        ItemStack chip = ItemStack.of(oldChips.getCompound(key));
+    for (int oldCell = 0; oldCell < count; oldCell++) {
+      String key = Integer.toString(oldCell);
+      if (!oldChips.contains(key, Tag.TAG_COMPOUND)) continue;
+      ItemStack chip = ItemStack.of(oldChips.getCompound(key));
+      if (canEmbedWafer(waferLevel, levelOf(chip))) {
         mirrorHorizontally(chip);
-        newChips.put(
-            Integer.toString(WaferCircuitLogic.mirroredCell(oldCell, GRID_SIZE)),
-            chip.save(new CompoundTag()));
-      } catch (NumberFormatException ignored) {
-        // Ignore malformed legacy chip indices.
       }
+      newChips.put(
+          Integer.toString(WaferCircuitLogic.mirroredCell(oldCell, GRID_SIZE)),
+          chip.save(new CompoundTag()));
     }
     design.put("Chips", newChips);
   }

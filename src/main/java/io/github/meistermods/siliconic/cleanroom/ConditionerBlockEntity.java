@@ -460,6 +460,13 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   }
 
   @Override
+  public void onLoad() {
+    super.onLoad();
+    if (level != null && !level.isClientSide)
+      CleanroomOccupancy.update(level, worldPosition, claimedInteriorPositions, cleanliness);
+  }
+
+  @Override
   public CompoundTag getUpdateTag() {
     CompoundTag tag = saveWithoutMetadata();
     tag.remove(CLAIMED_INTERIOR_TAG);

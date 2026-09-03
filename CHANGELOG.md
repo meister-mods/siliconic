@@ -4,6 +4,26 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Preserved power-cable attachments while an adjacent supporting chunk is temporarily unavailable.
+- Exposed every machine input slot needed by shapeless data-pack processes.
+- Preserved data-pack process progress when block entities reload before their level is attached.
+- Restored saved cleanroom occupancy immediately when conditioner chunks reload.
+- Prevented forced logistics from modifying locked industrial process inputs.
+- Bounded nested wafer transformations to valid tier relationships and canonical grid cells.
+- Restricted wafer mutation packets to the client-to-server direction.
+- Rejected negative logistics endpoint counts while opening the controller menu.
+
+## [0.2.5] - 2026-09-03
+
+### Fixed
+
+- Preserved completed fabrication results by locking process inputs while output space is unavailable.
+- Prevented power-cable connection updates from loading neighboring chunks.
+- Prevented durability damage from overflowing for large data-pack process values.
+- Bounded nested wafer simulation work per signal update to protect server tick time.
+
 ## [0.2.4] - 2026-09-02
 
 ### Fixed

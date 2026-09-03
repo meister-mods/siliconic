@@ -40,13 +40,14 @@ public class FabricationStationBlockEntity extends BlockEntity
 
   private int progress;
   private ItemStack pendingResult = ItemStack.EMPTY;
+  private boolean consumingPendingInputs;
   private final StationEnergyStorage energy = new StationEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-          return slot >= INPUT_START
-              && slot < INPUT_START + INPUT_SLOTS
+          return isInputSlot(slot)
+              && canModifyInputs()
               && ModMachineProcesses.accepts(
                   FabricationStationBlockEntity.this.level,
                   machineKind(),
@@ -55,11 +56,28 @@ public class FabricationStationBlockEntity extends BlockEntity
         }
 
         @Override
+        public void setStackInSlot(int slot, ItemStack stack) {
+          if (isInputSlot(slot) && !canModifyInputs()) return;
+          super.setStackInSlot(slot, stack);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+          return isInputSlot(slot) && !canModifyInputs()
+              ? stack
+              : super.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+          return isInputSlot(slot) && !canModifyInputs()
+              ? ItemStack.EMPTY
+              : super.extractItem(slot, amount, simulate);
+        }
+
+        @Override
         protected void onContentsChanged(int slot) {
-          if (slot < INPUT_START + INPUT_SLOTS) {
-            progress = 0;
-            pendingResult = ItemStack.EMPTY;
-          }
+          if (isInputSlot(slot)) progress = 0;
           setChanged();
         }
       };
@@ -152,6 +170,14 @@ public class FabricationStationBlockEntity extends BlockEntity
     return data;
   }
 
+  private static boolean isInputSlot(int slot) {
+    return slot >= INPUT_START && slot < INPUT_START + INPUT_SLOTS;
+  }
+
+  private boolean canModifyInputs() {
+    return pendingResult.isEmpty() || consumingPendingInputs;
+  }
+
   public int status() {
     return status(currentProcess());
   }
@@ -232,7 +258,12 @@ public class FabricationStationBlockEntity extends BlockEntity
   private void finishProcess(MachineProcess process, ItemStack result) {
     int outputSlot = findOutputSlot(result);
     if (outputSlot < 0) return;
-    process.consume(items, INPUT_START, INPUT_SLOTS);
+    consumingPendingInputs = !pendingResult.isEmpty();
+    try {
+      process.consume(items, INPUT_START, INPUT_SLOTS);
+    } finally {
+      consumingPendingInputs = false;
+    }
     ItemStack output = items.getStackInSlot(outputSlot);
     if (output.isEmpty()) items.setStackInSlot(outputSlot, result);
     else output.grow(result.getCount());
@@ -257,11 +288,10 @@ public class FabricationStationBlockEntity extends BlockEntity
     items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
     pendingResult = ItemStack.of(tag.getCompound("PendingResult"));
-    MachineProcess process = currentProcess();
     progress =
-        process == null || !pendingResult.isEmpty()
-            ? 0
-            : Math.max(0, Math.min(process.ticks() - 1, tag.getInt("Progress")));
+        pendingResult.isEmpty()
+            ? Math.max(0, Math.min(Integer.MAX_VALUE - 1, tag.getInt("Progress")))
+            : 0;
   }
 
   @Override

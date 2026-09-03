@@ -149,6 +149,13 @@ public record MachineProcess(
     return inputs.stream().anyMatch(input -> input.matches(stack));
   }
 
+  /** Returns whether this process can use the given machine-relative input slot. */
+  public boolean usesInputSlot(int relativeSlot) {
+    return relativeSlot >= 0
+        && relativeSlot < machine.inputSlots()
+        && (!shaped || inputAtSlot(relativeSlot) != null);
+  }
+
   public void consume(ItemStackHandler inventory, int inputStart, int inputSlots) {
     if (shaped) {
       for (ProcessInput input : inputs) applyUse(inventory, inputStart + input.slot(), input);
@@ -177,9 +184,9 @@ public record MachineProcess(
   private void damage(ItemStackHandler inventory, int slot, int amount) {
     ItemStack stack = inventory.getStackInSlot(slot).copy();
     if (!stack.isDamageableItem()) return;
-    int damage = stack.getDamageValue() + amount;
+    long damage = (long) stack.getDamageValue() + amount;
     if (damage >= stack.getMaxDamage()) stack.shrink(1);
-    else stack.setDamageValue(damage);
+    else stack.setDamageValue((int) damage);
     inventory.setStackInSlot(slot, stack);
   }
 

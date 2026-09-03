@@ -258,9 +258,7 @@ public class ReprocessorBlockEntity extends BlockEntity
     itemData.putInt("Size", SLOT_COUNT);
     items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
-    ReprocessingProcess process = currentProcess();
-    progress =
-        process == null ? 0 : Math.max(0, Math.min(process.ticks() - 1, tag.getInt("Progress")));
+    progress = Math.max(0, Math.min(Integer.MAX_VALUE - 1, tag.getInt("Progress")));
   }
 
   @Override

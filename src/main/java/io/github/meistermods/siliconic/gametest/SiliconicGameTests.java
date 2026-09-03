@@ -10,7 +10,9 @@ import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ProcessInput;
 import io.github.meistermods.siliconic.registry.ModBlocks;
+import io.github.meistermods.siliconic.registry.ModItems;
 import io.github.meistermods.siliconic.reprocessing.ReprocessorBlockEntity;
+import io.github.meistermods.siliconic.silicon.SiliconProcessorBlock;
 import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.ConductorMode;
@@ -26,8 +28,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.gametest.GameTestHolder;
 import net.minecraftforge.gametest.PrefixGameTestTemplate;
+import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
 /** Fast, deterministic regression tests for rules that do not need blocks placed in the world. */
@@ -274,6 +278,62 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         !CleanroomOccupancy.isMachineInside(helper.getLevel(), interiorPos),
         "Removing a conditioner must release its restored cleanroom claims");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void protectsRunningIndustrialInputsFromForcedLogistics(GameTestHelper helper) {
+    BlockState activeState =
+        ModBlocks.SILICON_ARC_FURNACE
+            .get()
+            .defaultBlockState()
+            .setValue(SiliconProcessorBlock.ACTIVE, true);
+    ItemStackHandler savedItems = new ItemStackHandler(SiliconProcessorBlockEntity.SLOT_COUNT);
+    savedItems.setStackInSlot(
+        SiliconProcessorBlockEntity.INPUT_SLOT, new ItemStack(Items.QUARTZ, 4));
+    savedItems.setStackInSlot(
+        SiliconProcessorBlockEntity.CATALYST_SLOT, new ItemStack(Items.CHARCOAL, 4));
+    savedItems.setStackInSlot(
+        SiliconProcessorBlockEntity.COMPONENT_SLOT,
+        new ItemStack(ModItems.CARBON_ELECTRODE.get()));
+    CompoundTag saved = new CompoundTag();
+    saved.putInt("LayoutVersion", 2);
+    saved.put("Items", savedItems.serializeNBT());
+    saved.putInt("Energy", SiliconProcessorBlockEntity.ENERGY_CAPACITY);
+    saved.putInt("Progress", 299);
+
+    SiliconProcessorBlockEntity processor =
+        new SiliconProcessorBlockEntity(BlockPos.ZERO, activeState);
+    processor.load(saved);
+    processor.setLevel(helper.getLevel());
+    IItemHandler forcedInventory = processor.logisticsInventory();
+    ItemStack extracted =
+        forcedInventory.extractItem(SiliconProcessorBlockEntity.INPUT_SLOT, 1, false);
+    ItemStack rejected =
+        forcedInventory.insertItem(
+            SiliconProcessorBlockEntity.INPUT_SLOT, new ItemStack(Items.QUARTZ), false);
+    helper.assertTrue(
+        extracted.isEmpty()
+            && rejected.getCount() == 1
+            && processor.items().getStackInSlot(SiliconProcessorBlockEntity.INPUT_SLOT).getCount()
+                == 4,
+        "Forced logistics must not modify inputs after an industrial process starts");
+
+    SiliconProcessorBlockEntity.serverTick(
+        helper.getLevel(), BlockPos.ZERO, activeState, processor);
+    helper.assertTrue(
+        processor.items().getStackInSlot(SiliconProcessorBlockEntity.INPUT_SLOT).isEmpty()
+            && processor.items().getStackInSlot(SiliconProcessorBlockEntity.CATALYST_SLOT).isEmpty()
+            && processor
+                    .items()
+                    .getStackInSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT)
+                    .getDamageValue()
+                == 1
+            && processor
+                .items()
+                .getStackInSlot(SiliconProcessorBlockEntity.OUTPUT_START)
+                .is(ModItems.METALLURGICAL_SILICON.get()),
+        "The machine must still consume its locked inputs when the process completes");
     helper.succeed();
   }
 

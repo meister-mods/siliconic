@@ -4,6 +4,13 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-09-04
+
+### Changed
+
+- Upgraded GitHub Actions to Node.js 24-based releases.
+- Removed the Forge GameTest server run from CI while keeping it available for local validation.
+
 ## [0.2.6] - 2026-09-03
 
 ### Fixed

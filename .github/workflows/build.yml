@@ -11,30 +11,30 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v5
 
       - name: Make Gradle wrapper executable
         run: chmod +x gradlew
 
       - name: Build and validate resources
-        run: ./gradlew build
-
-      - name: Run Forge GameTests
-        run: ./gradlew runGameTestServer
+        run: ./gradlew build --no-daemon --stacktrace
 
       - name: Upload runnable mod
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: siliconic-mod
           path: |

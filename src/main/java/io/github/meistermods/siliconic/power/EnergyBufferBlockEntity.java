@@ -130,7 +130,10 @@ public class EnergyBufferBlockEntity extends BlockEntity {
     int[] demands = new int[targets.size()];
     long totalDemand = 0;
     for (int index = 0; index < targets.size(); index++) {
-      demands[index] = Math.max(0, targets.get(index).receiveEnergy(connectionLimit, true));
+      demands[index] =
+          Math.max(
+              0,
+              Math.min(connectionLimit, targets.get(index).receiveEnergy(connectionLimit, true)));
       totalDemand += demands[index];
     }
     int budget =

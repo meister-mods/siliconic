@@ -711,10 +711,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
     System.arraycopy(nextInputs, 0, inputs, 0, inputs.length);
     Simulation result =
         simulateWafer(
-            wafer,
-            inputs,
-            getWaferLevel(),
-            new SimulationBudget(MAX_SIMULATION_CELL_PASSES));
+            wafer, inputs, getWaferLevel(), new SimulationBudget(MAX_SIMULATION_CELL_PASSES));
     simulationDirty = false;
     signals = result.signals.clone();
     horizontalSignals = result.horizontalSignals.clone();
@@ -726,10 +723,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
   }
 
   private Simulation simulateWafer(
-      ItemStack stack,
-      int[] externalInputs,
-      int containingWaferLevel,
-      SimulationBudget budget) {
+      ItemStack stack, int[] externalInputs, int containingWaferLevel, SimulationBudget budget) {
     int size = sizeOf(stack);
     CompoundTag design = stack.getOrCreateTagElement(DESIGN_TAG);
     Simulation result =
@@ -874,8 +868,7 @@ public class PrototypeWaferBlockEntity extends BlockEntity
     }
     if (!networkStable && !budget.exhausted()) {
       WireState settledWires =
-          settleWires(
-              design, size, values, chipOutputs, externalInputs, maxSettlePasses, budget);
+          settleWires(design, size, values, chipOutputs, externalInputs, maxSettlePasses, budget);
       values = settledWires.signals;
       wireStrength = settledWires.strength;
       wireRemaining = settledWires.remaining;

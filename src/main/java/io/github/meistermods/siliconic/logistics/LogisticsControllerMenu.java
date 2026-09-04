@@ -91,8 +91,7 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     LogisticsControllerBlockEntity controller =
         blockEntity instanceof LogisticsControllerBlockEntity found ? found : null;
     int count =
-        Math.max(
-            0, Math.min(LogisticsControllerBlockEntity.MAX_ENDPOINTS, buffer.readVarInt()));
+        Math.max(0, Math.min(LogisticsControllerBlockEntity.MAX_ENDPOINTS, buffer.readVarInt()));
     List<EndpointInfo> endpoints = new ArrayList<>(count);
     for (int index = 0; index < count; index++)
       endpoints.add(

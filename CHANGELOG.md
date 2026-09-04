@@ -4,6 +4,14 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.6] - 2026-09-03
+
+### Fixed
+
+- Persisted external energy extraction from coal generators to prevent energy restoration after a chunk reload.
+- Invalidated logistics endpoint caches immediately when connected pipes or inventories change.
+- Clamped energy-buffer receiver demand to the configured per-connection transfer limit.
+
 ## [0.2.5] - 2026-09-03
 
 ### Fixed

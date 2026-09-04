@@ -1,5 +1,7 @@
 # Data-pack Machine Processes
 
+English | [Korean](MACHINE_PROCESSES.kr.md) · [Project README](../README.md)
+
 Siliconic machine processes can be added with `siliconic:machine_process` recipes. A data pack can override a built-in process by using the same recipe ID.
 
 ```json

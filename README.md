@@ -38,7 +38,7 @@ The server and all connecting players must use the same Siliconic version. JEI i
 ## Documentation
 
 - [Gameplay Guide](docs/GAMEPLAY.md) · [한국어](docs/GAMEPLAY.kr.md)
-- [Data-pack Machine Process Format](docs/MACHINE_PROCESSES.md)
+- [Data-pack Machine Process Format](docs/MACHINE_PROCESSES.md) · [한국어](docs/MACHINE_PROCESSES.kr.md)
 - [Changelog](CHANGELOG.md)
 
 ## Development

@@ -13,7 +13,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-@SuppressWarnings({"null", "deprecation"})
+@SuppressWarnings({"null"})
 public class RedstoneClockBlock extends Block {
   public static final BooleanProperty POWERED = BooleanProperty.create("powered");
   private static final int ON_TICKS = 2;

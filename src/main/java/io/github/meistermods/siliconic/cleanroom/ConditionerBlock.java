@@ -1,5 +1,7 @@
 package io.github.meistermods.siliconic.cleanroom;
 
+import org.jetbrains.annotations.Nullable;
+
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,9 +19,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
-import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings({"null", "deprecation"})
+@SuppressWarnings({"null"})
 public class ConditionerBlock extends BaseEntityBlock {
   public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 

@@ -359,8 +359,7 @@ public final class SiliconicGameTests {
     saved.put("LastScan", lastScan);
 
     ConditionerBlockEntity conditioner =
-        new ConditionerBlockEntity(
-            conditionerPos, ModBlocks.CONDITIONER.get().defaultBlockState());
+        new ConditionerBlockEntity(conditionerPos, ModBlocks.CONDITIONER.get().defaultBlockState());
     conditioner.load(saved);
     conditioner.setLevel(helper.getLevel());
     conditioner.onLoad();
@@ -388,8 +387,7 @@ public final class SiliconicGameTests {
     savedItems.setStackInSlot(
         SiliconProcessorBlockEntity.CATALYST_SLOT, new ItemStack(Items.CHARCOAL, 4));
     savedItems.setStackInSlot(
-        SiliconProcessorBlockEntity.COMPONENT_SLOT,
-        new ItemStack(ModItems.CARBON_ELECTRODE.get()));
+        SiliconProcessorBlockEntity.COMPONENT_SLOT, new ItemStack(ModItems.CARBON_ELECTRODE.get()));
     CompoundTag saved = new CompoundTag();
     saved.putInt("LayoutVersion", 2);
     saved.put("Items", savedItems.serializeNBT());

@@ -217,8 +217,8 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
     if (lastScan.status() != RoomScanResult.Status.UNLOADED) return this;
     ConditionerBlockEntity updater = null;
     for (ConditionerBlockEntity conditioner : conditioners) {
-      if (!conditioner.lastScan.isSealed()
-          || conditioner.lastScan.interiorPositions().isEmpty()) continue;
+      if (!conditioner.lastScan.isSealed() || conditioner.lastScan.interiorPositions().isEmpty())
+        continue;
       if (updater == null || conditioner.worldPosition.asLong() < updater.worldPosition.asLong())
         updater = conditioner;
     }

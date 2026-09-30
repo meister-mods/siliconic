@@ -5,9 +5,11 @@ import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.cleanroom.ConditionerBlockEntity;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
 import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity;
+import io.github.meistermods.siliconic.logistics.LogisticsControllerMenu;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.power.BalancedEnergyDistributor;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
+import io.github.meistermods.siliconic.power.PowerCableBlock;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ProcessInput;
@@ -19,6 +21,7 @@ import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.ConductorMode;
+import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlockEntity;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic.SignalPulse;
 import java.util.Arrays;
@@ -28,11 +31,15 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.gametest.GameTestHolder;
@@ -40,11 +47,94 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
-/** Fast, deterministic regression tests for rules that do not need blocks placed in the world. */
+/** Regression tests for machine, network, and wafer behavior. */
 @SuppressWarnings({"null"})
 @GameTestHolder(Siliconic.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class SiliconicGameTests {
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void sanitizesCompletedWaferNames(GameTestHelper helper) {
+    String unsafe = "  A\nB" + (char) 0x202E + "C  ";
+    helper.assertTrue(
+        PrototypeWaferBlockEntity.sanitizeWaferName(unsafe).equals("ABC"),
+        "Wafer names must not retain line breaks or text-direction controls");
+    helper.assertTrue(
+        PrototypeWaferBlockEntity.sanitizeWaferName("x".repeat(49) + "💎").length() == 49,
+        "Truncation must not split a supplementary Unicode character");
+    helper.assertTrue(
+        PrototypeWaferBlockEntity.sanitizeWaferName(" ".repeat(30) + "x".repeat(30))
+            .equals("x".repeat(30)),
+        "Leading whitespace must not count toward the wafer name limit");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void locksDuplicatorInputsWhileOutputIsPending(GameTestHelper helper) {
+    WaferDuplicatorBlockEntity duplicator =
+        new WaferDuplicatorBlockEntity(
+            BlockPos.ZERO, ModBlocks.WAFER_DUPLICATOR.get().defaultBlockState());
+    ItemStackHandler savedItems = new ItemStackHandler(WaferDuplicatorBlockEntity.SLOT_COUNT);
+    savedItems.setStackInSlot(WaferDuplicatorBlockEntity.SOURCE_SLOT, new ItemStack(Items.DIAMOND));
+    CompoundTag saved = new CompoundTag();
+    saved.put("Items", savedItems.serializeNBT());
+    saved.put("PendingResult", new ItemStack(Items.EMERALD).save(new CompoundTag()));
+    duplicator.load(saved);
+
+    ItemStackHandler items = duplicator.items();
+    helper.assertTrue(
+        items.extractItem(WaferDuplicatorBlockEntity.SOURCE_SLOT, 1, false).isEmpty(),
+        "A completed duplicate must keep its source locked while waiting for output space");
+    helper.assertTrue(
+        items.insertItem(WaferDuplicatorBlockEntity.MATERIAL_START, new ItemStack(Items.COAL), false)
+            .getCount() == 1,
+        "Pending duplication must reject new materials");
+    items.setStackInSlot(WaferDuplicatorBlockEntity.SOURCE_SLOT, ItemStack.EMPTY);
+    helper.assertTrue(
+        items.getStackInSlot(WaferDuplicatorBlockEntity.SOURCE_SLOT).is(Items.DIAMOND)
+            && ItemStack.of(duplicator.saveWithoutMetadata().getCompound("PendingResult"))
+                .is(Items.EMERALD),
+        "Direct slot writes must not discard a completed pending result");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void returnsPartiallyDetachedCable(GameTestHelper helper) {
+    BlockPos relative = BlockPos.ZERO.above();
+    helper.setBlock(relative.below(), Blocks.STONE);
+    helper.setBlock(relative.north(), Blocks.STONE);
+    PowerCableBlock cable = (PowerCableBlock) ModBlocks.POWER_CABLE.get();
+    helper.setBlock(
+        relative,
+        cable.defaultBlockState()
+            .setValue(PowerCableBlock.ATTACHMENT, PowerCableBlock.Attachment.DOWN_NORTH));
+    BlockPos pos = helper.absolutePos(relative);
+
+    helper.setBlock(relative.north(), Blocks.AIR);
+    helper.runAfterDelay(2, () -> {
+      BlockState remaining = helper.getLevel().getBlockState(pos);
+      helper.assertTrue(
+          remaining.is(cable)
+              && remaining.getValue(PowerCableBlock.ATTACHMENT) == PowerCableBlock.Attachment.DOWN,
+          "Removing one support must preserve the other cable face");
+      helper.assertTrue(cableDrops(helper, pos) == 1, "The detached face must drop one cable");
+      cable.tick(remaining, helper.getLevel(), pos, helper.getLevel().random);
+      helper.assertTrue(cableDrops(helper, pos) == 1, "Repeated updates must not duplicate cable drops");
+      helper.setBlock(relative.below(), Blocks.AIR);
+      helper.assertTrue(helper.getLevel().getBlockState(pos).isAir(),
+          "Removing the final support must remove the cable block");
+      helper.assertTrue(cableDrops(helper, pos) == 2, "Both original cables must be recoverable");
+      helper.succeed();
+    });
+  }
+
+  private static int cableDrops(GameTestHelper helper, BlockPos pos) {
+    return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2))
+        .stream()
+        .filter(entity -> entity.getItem().is(ModBlocks.POWER_CABLE.get().asItem()))
+        .mapToInt(entity -> entity.getItem().getCount())
+        .sum();
+  }
+
   @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
   public static void distributesEnergyFairly(GameTestHelper helper) {
     int[] allocations = BalancedEnergyDistributor.allocate(new int[] {100, 100, 10}, 90, 0);
@@ -101,6 +191,19 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         controller.endpointInfos().size() == 1,
         "A connected inventory must be discovered before testing invalidation");
+    Player player = helper.makeMockPlayer();
+    player.setPos(
+        controllerPos.getX() + 0.5, controllerPos.getY() + 0.5, controllerPos.getZ() + 0.5);
+    LogisticsControllerMenu menu =
+        new LogisticsControllerMenu(0, new Inventory(player), controller, controller.endpointInfos());
+    player.containerMenu = menu;
+    helper.assertTrue(menu.stillValid(player), "A current logistics menu must remain usable");
+    helper.assertTrue(
+        menu.clickMenuButton(player, 10) && menu.clickMenuButton(player, 10),
+        "A connected endpoint must allow its input setting to be toggled");
+    helper.assertTrue(
+        controller.saveWithoutMetadata().getList("Configurations", 10).isEmpty(),
+        "Cleared endpoint settings must not remain in the saved configuration map");
 
     helper.setBlock(controllerRelative.east(), Blocks.AIR);
     LogisticsControllerBlockEntity.serverTick(
@@ -109,6 +212,9 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         controller.endpointInfos().isEmpty(),
         "Removing a pipe must invalidate disconnected endpoints before another transfer");
+    helper.assertTrue(!menu.stillValid(player), "A stale logistics menu must become invalid");
+    helper.assertTrue(
+        !menu.clickMenuButton(player, 10), "A stale menu must not edit disconnected endpoints");
     helper.succeed();
   }
 

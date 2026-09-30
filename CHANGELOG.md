@@ -4,6 +4,27 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.7] - 2026-09-04
+
+### Fixed
+
+- Returned detached power-cable items when one of two supporting blocks is removed, while preserving the remaining connection.
+- Closed stale logistics menus when their connected endpoint list changes and rejected controls on invalid menus.
+- Locked wafer duplicator inputs while a completed result waits for output space, preserving its contamination outcome.
+- Removed control and formatting characters from completed wafer names without splitting Unicode characters.
+- Refreshed machine and reprocessing recipe caches when data packs replace the recipe manager during a tick.
+- Removed empty logistics endpoint settings after options are cleared, preventing unused entries from accumulating.
+
+### Changed
+
+- Upgraded GitHub Actions to Node.js 24-based releases.
+- Removed the Forge GameTest server run from CI while keeping it available for local validation.
+
+### Documentation
+
+- Added a Korean counterpart for the data-pack machine-process reference.
+- Added language navigation for the machine-process documentation and aligned Korean gameplay wording with the English guide.
+
 ## [0.2.6] - 2026-09-03
 
 ### Fixed

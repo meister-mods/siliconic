@@ -38,7 +38,7 @@ Siliconic은 다음 네 가지 시스템이 연결된 기술 발전 과정을 �
 ## 문서
 
 - [게임플레이 가이드](docs/GAMEPLAY.kr.md) · [English](docs/GAMEPLAY.md)
-- [데이터팩 장비 공정 형식](docs/MACHINE_PROCESSES.md)
+- [데이터팩 장비 공정 형식](docs/MACHINE_PROCESSES.kr.md) · [English](docs/MACHINE_PROCESSES.md)
 - [변경 기록](CHANGELOG.md)
 
 ## 개발

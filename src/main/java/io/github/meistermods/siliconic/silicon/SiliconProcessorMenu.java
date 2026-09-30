@@ -145,7 +145,7 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
 
   @Override
   public boolean clickMenuButton(Player player, int id) {
-    return processor.handleMenuButton(id);
+    return player.containerMenu == this && stillValid(player) && processor.handleMenuButton(id);
   }
 
   @Override

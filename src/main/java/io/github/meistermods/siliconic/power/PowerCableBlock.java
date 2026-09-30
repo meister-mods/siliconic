@@ -123,6 +123,11 @@ public class PowerCableBlock extends Block {
     if (level instanceof Level actualLevel) PowerNetworkTopology.invalidate(actualLevel);
     Attachment valid = validAttachment(state.getValue(ATTACHMENT), level, pos);
     if (valid == null) return Blocks.AIR.defaultBlockState();
+    if (valid != state.getValue(ATTACHMENT)) {
+      // Apply partial detachment in a server tick so shape queries cannot duplicate drops.
+      level.scheduleTick(pos, this, 1);
+      return connections(state, level, pos);
+    }
     return connections(state.setValue(ATTACHMENT, valid), level, pos);
   }
 
@@ -157,9 +162,12 @@ public class PowerCableBlock extends Block {
     }
     BlockState updated = connections(state.setValue(ATTACHMENT, valid), level, pos);
     if (updated != state) {
-      level.setBlock(pos, updated, 2);
-      if (updated.getValue(ATTACHMENT) != state.getValue(ATTACHMENT))
+      if (level.setBlock(pos, updated, 2)
+          && updated.getValue(ATTACHMENT) != state.getValue(ATTACHMENT)) {
+        int detached = state.getValue(ATTACHMENT).faceCount() - valid.faceCount();
+        if (detached > 0) popResource(level, pos, new ItemStack(this, detached));
         scheduleNearbyCableUpdates(level, pos);
+      }
     }
   }
 

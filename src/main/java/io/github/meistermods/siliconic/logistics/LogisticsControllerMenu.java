@@ -194,6 +194,7 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
 
   @Override
   public boolean clickMenuButton(Player player, int id) {
+    if (player.containerMenu != this || !stillValid(player)) return false;
     if (id == BUTTON_PREVIOUS) {
       if (serverPage <= 0) return false;
       serverPage--;
@@ -232,6 +233,7 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
 
   @Override
   public ItemStack quickMoveStack(Player player, int index) {
+    if (player.containerMenu != this || !stillValid(player)) return ItemStack.EMPTY;
     if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
     Slot slot = slots.get(index);
     if (!slot.hasItem()) return ItemStack.EMPTY;
@@ -263,7 +265,8 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
   public boolean stillValid(Player player) {
     return controller != null
         && !controller.isRemoved()
-        && player.distanceToSqr(controller.getBlockPos().getCenter()) <= 64;
+        && player.distanceToSqr(controller.getBlockPos().getCenter()) <= 64
+        && (player.level().isClientSide || endpoints.equals(controller.endpointInfos()));
   }
 
   private final class EndpointFilterSlot extends SlotItemHandler {

@@ -1355,12 +1355,30 @@ public class PrototypeWaferBlockEntity extends BlockEntity
 
   public void completeWafer(String name) {
     if (!canEditHere() || !hasWafer()) return;
-    String trimmed = name == null ? "" : name.strip();
-    if (trimmed.length() > 50) trimmed = trimmed.substring(0, 50);
-    if (trimmed.isEmpty()) wafer.resetHoverName();
-    else wafer.setHoverName(Component.literal(trimmed));
+    String safeName = sanitizeWaferName(name);
+    if (safeName.isEmpty()) wafer.resetHoverName();
+    else wafer.setHoverName(Component.literal(safeName));
     wafer.getOrCreateTag().putBoolean(COMPLETED_TAG, true);
     changedAndSync();
+  }
+
+  public static String sanitizeWaferName(String name) {
+    if (name == null) return "";
+    name = name.strip();
+    StringBuilder safe = new StringBuilder();
+    for (int offset = 0; offset < name.length(); ) {
+      int codePoint = name.codePointAt(offset);
+      offset += Character.charCount(codePoint);
+      int type = Character.getType(codePoint);
+      if (Character.isISOControl(codePoint)
+          || type == Character.FORMAT
+          || type == Character.SURROGATE
+          || type == Character.LINE_SEPARATOR
+          || type == Character.PARAGRAPH_SEPARATOR) continue;
+      if (safe.length() + Character.charCount(codePoint) > 50) break;
+      safe.appendCodePoint(codePoint);
+    }
+    return safe.toString().strip();
   }
 
   private void markUnfinished() {

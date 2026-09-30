@@ -185,31 +185,37 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   void toggleInput(BlockPos pos, Direction side) {
     EndpointConfig config = config(pos, side);
     config.input = !config.input;
+    pruneEmptyConfig(pos, side);
     setChanged();
   }
 
   void toggleOutput(BlockPos pos, Direction side) {
     EndpointConfig config = config(pos, side);
     config.output = !config.output;
+    pruneEmptyConfig(pos, side);
     setChanged();
   }
 
   void toggleForced(BlockPos pos, Direction side, boolean supported) {
-    EndpointConfig config = config(pos, side);
-    if (!supported && !config.forced) return;
+    EndpointConfig config = configurations.get(key(pos, side));
+    if (!supported && (config == null || !config.forced)) return;
+    if (config == null) config = config(pos, side);
     config.forced = !config.forced;
+    pruneEmptyConfig(pos, side);
     setChanged();
   }
 
   void toggleBlacklist(BlockPos pos, Direction side) {
     EndpointConfig config = config(pos, side);
     config.blacklist = !config.blacklist;
+    pruneEmptyConfig(pos, side);
     setChanged();
   }
 
   void cyclePriority(BlockPos pos, Direction side) {
     EndpointConfig config = config(pos, side);
     config.priority = config.priority >= 2 ? -2 : config.priority + 1;
+    pruneEmptyConfig(pos, side);
     setChanged();
   }
 
@@ -219,11 +225,13 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   }
 
   void setFilter(BlockPos pos, Direction side, ItemStack stack) {
+    if (stack.isEmpty() && !configurations.containsKey(key(pos, side))) return;
     EndpointConfig config = config(pos, side);
     ItemStack filter = stack.copy();
     if (!filter.isEmpty()) filter.setCount(1);
     if (ItemStack.matches(config.filter, filter)) return;
     config.filter = filter;
+    pruneEmptyConfig(pos, side);
     setChanged();
   }
 
@@ -243,6 +251,13 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
 
   private EndpointConfig config(BlockPos pos, Direction side) {
     return configurations.computeIfAbsent(key(pos, side), ignored -> new EndpointConfig());
+  }
+
+  private void pruneEmptyConfig(BlockPos pos, Direction side) {
+    EndpointKey endpoint = key(pos, side);
+    EndpointConfig config = configurations.get(endpoint);
+    if (config != null && config.flags() == 0 && config.filter.isEmpty())
+      configurations.remove(endpoint);
   }
 
   private void extractNextItem() {

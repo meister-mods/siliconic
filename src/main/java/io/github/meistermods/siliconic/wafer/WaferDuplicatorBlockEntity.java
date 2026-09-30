@@ -41,14 +41,34 @@ public class WaferDuplicatorBlockEntity extends BlockEntity
       new ItemStackHandler(SLOT_COUNT) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
+          if (!isOutputSlot(slot) && !pendingResult.isEmpty()) return false;
           if (slot == SOURCE_SLOT) return PrototypeWaferBlockEntity.isCompleted(stack);
           if (slot == BLANK_SLOT) return PrototypeWaferBlockEntity.isBlankWafer(stack);
           return slot >= MATERIAL_START && slot < MATERIAL_START + MATERIAL_SLOTS;
         }
 
         @Override
+        public void setStackInSlot(int slot, ItemStack stack) {
+          if (!isOutputSlot(slot) && !pendingResult.isEmpty()) return;
+          super.setStackInSlot(slot, stack);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+          return !isOutputSlot(slot) && !pendingResult.isEmpty()
+              ? stack
+              : super.insertItem(slot, stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+          return !isOutputSlot(slot) && !pendingResult.isEmpty()
+              ? ItemStack.EMPTY
+              : super.extractItem(slot, amount, simulate);
+        }
+
+        @Override
         protected void onContentsChanged(int slot) {
-          if (!isOutputSlot(slot)) pendingResult = ItemStack.EMPTY;
           setChanged();
         }
       };
@@ -180,11 +200,11 @@ public class WaferDuplicatorBlockEntity extends BlockEntity
       setChanged();
       return;
     }
+    pendingResult = ItemStack.EMPTY;
     consumeMaterials(requirements);
     energy.consumeInternal(cost);
     items.extractItem(BLANK_SLOT, 1, false);
     insertOutput(outputSlot, result);
-    pendingResult = ItemStack.EMPTY;
     setChanged();
   }
 
@@ -267,6 +287,7 @@ public class WaferDuplicatorBlockEntity extends BlockEntity
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
+    pendingResult = ItemStack.EMPTY;
     CompoundTag itemData = tag.getCompound("Items").copy();
     itemData.putInt("Size", SLOT_COUNT);
     items.deserializeNBT(itemData);

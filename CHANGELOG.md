@@ -9,6 +9,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - Returned detached power-cable items when one of two supporting blocks is removed, while preserving the remaining connection.
+- Closed stale logistics menus when their connected endpoint list changes and rejected controls on invalid menus.
 
 ### Changed
 

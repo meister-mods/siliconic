@@ -5,6 +5,7 @@ import io.github.meistermods.siliconic.cleanroom.CleanroomOccupancy;
 import io.github.meistermods.siliconic.cleanroom.ConditionerBlockEntity;
 import io.github.meistermods.siliconic.fabrication.FabricationStationBlockEntity;
 import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity;
+import io.github.meistermods.siliconic.logistics.LogisticsControllerMenu;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.power.BalancedEnergyDistributor;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
@@ -30,6 +31,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -142,6 +145,13 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         controller.endpointInfos().size() == 1,
         "A connected inventory must be discovered before testing invalidation");
+    Player player = helper.makeMockPlayer();
+    player.setPos(
+        controllerPos.getX() + 0.5, controllerPos.getY() + 0.5, controllerPos.getZ() + 0.5);
+    LogisticsControllerMenu menu =
+        new LogisticsControllerMenu(0, new Inventory(player), controller, controller.endpointInfos());
+    player.containerMenu = menu;
+    helper.assertTrue(menu.stillValid(player), "A current logistics menu must remain usable");
 
     helper.setBlock(controllerRelative.east(), Blocks.AIR);
     LogisticsControllerBlockEntity.serverTick(
@@ -150,6 +160,9 @@ public final class SiliconicGameTests {
     helper.assertTrue(
         controller.endpointInfos().isEmpty(),
         "Removing a pipe must invalidate disconnected endpoints before another transfer");
+    helper.assertTrue(!menu.stillValid(player), "A stale logistics menu must become invalid");
+    helper.assertTrue(
+        !menu.clickMenuButton(player, 10), "A stale menu must not edit disconnected endpoints");
     helper.succeed();
   }
 

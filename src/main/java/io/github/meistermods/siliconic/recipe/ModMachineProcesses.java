@@ -14,6 +14,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
@@ -30,7 +31,7 @@ public final class ModMachineProcesses {
           Registries.ITEM, ResourceLocation.fromNamespaceAndPath("forge", "nuggets/copper"));
   private static final Map<Level, TickCache> LEVEL_CACHE = new WeakHashMap<>();
 
-  private record TickCache(long gameTime, List<MachineProcess> processes) {}
+  private record TickCache(long gameTime, RecipeManager recipeManager, List<MachineProcess> processes) {}
 
   public static List<MachineProcess> all() {
     return all(null);
@@ -40,19 +41,21 @@ public final class ModMachineProcesses {
   public static List<MachineProcess> all(@Nullable Level level) {
     if (level == null) return Holder.ALL;
     long gameTime = level.getGameTime();
+    RecipeManager recipeManager = level.getRecipeManager();
     synchronized (LEVEL_CACHE) {
       TickCache cached = LEVEL_CACHE.get(level);
-      if (cached != null && cached.gameTime() == gameTime) return cached.processes();
+      if (cached != null
+          && cached.gameTime() == gameTime
+          && cached.recipeManager() == recipeManager) return cached.processes();
     }
     Map<ResourceLocation, MachineProcess> merged = new LinkedHashMap<>();
     Holder.ALL.forEach(process -> merged.put(process.id(), process));
-    level
-        .getRecipeManager()
+    recipeManager
         .getAllRecipesFor(ModRecipes.MACHINE_PROCESS_TYPE.get())
         .forEach(process -> merged.put(process.id(), process));
     List<MachineProcess> processes = List.copyOf(merged.values());
     synchronized (LEVEL_CACHE) {
-      LEVEL_CACHE.put(level, new TickCache(gameTime, processes));
+      LEVEL_CACHE.put(level, new TickCache(gameTime, recipeManager, processes));
     }
     return processes;
   }

@@ -21,6 +21,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -41,7 +42,7 @@ public record ReprocessingProcess(
     implements Recipe<Container> {
   private static final Map<Level, TickCache> LEVEL_CACHE = new WeakHashMap<>();
 
-  private record TickCache(long gameTime, List<ReprocessingProcess> processes) {}
+  private record TickCache(long gameTime, RecipeManager recipeManager, List<ReprocessingProcess> processes) {}
 
   public ReprocessingProcess {
     Objects.requireNonNull(id, "Reprocessing process ID must not be null");
@@ -88,19 +89,21 @@ public record ReprocessingProcess(
   public static List<ReprocessingProcess> all(@Nullable Level level) {
     if (level == null) return Holder.PROCESSES;
     long gameTime = level.getGameTime();
+    RecipeManager recipeManager = level.getRecipeManager();
     synchronized (LEVEL_CACHE) {
       TickCache cached = LEVEL_CACHE.get(level);
-      if (cached != null && cached.gameTime() == gameTime) return cached.processes();
+      if (cached != null
+          && cached.gameTime() == gameTime
+          && cached.recipeManager() == recipeManager) return cached.processes();
     }
     Map<ResourceLocation, ReprocessingProcess> merged = new LinkedHashMap<>();
     Holder.PROCESSES.forEach(process -> merged.put(process.id(), process));
-    level
-        .getRecipeManager()
+    recipeManager
         .getAllRecipesFor(ModRecipes.REPROCESSING_TYPE.get())
         .forEach(process -> merged.put(process.id(), process));
     List<ReprocessingProcess> processes = List.copyOf(merged.values());
     synchronized (LEVEL_CACHE) {
-      LEVEL_CACHE.put(level, new TickCache(gameTime, processes));
+      LEVEL_CACHE.put(level, new TickCache(gameTime, recipeManager, processes));
     }
     return processes;
   }

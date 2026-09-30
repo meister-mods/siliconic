@@ -21,6 +21,7 @@ import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.ConductorMode;
+import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlockEntity;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic.SignalPulse;
 import java.util.Arrays;
@@ -51,6 +52,51 @@ import net.minecraftforge.items.ItemStackHandler;
 @GameTestHolder(Siliconic.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class SiliconicGameTests {
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void sanitizesCompletedWaferNames(GameTestHelper helper) {
+    String unsafe = "  A\nB" + (char) 0x202E + "C  ";
+    helper.assertTrue(
+        PrototypeWaferBlockEntity.sanitizeWaferName(unsafe).equals("ABC"),
+        "Wafer names must not retain line breaks or text-direction controls");
+    helper.assertTrue(
+        PrototypeWaferBlockEntity.sanitizeWaferName("x".repeat(49) + "💎").length() == 49,
+        "Truncation must not split a supplementary Unicode character");
+    helper.assertTrue(
+        PrototypeWaferBlockEntity.sanitizeWaferName(" ".repeat(30) + "x".repeat(30))
+            .equals("x".repeat(30)),
+        "Leading whitespace must not count toward the wafer name limit");
+    helper.succeed();
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void locksDuplicatorInputsWhileOutputIsPending(GameTestHelper helper) {
+    WaferDuplicatorBlockEntity duplicator =
+        new WaferDuplicatorBlockEntity(
+            BlockPos.ZERO, ModBlocks.WAFER_DUPLICATOR.get().defaultBlockState());
+    ItemStackHandler savedItems = new ItemStackHandler(WaferDuplicatorBlockEntity.SLOT_COUNT);
+    savedItems.setStackInSlot(WaferDuplicatorBlockEntity.SOURCE_SLOT, new ItemStack(Items.DIAMOND));
+    CompoundTag saved = new CompoundTag();
+    saved.put("Items", savedItems.serializeNBT());
+    saved.put("PendingResult", new ItemStack(Items.EMERALD).save(new CompoundTag()));
+    duplicator.load(saved);
+
+    ItemStackHandler items = duplicator.items();
+    helper.assertTrue(
+        items.extractItem(WaferDuplicatorBlockEntity.SOURCE_SLOT, 1, false).isEmpty(),
+        "A completed duplicate must keep its source locked while waiting for output space");
+    helper.assertTrue(
+        items.insertItem(WaferDuplicatorBlockEntity.MATERIAL_START, new ItemStack(Items.COAL), false)
+            .getCount() == 1,
+        "Pending duplication must reject new materials");
+    items.setStackInSlot(WaferDuplicatorBlockEntity.SOURCE_SLOT, ItemStack.EMPTY);
+    helper.assertTrue(
+        items.getStackInSlot(WaferDuplicatorBlockEntity.SOURCE_SLOT).is(Items.DIAMOND)
+            && ItemStack.of(duplicator.saveWithoutMetadata().getCompound("PendingResult"))
+                .is(Items.EMERALD),
+        "Direct slot writes must not discard a completed pending result");
+    helper.succeed();
+  }
+
   @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
   public static void returnsPartiallyDetachedCable(GameTestHelper helper) {
     BlockPos relative = BlockPos.ZERO.above();
@@ -152,6 +198,12 @@ public final class SiliconicGameTests {
         new LogisticsControllerMenu(0, new Inventory(player), controller, controller.endpointInfos());
     player.containerMenu = menu;
     helper.assertTrue(menu.stillValid(player), "A current logistics menu must remain usable");
+    helper.assertTrue(
+        menu.clickMenuButton(player, 10) && menu.clickMenuButton(player, 10),
+        "A connected endpoint must allow its input setting to be toggled");
+    helper.assertTrue(
+        controller.saveWithoutMetadata().getList("Configurations", 10).isEmpty(),
+        "Cleared endpoint settings must not remain in the saved configuration map");
 
     helper.setBlock(controllerRelative.east(), Blocks.AIR);
     LogisticsControllerBlockEntity.serverTick(

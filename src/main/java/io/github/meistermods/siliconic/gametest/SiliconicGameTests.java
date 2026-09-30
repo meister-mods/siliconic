@@ -8,6 +8,7 @@ import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity;
 import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.power.BalancedEnergyDistributor;
 import io.github.meistermods.siliconic.power.CoalGeneratorBlockEntity;
+import io.github.meistermods.siliconic.power.PowerCableBlock;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ProcessInput;
@@ -28,11 +29,13 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.gametest.GameTestHolder;
@@ -40,11 +43,49 @@ import net.minecraftforge.gametest.PrefixGameTestTemplate;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
-/** Fast, deterministic regression tests for rules that do not need blocks placed in the world. */
+/** Regression tests for machine, network, and wafer behavior. */
 @SuppressWarnings({"null"})
 @GameTestHolder(Siliconic.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class SiliconicGameTests {
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void returnsPartiallyDetachedCable(GameTestHelper helper) {
+    BlockPos relative = BlockPos.ZERO.above();
+    helper.setBlock(relative.below(), Blocks.STONE);
+    helper.setBlock(relative.north(), Blocks.STONE);
+    PowerCableBlock cable = (PowerCableBlock) ModBlocks.POWER_CABLE.get();
+    helper.setBlock(
+        relative,
+        cable.defaultBlockState()
+            .setValue(PowerCableBlock.ATTACHMENT, PowerCableBlock.Attachment.DOWN_NORTH));
+    BlockPos pos = helper.absolutePos(relative);
+
+    helper.setBlock(relative.north(), Blocks.AIR);
+    helper.runAfterDelay(2, () -> {
+      BlockState remaining = helper.getLevel().getBlockState(pos);
+      helper.assertTrue(
+          remaining.is(cable)
+              && remaining.getValue(PowerCableBlock.ATTACHMENT) == PowerCableBlock.Attachment.DOWN,
+          "Removing one support must preserve the other cable face");
+      helper.assertTrue(cableDrops(helper, pos) == 1, "The detached face must drop one cable");
+      cable.tick(remaining, helper.getLevel(), pos, helper.getLevel().random);
+      helper.assertTrue(cableDrops(helper, pos) == 1, "Repeated updates must not duplicate cable drops");
+      helper.setBlock(relative.below(), Blocks.AIR);
+      helper.assertTrue(helper.getLevel().getBlockState(pos).isAir(),
+          "Removing the final support must remove the cable block");
+      helper.assertTrue(cableDrops(helper, pos) == 2, "Both original cables must be recoverable");
+      helper.succeed();
+    });
+  }
+
+  private static int cableDrops(GameTestHelper helper, BlockPos pos) {
+    return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2))
+        .stream()
+        .filter(entity -> entity.getItem().is(ModBlocks.POWER_CABLE.get().asItem()))
+        .mapToInt(entity -> entity.getItem().getCount())
+        .sum();
+  }
+
   @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
   public static void distributesEnergyFairly(GameTestHelper helper) {
     int[] allocations = BalancedEnergyDistributor.allocate(new int[] {100, 100, 10}, 90, 0);

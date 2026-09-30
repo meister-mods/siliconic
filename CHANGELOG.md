@@ -6,6 +6,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [0.2.7] - 2026-09-04
 
+### Fixed
+
+- Returned detached power-cable items when one of two supporting blocks is removed, while preserving the remaining connection.
+
 ### Changed
 
 - Upgraded GitHub Actions to Node.js 24-based releases.

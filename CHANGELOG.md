@@ -4,6 +4,15 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.8] - 2026-10-04
+
+### Fixed
+
+- Preserved data-pack fabrication byproducts and paused processing when their output space is unavailable.
+- Allowed fabrication results to fill available space across multiple output stacks.
+- Preserved all pending fabrication outputs across reloads while retaining support for older single-result saves.
+- Allowed fabrication outputs without contaminated variants to be produced at any cleanroom cleanliness.
+
 ## [0.2.7] - 2026-09-04
 
 ### Fixed

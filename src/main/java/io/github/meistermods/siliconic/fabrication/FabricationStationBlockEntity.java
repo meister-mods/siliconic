@@ -10,9 +10,13 @@ import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -28,6 +32,7 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.energy.EnergyStorage;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +44,7 @@ public class FabricationStationBlockEntity extends BlockEntity
   public static final int ENERGY_CAPACITY = 60_000;
 
   private int progress;
-  private ItemStack pendingResult = ItemStack.EMPTY;
+  private List<ItemStack> pendingResults = List.of();
   private boolean consumingPendingInputs;
   private final StationEnergyStorage energy = new StationEnergyStorage();
   private final ItemStackHandler items =
@@ -175,7 +180,7 @@ public class FabricationStationBlockEntity extends BlockEntity
   }
 
   private boolean canModifyInputs() {
-    return pendingResult.isEmpty() || consumingPendingInputs;
+    return pendingResults.isEmpty() || consumingPendingInputs;
   }
 
   public int status() {
@@ -185,10 +190,10 @@ public class FabricationStationBlockEntity extends BlockEntity
   private int status(@Nullable MachineProcess process) {
     if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 4;
     if (process == null) return 0;
-    if (pendingResult.isEmpty()) {
-      if (!canFitPossibleOutput(process.result())) return 1;
-    } else if (!canFitOutput(pendingResult)) return 1;
-    if (!pendingResult.isEmpty()) return 3;
+    if (pendingResults.isEmpty()) {
+      if (!canFitPossibleOutputs(process)) return 1;
+    } else if (simulateOutputs(pendingResults) == null) return 1;
+    if (!pendingResults.isEmpty()) return 3;
     if (energy.getEnergyStored() < process.energyPerTick()) return 2;
     return 3;
   }
@@ -201,12 +206,11 @@ public class FabricationStationBlockEntity extends BlockEntity
       station.resetProgress();
       return;
     }
-    if (!station.pendingResult.isEmpty()) {
-      if (station.canFitOutput(station.pendingResult))
-        station.finishProcess(process, station.pendingResult);
+    if (!station.pendingResults.isEmpty()) {
+      station.finishProcess(process, station.pendingResults);
       return;
     }
-    if (!station.canFitPossibleOutput(process.result())) {
+    if (!station.canFitPossibleOutputs(process)) {
       station.resetProgress();
       return;
     }
@@ -214,16 +218,16 @@ public class FabricationStationBlockEntity extends BlockEntity
     station.progress++;
     if (station.progress >= process.ticks()) {
       ItemStack result = CleanroomContamination.processResult(level, pos, process.result());
-      if (station.canFitOutput(result)) station.finishProcess(process, result);
-      else station.pendingResult = result;
+      List<ItemStack> outputs = outputsFor(process, result);
+      if (!station.finishProcess(process, outputs)) station.pendingResults = outputs;
     }
     station.setChanged();
   }
 
   private void resetProgress() {
-    if (progress == 0 && pendingResult.isEmpty()) return;
+    if (progress == 0 && pendingResults.isEmpty()) return;
     progress = 0;
-    pendingResult = ItemStack.EMPTY;
+    pendingResults = List.of();
     setChanged();
   }
 
@@ -232,43 +236,48 @@ public class FabricationStationBlockEntity extends BlockEntity
     return ModMachineProcesses.findMatching(level, machineKind(), items, INPUT_START, INPUT_SLOTS);
   }
 
-  private boolean canFitOutput(ItemStack result) {
-    return findOutputSlot(result) >= 0;
+  private static List<ItemStack> outputsFor(MachineProcess process, ItemStack result) {
+    List<ItemStack> outputs = new ArrayList<>();
+    outputs.add(result.copy());
+    process.byproducts().forEach(byproduct -> outputs.add(byproduct.copy()));
+    return List.copyOf(outputs);
   }
 
-  private boolean canFitPossibleOutput(ItemStack intended) {
+  private boolean canFitPossibleOutputs(MachineProcess process) {
+    ItemStack intended = process.result();
     int contaminationChance = CleanroomContamination.contaminationChance(level, worldPosition);
     ItemStack contaminated = CleanroomContamination.contaminatedVersion(intended);
-    return (contaminationChance < 100 && canFitOutput(intended))
-        || (contaminationChance > 0 && !contaminated.isEmpty() && canFitOutput(contaminated));
+    if (contaminated.isEmpty()) return simulateOutputs(outputsFor(process, intended)) != null;
+    return (contaminationChance < 100 && simulateOutputs(outputsFor(process, intended)) != null)
+        || (contaminationChance > 0 && simulateOutputs(outputsFor(process, contaminated)) != null);
   }
 
-  private int findOutputSlot(ItemStack result) {
-    int emptySlot = -1;
-    for (int slot = OUTPUT_START; slot < OUTPUT_START + OUTPUT_SLOTS; slot++) {
-      ItemStack output = items.getStackInSlot(slot);
-      if (output.isEmpty()) {
-        if (emptySlot < 0) emptySlot = slot;
-      } else if (ItemStack.isSameItemSameTags(output, result)
-          && output.getCount() + result.getCount() <= output.getMaxStackSize()) return slot;
-    }
-    return emptySlot;
+  @Nullable
+  private ItemStackHandler simulateOutputs(List<ItemStack> results) {
+    ItemStackHandler simulated = new ItemStackHandler(OUTPUT_SLOTS);
+    for (int slot = 0; slot < OUTPUT_SLOTS; slot++)
+      simulated.setStackInSlot(slot, items.getStackInSlot(OUTPUT_START + slot).copy());
+    for (ItemStack result : results)
+      if (!ItemHandlerHelper.insertItemStacked(simulated, result.copy(), false).isEmpty())
+        return null;
+    return simulated;
   }
 
-  private void finishProcess(MachineProcess process, ItemStack result) {
-    int outputSlot = findOutputSlot(result);
-    if (outputSlot < 0) return;
-    consumingPendingInputs = !pendingResult.isEmpty();
+  private boolean finishProcess(MachineProcess process, List<ItemStack> results) {
+    ItemStackHandler outputs = simulateOutputs(results);
+    if (outputs == null) return false;
+    consumingPendingInputs = true;
     try {
       process.consume(items, INPUT_START, INPUT_SLOTS);
     } finally {
       consumingPendingInputs = false;
     }
-    ItemStack output = items.getStackInSlot(outputSlot);
-    if (output.isEmpty()) items.setStackInSlot(outputSlot, result);
-    else output.grow(result.getCount());
+    for (int slot = 0; slot < OUTPUT_SLOTS; slot++)
+      items.setStackInSlot(OUTPUT_START + slot, outputs.getStackInSlot(slot));
     progress = 0;
-    pendingResult = ItemStack.EMPTY;
+    pendingResults = List.of();
+    setChanged();
+    return true;
   }
 
   @Override
@@ -277,19 +286,32 @@ public class FabricationStationBlockEntity extends BlockEntity
     tag.put("Items", items.serializeNBT());
     tag.putInt("Energy", energy.getEnergyStored());
     tag.putInt("Progress", progress);
-    tag.put("PendingResult", pendingResult.save(new CompoundTag()));
+    ListTag pending = new ListTag();
+    pendingResults.forEach(result -> pending.add(result.save(new CompoundTag())));
+    tag.put("PendingResults", pending);
   }
 
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
+    pendingResults = List.of();
     CompoundTag itemData = tag.getCompound("Items").copy();
     itemData.putInt("Size", SLOT_COUNT);
     items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
-    pendingResult = ItemStack.of(tag.getCompound("PendingResult"));
+    ListTag pending = tag.getList("PendingResults", Tag.TAG_COMPOUND);
+    List<ItemStack> loadedResults = new ArrayList<>();
+    for (int index = 0; index < pending.size(); index++) {
+      ItemStack result = ItemStack.of(pending.getCompound(index));
+      if (!result.isEmpty()) loadedResults.add(result);
+    }
+    if (loadedResults.isEmpty() && tag.contains("PendingResult", Tag.TAG_COMPOUND)) {
+      ItemStack legacyResult = ItemStack.of(tag.getCompound("PendingResult"));
+      if (!legacyResult.isEmpty()) loadedResults.add(legacyResult);
+    }
+    pendingResults = List.copyOf(loadedResults);
     progress =
-        pendingResult.isEmpty()
+        pendingResults.isEmpty()
             ? Math.max(0, Math.min(Integer.MAX_VALUE - 1, tag.getInt("Progress")))
             : 0;
   }

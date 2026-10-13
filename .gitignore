@@ -34,3 +34,6 @@ Thumbs.db
 
 # Files from Forge MDK
 forge*changelog.txt
+
+# Agent-related files
+.agent/

@@ -21,15 +21,19 @@ import io.github.meistermods.siliconic.silicon.SiliconProcessorBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.CellType;
 import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.ConductorMode;
-import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlockEntity;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic;
 import io.github.meistermods.siliconic.wafer.WaferCircuitLogic.SignalPulse;
+import io.github.meistermods.siliconic.wafer.WaferDuplicatorBlockEntity;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -37,6 +41,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -52,6 +58,158 @@ import net.minecraftforge.items.ItemStackHandler;
 @GameTestHolder(Siliconic.MOD_ID)
 @PrefixGameTestTemplate(false)
 public final class SiliconicGameTests {
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty", batch = "fabrication")
+  public static void fabricatesDataPackByproducts(GameTestHelper helper) {
+    RecipeManager manager = helper.getLevel().getRecipeManager();
+    List<Recipe<?>> original = List.copyOf(manager.getRecipes());
+    List<Recipe<?>> recipes = new ArrayList<>(original);
+    recipes.add(
+        new MachineProcess(
+            ResourceLocation.fromNamespaceAndPath(Siliconic.MOD_ID, "test/fabrication_outputs"),
+            MachineKind.WAFER_FABRICATOR,
+            List.of(new ProcessInput(0, Ingredient.of(Items.BEDROCK), 1)),
+            Items.DIAMOND,
+            2,
+            List.of(new ItemStack(Items.EMERALD, 2)),
+            1,
+            1,
+            true));
+    manager.replaceRecipes(recipes);
+    BlockPos pos = helper.absolutePos(BlockPos.ZERO);
+    // Let the per-tick recipe cache expire before using the temporary data-pack recipe.
+    helper.runAfterDelay(
+        1,
+        () -> {
+          try {
+            CleanroomOccupancy.update(helper.getLevel(), pos, Set.of(pos.asLong()), 100);
+            FabricationStationBlockEntity station =
+                new FabricationStationBlockEntity(
+                    pos, ModBlocks.WAFER_FABRICATOR.get().defaultBlockState());
+            station.setLevel(helper.getLevel());
+            ItemStackHandler items = station.items();
+            items.setStackInSlot(0, new ItemStack(Items.BEDROCK));
+            IEnergyStorage energy =
+                station
+                    .getCapability(ForgeCapabilities.ENERGY)
+                    .orElseThrow(
+                        () -> new IllegalStateException("Fabricator energy capability missing"));
+            energy.receiveEnergy(10, false);
+            for (int slot = 9; slot < 18; slot++)
+              items.setStackInSlot(slot, new ItemStack(Items.STONE, 64));
+            items.setStackInSlot(9, new ItemStack(Items.DIAMOND, 62));
+            FabricationStationBlockEntity.serverTick(
+                helper.getLevel(), pos, station.getBlockState(), station);
+            helper.assertTrue(
+                items.getStackInSlot(0).is(Items.BEDROCK)
+                    && items.getStackInSlot(9).getCount() == 62
+                    && energy.getEnergyStored() == 10,
+                "A blocked byproduct must preserve both inputs and energy");
+
+            items.setStackInSlot(9, new ItemStack(Items.DIAMOND, 63));
+            items.setStackInSlot(10, new ItemStack(Items.DIAMOND, 63));
+            items.setStackInSlot(11, new ItemStack(Items.EMERALD, 62));
+            FabricationStationBlockEntity.serverTick(
+                helper.getLevel(), pos, station.getBlockState(), station);
+            helper.assertTrue(
+                items.getStackInSlot(0).isEmpty()
+                    && items.getStackInSlot(9).getCount() == 64
+                    && items.getStackInSlot(10).getCount() == 64
+                    && items.getStackInSlot(11).getCount() == 64
+                    && energy.getEnergyStored() == 9,
+                "Fabrication must split the main result across slots and retain every byproduct");
+
+            CleanroomOccupancy.update(helper.getLevel(), pos, Set.of(pos.asLong()), 0);
+            items.setStackInSlot(0, new ItemStack(Items.BEDROCK));
+            for (int slot = 9; slot < 18; slot++) items.setStackInSlot(slot, ItemStack.EMPTY);
+            FabricationStationBlockEntity.serverTick(
+                helper.getLevel(), pos, station.getBlockState(), station);
+            helper.assertTrue(
+                items.getStackInSlot(0).isEmpty()
+                    && items.getStackInSlot(9).is(Items.DIAMOND)
+                    && items.getStackInSlot(9).getCount() == 2
+                    && items.getStackInSlot(10).is(Items.EMERALD)
+                    && items.getStackInSlot(10).getCount() == 2,
+                "Outputs without contaminated variants must work even at zero cleanliness");
+
+            CompoundTag saved = station.saveWithoutMetadata();
+            ItemStackHandler savedItems =
+                new ItemStackHandler(FabricationStationBlockEntity.SLOT_COUNT);
+            savedItems.setStackInSlot(0, new ItemStack(Items.BEDROCK));
+            for (int slot = 9; slot < 18; slot++)
+              savedItems.setStackInSlot(slot, new ItemStack(Items.STONE, 64));
+            savedItems.setStackInSlot(9, new ItemStack(Items.DIAMOND, 62));
+            saved.put("Items", savedItems.serializeNBT());
+            saved.putInt("Energy", 0);
+            ListTag pending = new ListTag();
+            pending.add(new ItemStack(Items.DIAMOND, 2).save(new CompoundTag()));
+            pending.add(new ItemStack(Items.EMERALD, 2).save(new CompoundTag()));
+            saved.put("PendingResults", pending);
+            station.load(saved);
+            FabricationStationBlockEntity.serverTick(
+                helper.getLevel(), pos, station.getBlockState(), station);
+            helper.assertTrue(
+                items.getStackInSlot(0).is(Items.BEDROCK)
+                    && items.getStackInSlot(9).getCount() == 62,
+                "Restored pending outputs must wait until every byproduct fits");
+            items.setStackInSlot(10, new ItemStack(Items.EMERALD, 62));
+            FabricationStationBlockEntity.serverTick(
+                helper.getLevel(), pos, station.getBlockState(), station);
+            FabricationStationBlockEntity.serverTick(
+                helper.getLevel(), pos, station.getBlockState(), station);
+            helper.assertTrue(
+                items.getStackInSlot(0).isEmpty()
+                    && items.getStackInSlot(9).getCount() == 64
+                    && items.getStackInSlot(10).getCount() == 64
+                    && energy.getEnergyStored() == 0
+                    && station
+                        .saveWithoutMetadata()
+                        .getList("PendingResults", Tag.TAG_COMPOUND)
+                        .isEmpty(),
+                "Pending fabrication must deliver every output once without charging energy again");
+            helper.succeed();
+          } finally {
+            manager.replaceRecipes(original);
+            CleanroomOccupancy.remove(helper.getLevel(), pos);
+          }
+        });
+  }
+
+  @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
+  public static void preservesPendingFabricationOutputs(GameTestHelper helper) {
+    FabricationStationBlockEntity station =
+        new FabricationStationBlockEntity(
+            BlockPos.ZERO, ModBlocks.WAFER_FABRICATOR.get().defaultBlockState());
+    ItemStackHandler inventory = new ItemStackHandler(FabricationStationBlockEntity.SLOT_COUNT);
+    inventory.setStackInSlot(0, new ItemStack(Items.BEDROCK));
+    CompoundTag saved = new CompoundTag();
+    saved.put("Items", inventory.serializeNBT());
+    ListTag pending = new ListTag();
+    pending.add(new ItemStack(Items.DIAMOND, 2).save(new CompoundTag()));
+    pending.add(new ItemStack(Items.EMERALD, 3).save(new CompoundTag()));
+    saved.put("PendingResults", pending);
+    station.load(saved);
+    helper.assertTrue(
+        station.logisticsInventory().extractItem(0, 1, false).isEmpty(),
+        "Pending fabrication outputs must keep their inputs locked after loading");
+    station.items().setStackInSlot(0, ItemStack.EMPTY);
+    helper.assertTrue(
+        station.items().getStackInSlot(0).is(Items.BEDROCK),
+        "Direct writes must not discard pending fabrication inputs");
+    ListTag restored = station.saveWithoutMetadata().getList("PendingResults", Tag.TAG_COMPOUND);
+    helper.assertTrue(
+        restored.equals(pending),
+        "Every pending output and its count must survive a save/load cycle");
+
+    saved.remove("PendingResults");
+    saved.put("PendingResult", new ItemStack(Items.DIAMOND).save(new CompoundTag()));
+    station.load(saved);
+    restored = station.saveWithoutMetadata().getList("PendingResults", Tag.TAG_COMPOUND);
+    helper.assertTrue(
+        restored.size() == 1 && ItemStack.of(restored.getCompound(0)).is(Items.DIAMOND),
+        "The legacy single-result save format must remain readable");
+    helper.succeed();
+  }
+
   @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
   public static void sanitizesCompletedWaferNames(GameTestHelper helper) {
     String unsafe = "  A\nB" + (char) 0x202E + "C  ";
@@ -85,8 +243,11 @@ public final class SiliconicGameTests {
         items.extractItem(WaferDuplicatorBlockEntity.SOURCE_SLOT, 1, false).isEmpty(),
         "A completed duplicate must keep its source locked while waiting for output space");
     helper.assertTrue(
-        items.insertItem(WaferDuplicatorBlockEntity.MATERIAL_START, new ItemStack(Items.COAL), false)
-            .getCount() == 1,
+        items
+                .insertItem(
+                    WaferDuplicatorBlockEntity.MATERIAL_START, new ItemStack(Items.COAL), false)
+                .getCount()
+            == 1,
         "Pending duplication must reject new materials");
     items.setStackInSlot(WaferDuplicatorBlockEntity.SOURCE_SLOT, ItemStack.EMPTY);
     helper.assertTrue(
@@ -105,31 +266,37 @@ public final class SiliconicGameTests {
     PowerCableBlock cable = (PowerCableBlock) ModBlocks.POWER_CABLE.get();
     helper.setBlock(
         relative,
-        cable.defaultBlockState()
+        cable
+            .defaultBlockState()
             .setValue(PowerCableBlock.ATTACHMENT, PowerCableBlock.Attachment.DOWN_NORTH));
     BlockPos pos = helper.absolutePos(relative);
 
     helper.setBlock(relative.north(), Blocks.AIR);
-    helper.runAfterDelay(2, () -> {
-      BlockState remaining = helper.getLevel().getBlockState(pos);
-      helper.assertTrue(
-          remaining.is(cable)
-              && remaining.getValue(PowerCableBlock.ATTACHMENT) == PowerCableBlock.Attachment.DOWN,
-          "Removing one support must preserve the other cable face");
-      helper.assertTrue(cableDrops(helper, pos) == 1, "The detached face must drop one cable");
-      cable.tick(remaining, helper.getLevel(), pos, helper.getLevel().random);
-      helper.assertTrue(cableDrops(helper, pos) == 1, "Repeated updates must not duplicate cable drops");
-      helper.setBlock(relative.below(), Blocks.AIR);
-      helper.assertTrue(helper.getLevel().getBlockState(pos).isAir(),
-          "Removing the final support must remove the cable block");
-      helper.assertTrue(cableDrops(helper, pos) == 2, "Both original cables must be recoverable");
-      helper.succeed();
-    });
+    helper.runAfterDelay(
+        2,
+        () -> {
+          BlockState remaining = helper.getLevel().getBlockState(pos);
+          helper.assertTrue(
+              remaining.is(cable)
+                  && remaining.getValue(PowerCableBlock.ATTACHMENT)
+                      == PowerCableBlock.Attachment.DOWN,
+              "Removing one support must preserve the other cable face");
+          helper.assertTrue(cableDrops(helper, pos) == 1, "The detached face must drop one cable");
+          cable.tick(remaining, helper.getLevel(), pos, helper.getLevel().random);
+          helper.assertTrue(
+              cableDrops(helper, pos) == 1, "Repeated updates must not duplicate cable drops");
+          helper.setBlock(relative.below(), Blocks.AIR);
+          helper.assertTrue(
+              helper.getLevel().getBlockState(pos).isAir(),
+              "Removing the final support must remove the cable block");
+          helper.assertTrue(
+              cableDrops(helper, pos) == 2, "Both original cables must be recoverable");
+          helper.succeed();
+        });
   }
 
   private static int cableDrops(GameTestHelper helper, BlockPos pos) {
-    return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2))
-        .stream()
+    return helper.getLevel().getEntitiesOfClass(ItemEntity.class, new AABB(pos).inflate(2)).stream()
         .filter(entity -> entity.getItem().is(ModBlocks.POWER_CABLE.get().asItem()))
         .mapToInt(entity -> entity.getItem().getCount())
         .sum();
@@ -195,7 +362,8 @@ public final class SiliconicGameTests {
     player.setPos(
         controllerPos.getX() + 0.5, controllerPos.getY() + 0.5, controllerPos.getZ() + 0.5);
     LogisticsControllerMenu menu =
-        new LogisticsControllerMenu(0, new Inventory(player), controller, controller.endpointInfos());
+        new LogisticsControllerMenu(
+            0, new Inventory(player), controller, controller.endpointInfos());
     player.containerMenu = menu;
     helper.assertTrue(menu.stillValid(player), "A current logistics menu must remain usable");
     helper.assertTrue(

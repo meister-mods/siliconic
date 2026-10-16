@@ -3,6 +3,7 @@ package io.github.meistermods.siliconic.reprocessing;
 import io.github.meistermods.siliconic.logistics.LogisticsInventoryAccess;
 import io.github.meistermods.siliconic.machine.FilteredItemHandler;
 import io.github.meistermods.siliconic.network.MenuDataSync;
+import io.github.meistermods.siliconic.recipe.ProcessRecipeState;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,7 @@ public class ReprocessorBlockEntity extends BlockEntity
   public static final int ENERGY_CAPACITY = 60_000;
 
   private int progress;
+  private final ProcessRecipeState recipeState = new ProcessRecipeState();
   private final ReprocessorEnergyStorage energy = new ReprocessorEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
@@ -66,7 +68,7 @@ public class ReprocessorBlockEntity extends BlockEntity
         public int get(int index) {
           if (level != null && level.isClientSide)
             return index >= 0 && index < clientData.length ? clientData[index] : 0;
-          ReprocessingProcess process = currentProcess();
+          ReprocessingProcess process = index >= 4 && index <= 8 ? currentProcess() : null;
           return switch (index) {
             case 0 -> MenuDataSync.low(energy.getEnergyStored());
             case 1 -> MenuDataSync.high(energy.getEnergyStored());
@@ -109,6 +111,7 @@ public class ReprocessorBlockEntity extends BlockEntity
 
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
+      if (amount <= 0) return 0;
       int accepted = super.receiveEnergy(amount, simulate);
       if (accepted > 0 && !simulate) ReprocessorBlockEntity.this.setChanged();
       return accepted;
@@ -126,6 +129,12 @@ public class ReprocessorBlockEntity extends BlockEntity
   @Override
   public IItemHandler logisticsInventory() {
     return items;
+  }
+
+  /** Applies the same progress and save notifications to in-place menu stack transfers. */
+  public void onMenuTransfer(boolean inputsChanged) {
+    if (inputsChanged) progress = 0;
+    setChanged();
   }
 
   public ContainerData data() {
@@ -150,6 +159,10 @@ public class ReprocessorBlockEntity extends BlockEntity
       reprocessor.resetProgress();
       updateActive(level, pos, state, false);
       return;
+    }
+    if (!reprocessor.recipeState.select(process)) {
+      reprocessor.progress = 0;
+      reprocessor.setChanged();
     }
     if (!reprocessor.canFitOutputs(process.outputs())) {
       updateActive(level, pos, state, false);
@@ -249,6 +262,7 @@ public class ReprocessorBlockEntity extends BlockEntity
     tag.put("Items", items.serializeNBT());
     tag.putInt("Energy", energy.getEnergyStored());
     tag.putInt("Progress", progress);
+    recipeState.save(tag, progress > 0);
   }
 
   @Override
@@ -259,6 +273,7 @@ public class ReprocessorBlockEntity extends BlockEntity
     items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
     progress = Math.max(0, Math.min(Integer.MAX_VALUE - 1, tag.getInt("Progress")));
+    recipeState.load(tag);
   }
 
   @Override

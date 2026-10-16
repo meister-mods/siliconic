@@ -42,10 +42,10 @@ public class WaferInverterScreen extends AbstractContainerScreen<WaferInverterMe
   @Override
   protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
     g.drawString(font, title, 8, 7, 0xffe8edf2, false);
-    g.drawCenteredString(
-        font, Component.translatable("screen.siliconic.inverter.input"), 50, 26, 0xffaeb7c0);
-    g.drawCenteredString(
-        font, Component.translatable("screen.siliconic.inverter.output"), 124, 26, 0xffaeb7c0);
+    drawCenteredFittedString(
+        g, Component.translatable("screen.siliconic.inverter.input"), 50, 26, 70, 0xffaeb7c0);
+    drawCenteredFittedString(
+        g, Component.translatable("screen.siliconic.inverter.output"), 124, 26, 70, 0xffaeb7c0);
     g.drawString(
         font, Component.translatable("container.inventory"), 8, inventoryLabelY, 0xffaeb7c0, false);
     drawFittedString(
@@ -67,6 +67,12 @@ public class WaferInverterScreen extends AbstractContainerScreen<WaferInverterMe
         65,
         160,
         status == 4 ? 0xff66e69a : 0xffffb35c);
+  }
+
+  private void drawCenteredFittedString(
+      GuiGraphics g, Component text, int centerX, int y, int maxWidth, int color) {
+    int width = Math.min(maxWidth, font.width(text));
+    drawFittedString(g, text, centerX - width / 2, y, maxWidth, color);
   }
 
   private void drawFittedString(

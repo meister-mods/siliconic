@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Locale;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.widgets.IScrollGridWidgetFactory;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.AbstractRecipeCategory;
 import net.minecraft.client.Minecraft;
@@ -23,6 +25,7 @@ public final class ReprocessingProcessCategory extends AbstractRecipeCategory<Re
   private static final int OUTPUT_CENTER_X = 126;
   private static final int OUTPUT_SPACING = 28;
   private final IDrawable arrow;
+  private final IScrollGridWidgetFactory<?> outputGrid;
 
   public ReprocessingProcessCategory(
       RecipeType<ReprocessingProcess> recipeType, IGuiHelper guiHelper) {
@@ -33,6 +36,8 @@ public final class ReprocessingProcessCategory extends AbstractRecipeCategory<Re
         WIDTH,
         HEIGHT);
     this.arrow = guiHelper.getRecipeArrow();
+    this.outputGrid = guiHelper.createScrollGridFactory(2, 2);
+    this.outputGrid.setPosition(112, 8);
   }
 
   @Override
@@ -45,11 +50,19 @@ public final class ReprocessingProcessCategory extends AbstractRecipeCategory<Re
 
     List<ItemStack> outputs = process.outputCopies();
     int firstOutputX = OUTPUT_CENTER_X - (outputs.size() - 1) * OUTPUT_SPACING / 2;
-    for (int index = 0; index < outputs.size(); index++)
+    for (int index = 0; index < outputs.size(); index++) {
+      if (outputs.size() > 3) {
+        builder
+            .addSlotToWidget(RecipeIngredientRole.OUTPUT, outputGrid)
+            .setStandardSlotBackground()
+            .addItemStack(outputs.get(index));
+        continue;
+      }
       builder
           .addOutputSlot(firstOutputX + index * OUTPUT_SPACING, 24)
           .setOutputSlotBackground()
           .addItemStack(outputs.get(index));
+    }
   }
 
   @Override
@@ -71,8 +84,13 @@ public final class ReprocessingProcessCategory extends AbstractRecipeCategory<Re
             process.energyPerTick(),
             process.totalEnergy());
     var font = Minecraft.getInstance().font;
-    int detailsX = (WIDTH - font.width(details)) / 2;
-    graphics.drawString(font, details, detailsX, 66, 0xff404040, false);
+    int detailsWidth = font.width(details);
+    float scale = detailsWidth > WIDTH - 4 ? (float) (WIDTH - 4) / detailsWidth : 1.0f;
+    graphics.pose().pushPose();
+    graphics.pose().translate(WIDTH / 2.0f, 66, 0);
+    graphics.pose().scale(scale, scale, 1.0f);
+    graphics.drawString(font, details, -detailsWidth / 2, 0, 0xff404040, false);
+    graphics.pose().popPose();
   }
 
   @Override

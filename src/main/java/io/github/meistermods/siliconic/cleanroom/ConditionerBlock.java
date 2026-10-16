@@ -1,12 +1,11 @@
 package io.github.meistermods.siliconic.cleanroom;
 
-import org.jetbrains.annotations.Nullable;
-
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -19,6 +18,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.network.NetworkHooks;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings({"null"})
 public class ConditionerBlock extends BaseEntityBlock {
@@ -32,6 +32,13 @@ public class ConditionerBlock extends BaseEntityBlock {
   @Override
   public RenderShape getRenderShape(BlockState state) {
     return RenderShape.MODEL;
+  }
+
+  @Nullable
+  @Override
+  public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+    // Vanilla spectator opening does not send the position required by this menu.
+    return null;
   }
 
   @Nullable

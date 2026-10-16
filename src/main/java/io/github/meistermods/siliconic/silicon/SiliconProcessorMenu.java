@@ -20,6 +20,9 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
 
   private final SiliconProcessorBlockEntity processor;
   private final int machineSlots;
+  private final int processInputSlots;
+  private final boolean catalystInput;
+  private final boolean componentInput;
 
   public SiliconProcessorMenu(int id, Inventory inventory, FriendlyByteBuf data) {
     this(
@@ -31,11 +34,14 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
   public SiliconProcessorMenu(int id, Inventory inventory, SiliconProcessorBlockEntity processor) {
     super(ModMenus.SILICON_PROCESSOR.get(), id);
     this.processor = processor;
-    int inputCount = processor.visibleInputSlots();
+    catalystInput = processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT);
+    componentInput = processor.hasInputSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT);
+    processInputSlots = 1 + (catalystInput ? 1 : 0) + (componentInput ? 1 : 0);
+    int inputCount = processInputSlots;
     addProcessSlot(SiliconProcessorBlockEntity.INPUT_SLOT, inputX(0, inputCount), INPUT_Y);
-    if (processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT))
+    if (catalystInput)
       addProcessSlot(SiliconProcessorBlockEntity.CATALYST_SLOT, inputX(1, inputCount), INPUT_Y);
-    if (processor.hasInputSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT))
+    if (componentInput)
       addProcessSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT, inputX(2, inputCount), INPUT_Y);
     if (processor.requiresMagma())
       addSlot(
@@ -50,9 +56,7 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
                 OUTPUT_X + column * 18,
                 OUTPUT_Y + row * 18));
     machineSlots =
-        1
-            + (processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT) ? 1 : 0)
-            + (processor.hasInputSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT) ? 1 : 0)
+        processInputSlots
             + (processor.requiresMagma() ? 1 : 0)
             + SiliconProcessorBlockEntity.OUTPUT_SLOTS;
     for (int row = 0; row < 3; row++)
@@ -72,11 +76,15 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
   }
 
   public boolean hasInputSlot(int relativeSlot) {
-    return processor.hasInputSlot(relativeSlot);
+    return switch (relativeSlot) {
+      case SiliconProcessorBlockEntity.CATALYST_SLOT -> catalystInput;
+      case SiliconProcessorBlockEntity.COMPONENT_SLOT -> componentInput;
+      default -> processor.hasInputSlot(relativeSlot);
+    };
   }
 
   public int visibleInputSlots() {
-    return processor.visibleInputSlots();
+    return processInputSlots;
   }
 
   public boolean requiresMagma() {
@@ -150,28 +158,40 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
 
   @Override
   public ItemStack quickMoveStack(Player player, int index) {
-    if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
+    if (index < 0 || index >= slots.size() || !hasCurrentInputLayout()) return ItemStack.EMPTY;
     Slot slot = slots.get(index);
-    if (!slot.hasItem()) return ItemStack.EMPTY;
+    if (!slot.hasItem() || !slot.mayPickup(player)) return ItemStack.EMPTY;
     ItemStack stack = slot.getItem(), copy = stack.copy();
+    boolean movedToInput = false;
     if (index < machineSlots) {
       if (!moveItemStackTo(stack, machineSlots, slots.size(), true)) return ItemStack.EMPTY;
     } else {
       int inputSlots = visibleInputSlots();
-      boolean moved = moveItemStackTo(stack, 0, inputSlots, false);
+      movedToInput = processor.canModifyInputs() && moveItemStackTo(stack, 0, inputSlots, false);
+      boolean moved = movedToInput;
       if (!moved && requiresMagma())
         moved = moveItemStackTo(stack, inputSlots, inputSlots + 1, false);
       if (!moved) return ItemStack.EMPTY;
     }
     if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
     else slot.setChanged();
+    processor.onMenuTransfer(index < visibleInputSlots() || movedToInput);
     return copy;
   }
 
   @Override
   public boolean stillValid(Player player) {
     return !processor.isRemoved()
-        && player.distanceToSqr(processor.getBlockPos().getCenter()) <= 64;
+        && hasCurrentInputLayout()
+        && processor.getLevel() == player.level()
+        && player.distanceToSqr(processor.getBlockPos().getCenter()) <= 64
+        && player.level().hasChunkAt(processor.getBlockPos())
+        && player.level().getBlockEntity(processor.getBlockPos()) == processor;
+  }
+
+  private boolean hasCurrentInputLayout() {
+    return catalystInput == processor.hasInputSlot(SiliconProcessorBlockEntity.CATALYST_SLOT)
+        && componentInput == processor.hasInputSlot(SiliconProcessorBlockEntity.COMPONENT_SLOT);
   }
 
   private void addProcessSlot(int inventorySlot, int x, int y) {

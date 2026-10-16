@@ -270,6 +270,7 @@
   "direction.siliconic.west": "West",
   "message.siliconic.generator_status": "Generator: %s / %s SE · burn %s ticks · fuel %s",
   "message.siliconic.energy_buffer.status": "Energy Buffer: %s/%s SE · comparator signal %s",
+  "message.siliconic.wafer.circuit_too_large": "This circuit is too large to embed safely. Split it into smaller subcircuits.",
   "message.siliconic.wafer_guard_status": "Wafer Guard: %s/%s SE · Draw %s SE/t",
   "message.siliconic.creative_wafer_guard_status": "Creative Wafer Guard: power not required",
   "message.siliconic.wafer_inverter.success": "Wafer mirrored horizontally. (%s SE)",

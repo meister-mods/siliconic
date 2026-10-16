@@ -10,6 +10,7 @@ import io.github.meistermods.siliconic.wafer.PrototypeWaferBlockEntity.Conductor
 import io.github.meistermods.siliconic.wafer.WaferMenu;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -182,14 +183,11 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
 
   @Override
   protected void renderLabels(GuiGraphics g, int mx, int my) {
-    g.drawString(font, title, 8, 7, 0xffe8edf2, false);
-    g.drawString(
-        font,
-        Component.translatable("screen.siliconic.wafer.level", menu.wafer().getWaferLevel()),
-        95,
-        7,
-        0xffffd85a,
-        false);
+    Component levelLabel =
+        Component.translatable("screen.siliconic.wafer.level", menu.wafer().getWaferLevel());
+    int levelX = GUI_WIDTH - 8 - font.width(levelLabel);
+    drawFittedString(g, title, 8, 4, levelX - 12, 0xffe8edf2);
+    g.drawString(font, levelLabel, levelX, 4, 0xffffd85a, false);
     g.drawCenteredString(font, "N " + pinLabel(0), GRID_X + grid / 2, 20, pinColor(0));
     int center = GRID_Y + grid / 2;
     g.drawString(font, "W " + pinLabel(3), GRID_X + 3, center, pinColor(3), false);
@@ -241,7 +239,7 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
       CellType type = menu.wafer().getCellType(cell);
       List<Component> lines = new ArrayList<>();
       lines.add(Component.translatable("screen.siliconic.wafer.probe", x, y));
-      lines.add(Component.translatable("cell.siliconic." + type.name().toLowerCase()));
+      lines.add(Component.translatable("cell.siliconic." + type.name().toLowerCase(Locale.ROOT)));
       if (type == CellType.CHIP) {
         ItemStack embeddedWafer = menu.wafer().getEmbeddedWafer(cell);
         if (!embeddedWafer.isEmpty()) {
@@ -265,7 +263,7 @@ public class WaferScreen extends AbstractContainerScreen<WaferMenu> {
                 "screen.siliconic.wafer.conductor_mode",
                 Component.translatable(
                     "conductor_mode.siliconic."
-                        + menu.wafer().getConductorMode(cell).name().toLowerCase())));
+                        + menu.wafer().getConductorMode(cell).name().toLowerCase(Locale.ROOT))));
       if (type == CellType.DROP)
         lines.add(
             Component.translatable(

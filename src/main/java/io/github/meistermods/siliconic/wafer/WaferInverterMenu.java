@@ -77,6 +77,10 @@ public class WaferInverterMenu extends AbstractContainerMenu {
 
   @Override
   public boolean stillValid(Player player) {
-    return !inverter.isRemoved() && player.distanceToSqr(inverter.getBlockPos().getCenter()) <= 64;
+    return !inverter.isRemoved()
+        && inverter.getLevel() == player.level()
+        && player.distanceToSqr(inverter.getBlockPos().getCenter()) <= 64
+        && player.level().hasChunkAt(inverter.getBlockPos())
+        && player.level().getBlockEntity(inverter.getBlockPos()) == inverter;
   }
 }

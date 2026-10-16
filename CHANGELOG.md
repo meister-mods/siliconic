@@ -4,6 +4,63 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.2.9] - 2026-10-16
+
+### Fixed
+
+- Preserved every pending industrial output when multiple byproducts share output slots.
+- Kept completed batch input consumption independent of later data-pack recipe changes or removal.
+- Ignored malformed saved consumption plans instead of discarding reusable inputs.
+- Reset unfinished work and Siemens recovery only when a reloaded recipe's definition changes.
+- Refreshed client process views and new menu layouts within the recipe synchronization tick.
+- Refreshed built-in tag ingredients and saved recipe definitions after registry tag reloads.
+- Kept industrial menus usable when data-pack overrides leave their machine with no process definitions.
+- Prevented shift-click transfers from bypassing locked machine inputs or inserting into duplicator outputs.
+- Persisted merged and partial shift-click transfers, including idle generator fuel, and reset progress when process inputs change.
+- Closed machine menus when players change dimensions, the owner becomes unavailable, or industrial input slots change after a recipe reload.
+- Sent logistics search page selections without truncating them into vanilla's one-byte buttons.
+- Rejected spectator wafer mutation packets and prevented vanilla menu opening without required machine data.
+- Rejected invalid wafer edit indices before allocating circuit history snapshots.
+- Bounded restored wafer redstone outputs and ignored malformed circuit preview arrays.
+- Bounded malformed preview names without changing saved wafer names.
+- Isolated wafer save and update snapshots from live signal arrays.
+- Restored pending duplicator results as one item per substrate and energy charge.
+- Migrated legacy wafer traces before counting components, mirroring designs, or checking blank substrates.
+- Normalized legacy and simulated wafer metadata when comparing duplication materials.
+- Mirrored implicit default wafer pin modes, including nested circuits, and matched restored default pins as equivalent components.
+- Stopped cached power and logistics transfers when a cable or pipe route loses chunk availability, and restored routes after loading.
+- Discovered receiver capabilities enabled after cable placement when refreshing the power network.
+- Respected directional inventory capability denials in normal logistics while preserving explicit forced access and legacy container compatibility.
+- Preserved cable connections while neighboring chunks are unavailable.
+- Kept derived cable and pipe shape refreshes from loading neighboring chunks.
+- Preserved unloaded cleanroom diagnostics and excluded unavailable or removed conditioners from room effects and shared groups.
+- Ignored non-positive external energy transfer requests across machine capabilities and direct wafer charging.
+- Rejected fractional and overflowing JSON process integers instead of silently changing their values.
+- Rejected impossible shapeless inputs before allocating a matching graph and reduced matching cost for large valid recipes.
+- Honored data-pack recycler overrides in comparator signals.
+- Displayed shapeless fabrication inputs in JEI and kept large ingredient lists accessible in scroll grids.
+- Prevented overlapping wafer screen titles, inverter labels, and JEI shapeless markers, and used locale-independent wafer tooltip keys.
+
+### Changed
+
+- Omitted empty wafer runtime fields and sent compact circuit previews while preserving complete server saves.
+- Compressed large wafer item synchronization tags losslessly, with bounded decoding and deterministic encoding for strict NBT ingredients.
+- Updated the network protocol to version 2; clients and servers need matching Siliconic versions.
+- Checked the size of newly embedded wafer circuits before consuming materials, including space for later runtime state.
+- Reserved metadata added by future wafer mirroring within the embedding size limit.
+- Reduced nested feedback simulation copies and allocation while preserving circuit state and rollback behavior.
+- Reused inverter transformations for unchanged inputs and avoided recipe matching for unrelated menu fields.
+- Reused component comparison snapshots within duplicator material checks and requirement aggregation.
+- Indexed cleanroom claims by nearby sections to bound machine membership and cleanliness queries.
+
+### Documentation
+
+- Explained wafer embedding complexity limits in both gameplay guides.
+
+### Known limitations
+
+- A menu containing 164 nested wafers with highly varied designs can still exceed vanilla's 8 MiB packet limit after item compression.
+
 ## [0.2.8] - 2026-10-04
 
 ### Fixed

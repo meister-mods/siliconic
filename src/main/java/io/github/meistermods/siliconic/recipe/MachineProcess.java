@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import io.github.meistermods.siliconic.registry.ModRecipes;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -14,6 +13,9 @@ import java.util.Objects;
 import java.util.Set;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -176,6 +178,42 @@ public record MachineProcess(
     }
   }
 
+  /** Captures input consumption without changing the real inventory of a completed batch. */
+  public CompoundTag consumedInputState(
+      ItemStackHandler inventory, int inputStart, int inputSlots) {
+    if (!matches(inventory, inputStart, inputSlots))
+      throw new IllegalArgumentException("Cannot consume inputs that do not match this process");
+    ItemStackHandler consumed = new ItemStackHandler(inputSlots);
+    for (int slot = 0; slot < inputSlots; slot++)
+      consumed.setStackInSlot(slot, inventory.getStackInSlot(inputStart + slot).copy());
+    consume(consumed, 0, inputSlots);
+    return consumed.serializeNBT();
+  }
+
+  /** Checks that a restored consumption plan contains only valid, unique input slots. */
+  public static boolean isValidConsumedInputState(CompoundTag state, int inputSlots) {
+    if (!state.contains("Size", Tag.TAG_INT)
+        || state.getInt("Size") != inputSlots
+        || !(state.get("Items") instanceof ListTag entries)
+        || (!entries.isEmpty() && entries.getElementType() != Tag.TAG_COMPOUND)
+        || entries.size() > inputSlots) return false;
+    Set<Integer> occupied = new HashSet<>();
+    for (int index = 0; index < entries.size(); index++) {
+      CompoundTag entry = entries.getCompound(index);
+      if (!entry.contains("Slot", Tag.TAG_INT)) return false;
+      int slot = entry.getInt("Slot");
+      if (slot < 0 || slot >= inputSlots || !occupied.add(slot)) return false;
+      if (!entry.contains("id", Tag.TAG_STRING)
+          || !entry.contains("Count", Tag.TAG_BYTE)
+          || (entry.contains("tag") && !entry.contains("tag", Tag.TAG_COMPOUND))
+          || (entry.contains("ForgeCaps") && !entry.contains("ForgeCaps", Tag.TAG_COMPOUND)))
+        return false;
+      ItemStack stack = ItemStack.of(entry);
+      if (stack.isEmpty() || stack.getCount() > stack.getMaxStackSize()) return false;
+    }
+    return true;
+  }
+
   private void applyUse(ItemStackHandler inventory, int slot, ProcessInput input) {
     if (input.use() == ProcessInput.Use.CONSUME) inventory.extractItem(slot, input.count(), false);
     else if (input.use() == ProcessInput.Use.DAMAGE) damage(inventory, slot, input.count());
@@ -209,22 +247,37 @@ public record MachineProcess(
   private ShapelessMatch findShapelessMatch(
       ItemStackHandler inventory, int inputStart, int inputSlots) {
     if (!hasValidInputWindow(inventory, inputStart, inputSlots)) return null;
+    long available = 0;
+    for (int relativeSlot = 0; relativeSlot < inputSlots; relativeSlot++) {
+      ItemStack stack = inventory.getStackInSlot(inputStart + relativeSlot);
+      if (!stack.isEmpty()) available += stack.getCount();
+    }
+    long totalRequired = 0;
+    for (ProcessInput input : inputs) {
+      totalRequired += input.requiredItems();
+      if (totalRequired > available) return null;
+    }
     int source = 0;
     int slotBase = 1;
     int inputBase = slotBase + inputSlots;
     int sink = inputBase + inputs.size();
     int[][] residual = new int[sink + 1][sink + 1];
-    long totalRequired = 0;
+    int[] degrees = new int[residual.length];
 
     for (int relativeSlot = 0; relativeSlot < inputSlots; relativeSlot++) {
       ItemStack stack = inventory.getStackInSlot(inputStart + relativeSlot);
       if (stack.isEmpty()) continue;
       int slotNode = slotBase + relativeSlot;
       residual[source][slotNode] = stack.getCount();
+      degrees[source]++;
+      degrees[slotNode]++;
       boolean accepted = false;
       for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++) {
         if (!inputs.get(inputIndex).matches(stack)) continue;
-        residual[slotNode][inputBase + inputIndex] = stack.getCount();
+        int inputNode = inputBase + inputIndex;
+        residual[slotNode][inputNode] = stack.getCount();
+        degrees[slotNode]++;
+        degrees[inputNode]++;
         accepted = true;
       }
       if (!accepted) return null;
@@ -232,22 +285,46 @@ public record MachineProcess(
     for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++) {
       int required = inputs.get(inputIndex).requiredItems();
       residual[inputBase + inputIndex][sink] = required;
-      totalRequired += required;
+      degrees[inputBase + inputIndex]++;
+      degrees[sink]++;
+    }
+
+    int[][] adjacent = new int[residual.length][];
+    for (int node = 0; node < adjacent.length; node++) adjacent[node] = new int[degrees[node]];
+    Arrays.fill(degrees, 0);
+    // Add both directions in ascending node order to preserve the original allocation choice.
+    for (int relativeSlot = 0; relativeSlot < inputSlots; relativeSlot++) {
+      int slotNode = slotBase + relativeSlot;
+      if (residual[source][slotNode] == 0) continue;
+      adjacent[source][degrees[source]++] = slotNode;
+      adjacent[slotNode][degrees[slotNode]++] = source;
+      for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++) {
+        int inputNode = inputBase + inputIndex;
+        if (residual[slotNode][inputNode] == 0) continue;
+        adjacent[slotNode][degrees[slotNode]++] = inputNode;
+        adjacent[inputNode][degrees[inputNode]++] = slotNode;
+      }
+    }
+    for (int inputIndex = 0; inputIndex < inputs.size(); inputIndex++) {
+      int inputNode = inputBase + inputIndex;
+      adjacent[inputNode][degrees[inputNode]++] = sink;
+      adjacent[sink][degrees[sink]++] = inputNode;
     }
 
     int flow = 0;
     int[] parent = new int[residual.length];
+    int[] pending = new int[residual.length];
     while (true) {
       Arrays.fill(parent, -1);
       parent[source] = source;
-      ArrayDeque<Integer> pending = new ArrayDeque<>();
-      pending.add(source);
-      while (!pending.isEmpty() && parent[sink] < 0) {
-        int node = pending.removeFirst();
-        for (int next = 0; next < residual.length; next++) {
+      int head = 0, tail = 0;
+      pending[tail++] = source;
+      while (head < tail && parent[sink] < 0) {
+        int node = pending[head++];
+        for (int next : adjacent[node]) {
           if (parent[next] >= 0 || residual[node][next] <= 0) continue;
           parent[next] = node;
-          pending.addLast(next);
+          pending[tail++] = next;
         }
       }
       if (parent[sink] < 0) break;
@@ -305,15 +382,15 @@ public record MachineProcess(
     public MachineProcess fromJson(ResourceLocation id, JsonObject json) {
       MachineKind machine = machineKind(GsonHelper.getAsString(json, "machine"));
       boolean shaped = GsonHelper.getAsBoolean(json, "shaped", true);
-      int ticks = GsonHelper.getAsInt(json, "ticks");
-      int energyPerTick = GsonHelper.getAsInt(json, "energy_per_tick");
+      int ticks = ProcessJson.getInt(json, "ticks");
+      int energyPerTick = ProcessJson.getInt(json, "energy_per_tick");
       List<ProcessInput> inputs = new ArrayList<>();
       JsonArray inputArray = GsonHelper.getAsJsonArray(json, "inputs");
       for (int index = 0; index < inputArray.size(); index++) {
         JsonObject entry = GsonHelper.convertToJsonObject(inputArray.get(index), "input");
-        int slot = GsonHelper.getAsInt(entry, "slot", shaped ? index : -1);
+        int slot = ProcessJson.getInt(entry, "slot", shaped ? index : -1);
         Ingredient ingredient = Ingredient.fromJson(entry.get("ingredient"));
-        int count = GsonHelper.getAsInt(entry, "count", 1);
+        int count = ProcessJson.getInt(entry, "count", 1);
         ProcessInput.Use use = parseUse(GsonHelper.getAsString(entry, "use", "consume"));
         inputs.add(new ProcessInput(slot, ingredient, count, use));
       }
@@ -400,7 +477,7 @@ public record MachineProcess(
       Item item = itemId == null ? null : ForgeRegistries.ITEMS.getValue(itemId);
       if (item == null || item == Items.AIR)
         throw new JsonParseException("Unknown process output item: " + itemId);
-      int count = GsonHelper.getAsInt(json, "count", 1);
+      int count = ProcessJson.getInt(json, "count", 1);
       ItemStack output = new ItemStack(item);
       int maxStackSize = output.getMaxStackSize();
       if (count < 1 || count > maxStackSize)

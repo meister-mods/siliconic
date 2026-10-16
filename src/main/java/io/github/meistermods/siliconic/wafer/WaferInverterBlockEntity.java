@@ -35,6 +35,8 @@ public class WaferInverterBlockEntity extends BlockEntity
   public static final int PROCESS_TICKS = 100;
 
   private int progress;
+  private ItemStack cachedInput = ItemStack.EMPTY;
+  private ItemStack cachedResult = ItemStack.EMPTY;
   private final InverterEnergyStorage energy = new InverterEnergyStorage();
   private final ItemStackHandler items =
       new ItemStackHandler(SLOT_COUNT) {
@@ -50,7 +52,10 @@ public class WaferInverterBlockEntity extends BlockEntity
 
         @Override
         protected void onContentsChanged(int slot) {
-          if (slot == INPUT_SLOT) progress = 0;
+          if (slot == INPUT_SLOT) {
+            progress = 0;
+            clearCachedResult();
+          }
           setChanged();
         }
       };
@@ -105,6 +110,7 @@ public class WaferInverterBlockEntity extends BlockEntity
 
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
+      if (amount <= 0) return 0;
       int accepted = super.receiveEnergy(amount, simulate);
       if (accepted > 0 && !simulate) WaferInverterBlockEntity.this.setChanged();
       return accepted;
@@ -165,9 +171,18 @@ public class WaferInverterBlockEntity extends BlockEntity
   }
 
   private ItemStack resultFor(ItemStack input) {
-    ItemStack result = input.copyWithCount(1);
-    PrototypeWaferBlockEntity.mirrorHorizontally(result);
-    return result;
+    if (!ItemStack.matches(input, cachedInput)) {
+      ItemStack result = input.copyWithCount(1);
+      PrototypeWaferBlockEntity.mirrorHorizontally(result);
+      cachedInput = input.copy();
+      cachedResult = result;
+    }
+    return cachedResult;
+  }
+
+  private void clearCachedResult() {
+    cachedInput = ItemStack.EMPTY;
+    cachedResult = ItemStack.EMPTY;
   }
 
   private boolean canFitOutput(ItemStack result) {
@@ -212,6 +227,7 @@ public class WaferInverterBlockEntity extends BlockEntity
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
+    clearCachedResult();
     if (tag.contains("Items")) {
       CompoundTag itemData = tag.getCompound("Items").copy();
       itemData.putInt("Size", SLOT_COUNT);

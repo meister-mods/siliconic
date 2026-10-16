@@ -68,6 +68,8 @@ Siliconic provides five wafer tiers from SSI through ULSI. Higher tiers support 
 - Use the Wafer Duplicator and Wafer Inverter to reproduce or mirror completed work.
 - Connect a completed wafer to the world as a redstone device with the Wafer Guard and Redstone Clock.
 
+Embedding has a circuit-complexity limit. If the combined design exceeds it, the assembler rejects the insertion and keeps the material on the cursor. Reduce the combined design before trying again.
+
 Precision fabrication can produce contaminated results when cleanroom conditions are inadequate. These products can be sent to material recovery instead of being discarded.
 
 ## Power and Automation

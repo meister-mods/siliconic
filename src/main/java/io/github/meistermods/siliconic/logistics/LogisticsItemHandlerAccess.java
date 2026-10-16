@@ -16,7 +16,10 @@ final class LogisticsItemHandlerAccess {
   private LogisticsItemHandlerAccess() {}
 
   static boolean isPresent(BlockEntity blockEntity, Direction side) {
-    return find(blockEntity, side) != null;
+    return !blockEntity.isRemoved()
+        && (find(blockEntity, side) != null
+            || blockEntity instanceof LogisticsInventoryAccess access
+                && usable(access.logisticsInventory()) != null);
   }
 
   @Nullable
@@ -27,10 +30,25 @@ final class LogisticsItemHandlerAccess {
         blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).orElse(null);
     if (capability != null) return usable(capability);
 
+    // A publisher can deliberately deny this side. Raw Container access is only a compatibility
+    // fallback for inventories without any capability publisher, never a bypass of a denied face.
+    if (!(blockEntity instanceof Container)
+        || blockEntity instanceof LogisticsInventoryAccess
+        || hasCapabilityPublisher(blockEntity, side)) return null;
+
     if (blockEntity instanceof WorldlyContainer sidedContainer)
       return usable(new SidedInvWrapper(sidedContainer, side));
     if (blockEntity instanceof Container container) return usable(new InvWrapper(container));
     return null;
+  }
+
+  private static boolean hasCapabilityPublisher(BlockEntity blockEntity, Direction deniedSide) {
+    if (blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER).isPresent()) return true;
+    for (Direction side : Direction.values())
+      if (side != deniedSide
+          && blockEntity.getCapability(ForgeCapabilities.ITEM_HANDLER, side).isPresent())
+        return true;
+    return false;
   }
 
   @Nullable

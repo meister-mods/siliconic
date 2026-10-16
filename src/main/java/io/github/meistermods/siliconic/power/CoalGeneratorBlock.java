@@ -6,6 +6,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -32,6 +33,13 @@ public class CoalGeneratorBlock extends BaseEntityBlock {
   @Override
   public RenderShape getRenderShape(BlockState state) {
     return RenderShape.MODEL;
+  }
+
+  @Nullable
+  @Override
+  public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+    // Vanilla spectator opening does not send the position required by this menu.
+    return null;
   }
 
   @Nullable

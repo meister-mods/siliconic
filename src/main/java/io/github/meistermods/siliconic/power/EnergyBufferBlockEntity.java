@@ -4,12 +4,15 @@ import io.github.meistermods.siliconic.config.SiliconicConfig;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,6 +29,7 @@ public class EnergyBufferBlockEntity extends BlockEntity {
       new BufferEnergyStorage(SiliconicConfig.VALUES.powerBufferCapacity.get());
   private LazyOptional<IEnergyStorage> energyCapability = LazyOptional.of(() -> energy);
   private List<PowerNetworkTopology.Receiver> cachedReceivers = List.of();
+  private final Map<ChunkPos, Boolean> cachedCableChunks = new HashMap<>();
   private long cachedTopologyRevision = Long.MIN_VALUE;
   private long lastTopologyScan = Long.MIN_VALUE;
   private int distributionCursor;
@@ -50,6 +54,7 @@ public class EnergyBufferBlockEntity extends BlockEntity {
 
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
+      if (amount <= 0) return 0;
       int accepted = super.receiveEnergy(amount, simulate);
       if (accepted > 0 && !simulate) EnergyBufferBlockEntity.this.setChanged();
       return accepted;
@@ -57,6 +62,7 @@ public class EnergyBufferBlockEntity extends BlockEntity {
 
     @Override
     public int extractEnergy(int amount, boolean simulate) {
+      if (amount <= 0) return 0;
       int extracted = super.extractEnergy(amount, simulate);
       if (extracted > 0 && !simulate) EnergyBufferBlockEntity.this.setChanged();
       return extracted;
@@ -113,12 +119,14 @@ public class EnergyBufferBlockEntity extends BlockEntity {
     long gameTime = level.getGameTime();
     int cacheTicks = SiliconicConfig.VALUES.powerNetworkCacheTicks.get();
     if (revision != cachedTopologyRevision
+        || PowerNetworkTopology.chunksChanged(level, cachedCableChunks)
         || lastTopologyScan == Long.MIN_VALUE
         || gameTime < lastTopologyScan
         || gameTime - lastTopologyScan >= cacheTicks) {
+      cachedCableChunks.clear();
       cachedReceivers =
           PowerNetworkTopology.discover(
-              level, pos, SiliconicConfig.VALUES.powerNetworkMaxCables.get());
+              level, pos, SiliconicConfig.VALUES.powerNetworkMaxCables.get(), cachedCableChunks);
       cachedTopologyRevision = revision;
       lastTopologyScan = gameTime;
     }

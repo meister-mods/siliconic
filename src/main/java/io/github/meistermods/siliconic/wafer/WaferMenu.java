@@ -83,7 +83,8 @@ public class WaferMenu extends AbstractContainerMenu {
   }
 
   public boolean tryBeginMutation(ServerPlayer player, BlockPos pos) {
-    if (player.containerMenu != this
+    if (player.isSpectator()
+        || player.containerMenu != this
         || !position().equals(pos)
         || !stillValid(player)
         || !wafer.isEditable()
@@ -99,6 +100,7 @@ public class WaferMenu extends AbstractContainerMenu {
   }
 
   public void interactCell(ServerPlayer player, int cell, boolean rotate) {
+    if (cell < 0 || cell >= wafer.getGridSize() * wafer.getGridSize()) return;
     resetHistoryAfterExternalChange();
     ItemStack before = wafer.getWafer().copy();
     PrototypeWaferBlockEntity.CellType beforeType = wafer.getCellType(cell);
@@ -110,6 +112,7 @@ public class WaferMenu extends AbstractContainerMenu {
   }
 
   public void cyclePinMode(int pin) {
+    if (pin < 0 || pin >= 4) return;
     recordMutation(() -> wafer.cyclePinMode(pin));
   }
 
@@ -185,6 +188,10 @@ public class WaferMenu extends AbstractContainerMenu {
 
   @Override
   public boolean stillValid(Player player) {
-    return !wafer.isRemoved() && player.distanceToSqr(wafer.getBlockPos().getCenter()) <= 64;
+    return !wafer.isRemoved()
+        && wafer.getLevel() == player.level()
+        && player.distanceToSqr(wafer.getBlockPos().getCenter()) <= 64
+        && player.level().hasChunkAt(wafer.getBlockPos())
+        && player.level().getBlockEntity(wafer.getBlockPos()) == wafer;
   }
 }

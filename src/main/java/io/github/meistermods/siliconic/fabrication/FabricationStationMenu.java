@@ -80,20 +80,27 @@ public class FabricationStationMenu extends AbstractContainerMenu {
   public ItemStack quickMoveStack(Player player, int index) {
     if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
     Slot slot = slots.get(index);
-    if (!slot.hasItem()) return ItemStack.EMPTY;
+    if (!slot.hasItem() || !slot.mayPickup(player)) return ItemStack.EMPTY;
     ItemStack stack = slot.getItem(), copy = stack.copy();
     if (index < MACHINE_SLOTS) {
       if (!moveItemStackTo(stack, MACHINE_SLOTS, slots.size(), true)) return ItemStack.EMPTY;
-    } else if (!moveItemStackTo(stack, 0, FabricationStationBlockEntity.INPUT_SLOTS, false)) {
+    } else if (!station.canModifyInputs()
+        || !moveItemStackTo(stack, 0, FabricationStationBlockEntity.INPUT_SLOTS, false)) {
       return ItemStack.EMPTY;
     }
     if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
     else slot.setChanged();
+    station.onMenuTransfer(
+        index < FabricationStationBlockEntity.INPUT_SLOTS || index >= MACHINE_SLOTS);
     return copy;
   }
 
   @Override
   public boolean stillValid(Player player) {
-    return !station.isRemoved() && player.distanceToSqr(station.getBlockPos().getCenter()) <= 64;
+    return !station.isRemoved()
+        && station.getLevel() == player.level()
+        && player.distanceToSqr(station.getBlockPos().getCenter()) <= 64
+        && player.level().hasChunkAt(station.getBlockPos())
+        && player.level().getBlockEntity(station.getBlockPos()) == station;
   }
 }

@@ -75,7 +75,7 @@ public final class SiliconicGameTests {
             1,
             true));
     manager.replaceRecipes(recipes);
-    BlockPos pos = helper.absolutePos(BlockPos.ZERO);
+    BlockPos pos = helper.absolutePos(GameTestFixtures.ORIGIN);
     // Let the per-tick recipe cache expire before using the temporary data-pack recipe.
     helper.runAfterDelay(
         1,
@@ -260,7 +260,7 @@ public final class SiliconicGameTests {
 
   @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
   public static void returnsPartiallyDetachedCable(GameTestHelper helper) {
-    BlockPos relative = BlockPos.ZERO.above();
+    BlockPos relative = GameTestFixtures.ORIGIN.above();
     helper.setBlock(relative.below(), Blocks.STONE);
     helper.setBlock(relative.north(), Blocks.STONE);
     PowerCableBlock cable = (PowerCableBlock) ModBlocks.POWER_CABLE.get();
@@ -323,8 +323,8 @@ public final class SiliconicGameTests {
 
   @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
   public static void persistsExternalGeneratorExtraction(GameTestHelper helper) {
-    helper.setBlock(BlockPos.ZERO, ModBlocks.COAL_GENERATOR.get());
-    BlockPos generatorPos = helper.absolutePos(BlockPos.ZERO);
+    helper.setBlock(GameTestFixtures.ORIGIN, ModBlocks.COAL_GENERATOR.get());
+    BlockPos generatorPos = helper.absolutePos(GameTestFixtures.ORIGIN);
     CoalGeneratorBlockEntity generator =
         (CoalGeneratorBlockEntity) helper.getLevel().getBlockEntity(generatorPos);
     CompoundTag saved = new CompoundTag();
@@ -347,7 +347,7 @@ public final class SiliconicGameTests {
 
   @GameTest(templateNamespace = Siliconic.MOD_ID, template = "empty")
   public static void invalidatesDisconnectedLogisticsEndpoints(GameTestHelper helper) {
-    BlockPos controllerRelative = BlockPos.ZERO;
+    BlockPos controllerRelative = GameTestFixtures.ORIGIN;
     BlockPos controllerPos = helper.absolutePos(controllerRelative);
     helper.setBlock(controllerRelative, ModBlocks.LOGISTICS_CONTROLLER.get());
     helper.setBlock(controllerRelative.east(), ModBlocks.LOGISTICS_PIPE.get());

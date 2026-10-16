@@ -4,6 +4,7 @@ import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity.
 import io.github.meistermods.siliconic.registry.ModMenus;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -29,7 +30,6 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
   private static final int BUTTON_PREVIOUS = 0;
   private static final int BUTTON_NEXT = 1;
   private static final int BUTTON_MODE_START = 10;
-  private static final int BUTTON_PAGE_START = 1_000;
 
   private record OpeningData(
       @Nullable LogisticsControllerBlockEntity controller, List<EndpointInfo> endpoints) {}
@@ -141,6 +141,18 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
     };
   }
 
+  @Nullable
+  public BlockPos blockPos() {
+    return controller == null ? null : controller.getBlockPos();
+  }
+
+  public boolean selectPage(Player player, int page) {
+    if (player.containerMenu != this || !stillValid(player) || page < 0 || page >= pageCount())
+      return false;
+    serverPage = page;
+    return true;
+  }
+
   public List<EndpointInfo> endpoints() {
     return endpoints;
   }
@@ -205,12 +217,6 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
       serverPage++;
       return true;
     }
-    if (id >= BUTTON_PAGE_START) {
-      int requestedPage = id - BUTTON_PAGE_START;
-      if (requestedPage < 0 || requestedPage >= pageCount()) return false;
-      serverPage = requestedPage;
-      return true;
-    }
     if (controller == null || id < BUTTON_MODE_START) return false;
     int offset = id - BUTTON_MODE_START;
     int row = offset / 5;
@@ -264,8 +270,11 @@ public class LogisticsControllerMenu extends AbstractContainerMenu {
   @Override
   public boolean stillValid(Player player) {
     return controller != null
+        && controller.getLevel() == player.level()
         && !controller.isRemoved()
         && player.distanceToSqr(controller.getBlockPos().getCenter()) <= 64
+        && player.level().isLoaded(controller.getBlockPos())
+        && player.level().getBlockEntity(controller.getBlockPos()) == controller
         && (player.level().isClientSide || endpoints.equals(controller.endpointInfos()));
   }
 

@@ -7,8 +7,10 @@ import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -22,6 +24,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -98,6 +101,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
   private int totalBurnTime;
   private int distributionCursor;
   private List<PowerNetworkTopology.Receiver> cachedReceivers = List.of();
+  private final Map<ChunkPos, Boolean> cachedCableChunks = new HashMap<>();
   private long cachedTopologyRevision = Long.MIN_VALUE;
   private long lastTopologyScan = Long.MIN_VALUE;
 
@@ -120,6 +124,7 @@ public class CoalGeneratorBlockEntity extends BlockEntity
 
     @Override
     public int extractEnergy(int amount, boolean simulate) {
+      if (amount <= 0) return 0;
       int extracted = super.extractEnergy(amount, simulate);
       if (extracted > 0 && !simulate) CoalGeneratorBlockEntity.this.setChanged();
       return extracted;
@@ -218,12 +223,14 @@ public class CoalGeneratorBlockEntity extends BlockEntity
     int cacheTicks = SiliconicConfig.VALUES.powerNetworkCacheTicks.get();
     long gameTime = level.getGameTime();
     if (revision != cachedTopologyRevision
+        || PowerNetworkTopology.chunksChanged(level, cachedCableChunks)
         || lastTopologyScan == Long.MIN_VALUE
         || gameTime < lastTopologyScan
         || gameTime - lastTopologyScan >= cacheTicks) {
+      cachedCableChunks.clear();
       cachedReceivers =
           PowerNetworkTopology.discover(
-              level, pos, SiliconicConfig.VALUES.powerNetworkMaxCables.get());
+              level, pos, SiliconicConfig.VALUES.powerNetworkMaxCables.get(), cachedCableChunks);
       cachedTopologyRevision = revision;
       lastTopologyScan = gameTime;
     }

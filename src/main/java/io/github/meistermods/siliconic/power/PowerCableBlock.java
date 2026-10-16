@@ -161,13 +161,15 @@ public class PowerCableBlock extends Block {
       return;
     }
     BlockState updated = connections(state.setValue(ATTACHMENT, valid), level, pos);
-    if (updated != state) {
-      if (level.setBlock(pos, updated, 2)
-          && updated.getValue(ATTACHMENT) != state.getValue(ATTACHMENT)) {
+    // Connection arms are derived here. Re-running vanilla neighbor shape queries would load
+    // unavailable neighboring chunks; physical attachment changes schedule loaded cables below.
+    if (updated != state
+        && level.setBlock(pos, updated, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE)) {
+      if (updated.getValue(ATTACHMENT) != state.getValue(ATTACHMENT)) {
         int detached = state.getValue(ATTACHMENT).faceCount() - valid.faceCount();
         if (detached > 0) popResource(level, pos, new ItemStack(this, detached));
         scheduleNearbyCableUpdates(level, pos);
-      }
+      } else PowerNetworkTopology.invalidate(level);
     }
   }
 
@@ -239,6 +241,14 @@ public class PowerCableBlock extends Block {
         && (state.getValue(property(direction)) || state.getValue(ATTACHMENT).contains(direction));
   }
 
+  static boolean canConnectReceiver(BlockState state, Direction direction) {
+    if (!(state.getBlock() instanceof PowerCableBlock)) return false;
+    Attachment attachment = state.getValue(ATTACHMENT);
+    // One mounted surface reaches its support and four tangent neighbors. Two perpendicular
+    // surfaces reach all six. Receiver availability can change without refreshing visual arms.
+    return attachment.faceCount() == 2 || !attachment.contains(direction.getOpposite());
+  }
+
   private static void addCableCoatedBlockConnections(
       Level level, BlockPos pos, Attachment attachment, Set<BlockPos> result) {
     for (Direction support : attachment.faces()) {
@@ -259,6 +269,7 @@ public class PowerCableBlock extends Block {
   }
 
   private BlockState connections(BlockState state, LevelAccessor level, BlockPos pos) {
+    BlockState previous = state;
     Attachment attachment = state.getValue(ATTACHMENT);
     Direction[] supports = attachment.faces();
     state = state.setValue(SHARED_POSITIVE_SECOND, false).setValue(SHARED_NEGATIVE_SECOND, false);
@@ -266,15 +277,28 @@ public class PowerCableBlock extends Block {
       boolean connected = attachment.faceCount() == 2 && attachment.contains(direction);
       boolean sharedDirection = isSharedDirection(attachment, direction);
       boolean useSecondSurface = false;
+      boolean unknownConnection = false;
+      boolean unknownSecondSurface = false;
       for (int supportIndex = 0; supportIndex < supports.length; supportIndex++) {
         Direction support = supports[supportIndex];
         if (direction.getAxis() == support.getAxis()) continue;
+        BlockPos neighborPos = pos.relative(direction);
+        boolean unknownSurface =
+            !isPositionLoaded(level, neighborPos)
+                || !isPositionLoaded(level, neighborPos.relative(support));
+        unknownConnection |= unknownSurface;
+        if (supportIndex == 1) unknownSecondSurface = unknownSurface;
         boolean faceConnected =
             connectsDirectly(level, pos, support, direction)
                 || connectsAroundCorner(level, pos, support, direction);
         connected |= faceConnected;
         if (sharedDirection && supportIndex == 1 && faceConnected) useSecondSurface = true;
       }
+      // An unavailable neighboring chunk cannot prove an existing connection was removed. Keep
+      // its state so the cable route can resume when that chunk returns without a block update.
+      if (unknownConnection) connected |= previous.getValue(property(direction));
+      if (sharedDirection && unknownSecondSurface)
+        useSecondSurface |= previous.getValue(sharedSurfaceProperty(direction));
       if (sharedDirection)
         state = state.setValue(sharedSurfaceProperty(direction), useSecondSurface);
       state = state.setValue(property(direction), connected);

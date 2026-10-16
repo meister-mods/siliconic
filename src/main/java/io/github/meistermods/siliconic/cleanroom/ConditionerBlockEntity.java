@@ -118,6 +118,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
 
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
+      if (amount <= 0) return 0;
       int accepted = super.receiveEnergy(amount, simulate);
       if (accepted > 0 && !simulate) ConditionerBlockEntity.this.setChanged();
       return accepted;
@@ -462,7 +463,7 @@ public class ConditionerBlockEntity extends BlockEntity implements MenuProvider 
   @Override
   public void onLoad() {
     super.onLoad();
-    if (level != null && !level.isClientSide)
+    if (level != null && !level.isClientSide && !isRemoved())
       CleanroomOccupancy.update(level, worldPosition, claimedInteriorPositions, cleanliness);
   }
 

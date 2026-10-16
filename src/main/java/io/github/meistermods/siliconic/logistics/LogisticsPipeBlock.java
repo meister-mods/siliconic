@@ -113,7 +113,8 @@ public class LogisticsPipeBlock extends Block {
     BlockState updated = connections(state, level, pos);
     if (updated != state) {
       LogisticsNetworkTopology.invalidate(level);
-      level.setBlock(pos, updated, 2);
+      // Only derived arms changed; vanilla neighbor shape queries would load missing chunks.
+      level.setBlock(pos, updated, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
     }
   }
 

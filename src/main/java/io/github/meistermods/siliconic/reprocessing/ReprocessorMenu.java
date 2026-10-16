@@ -77,7 +77,7 @@ public class ReprocessorMenu extends AbstractContainerMenu {
   public ItemStack quickMoveStack(Player player, int index) {
     if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
     Slot slot = slots.get(index);
-    if (!slot.hasItem()) return ItemStack.EMPTY;
+    if (!slot.hasItem() || !slot.mayPickup(player)) return ItemStack.EMPTY;
     ItemStack stack = slot.getItem(), copy = stack.copy();
     if (index < MACHINE_SLOTS) {
       if (!moveItemStackTo(stack, MACHINE_SLOTS, slots.size(), true)) return ItemStack.EMPTY;
@@ -86,12 +86,17 @@ public class ReprocessorMenu extends AbstractContainerMenu {
     }
     if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
     else slot.setChanged();
+    reprocessor.onMenuTransfer(
+        index < ReprocessorBlockEntity.INPUT_SLOTS || index >= MACHINE_SLOTS);
     return copy;
   }
 
   @Override
   public boolean stillValid(Player player) {
     return !reprocessor.isRemoved()
-        && player.distanceToSqr(reprocessor.getBlockPos().getCenter()) <= 64;
+        && reprocessor.getLevel() == player.level()
+        && player.distanceToSqr(reprocessor.getBlockPos().getCenter()) <= 64
+        && player.level().hasChunkAt(reprocessor.getBlockPos())
+        && player.level().getBlockEntity(reprocessor.getBlockPos()) == reprocessor;
   }
 }

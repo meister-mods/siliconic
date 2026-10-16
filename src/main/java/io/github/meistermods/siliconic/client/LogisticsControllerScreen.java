@@ -2,6 +2,8 @@ package io.github.meistermods.siliconic.client;
 
 import io.github.meistermods.siliconic.logistics.LogisticsControllerBlockEntity.EndpointInfo;
 import io.github.meistermods.siliconic.logistics.LogisticsControllerMenu;
+import io.github.meistermods.siliconic.network.LogisticsPagePacket;
+import io.github.meistermods.siliconic.network.ModNetwork;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -105,7 +107,10 @@ public class LogisticsControllerScreen extends AbstractContainerScreen<Logistics
                   + endpoint.pos().getZ())
               .toLowerCase(java.util.Locale.ROOT);
       if (searchable.contains(normalized)) {
-        sendButton(1_000 + index / LogisticsControllerMenu.VISIBLE_ROWS);
+        if (menu.blockPos() != null)
+          ModNetwork.CHANNEL.sendToServer(
+              new LogisticsPagePacket(
+                  menu.blockPos(), menu.containerId, index / LogisticsControllerMenu.VISIBLE_ROWS));
         return;
       }
     }

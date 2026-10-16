@@ -87,7 +87,10 @@ public class ConditionerMenu extends AbstractContainerMenu {
 
   @Override
   public boolean stillValid(Player player) {
-    return !conditioner.isRemoved()
-        && player.distanceToSqr(conditioner.getBlockPos().getCenter()) <= 64;
+    return conditioner.getLevel() == player.level()
+        && !conditioner.isRemoved()
+        && player.distanceToSqr(conditioner.getBlockPos().getCenter()) <= 64
+        && player.level().isLoaded(conditioner.getBlockPos())
+        && player.level().getBlockEntity(conditioner.getBlockPos()) == conditioner;
   }
 }

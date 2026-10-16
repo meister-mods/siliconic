@@ -132,6 +132,7 @@ public class WaferDuplicatorBlockEntity extends BlockEntity
 
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
+      if (amount <= 0) return 0;
       int accepted = super.receiveEnergy(amount, simulate);
       if (accepted > 0 && !simulate) WaferDuplicatorBlockEntity.this.setChanged();
       return accepted;
@@ -144,6 +145,10 @@ public class WaferDuplicatorBlockEntity extends BlockEntity
 
   public ItemStackHandler items() {
     return items;
+  }
+
+  public boolean inputsLocked() {
+    return !pendingResult.isEmpty();
   }
 
   @Override
@@ -249,12 +254,15 @@ public class WaferDuplicatorBlockEntity extends BlockEntity
   }
 
   private boolean hasMaterials(List<ItemStack> requirements) {
+    ItemStack[] keys = new ItemStack[MATERIAL_SLOTS];
     for (ItemStack requirement : requirements) {
+      ItemStack requiredKey = PrototypeWaferBlockEntity.componentKey(requirement);
       int available = 0;
       for (int slot = MATERIAL_START; slot < MATERIAL_START + MATERIAL_SLOTS; slot++) {
         ItemStack candidate = items.getStackInSlot(slot);
-        if (PrototypeWaferBlockEntity.isSameComponent(requirement, candidate))
-          available += candidate.getCount();
+        if (!matchesMaterial(requiredKey, keys, slot)) continue;
+        available += candidate.getCount();
+        if (available >= requirement.getCount()) break;
       }
       if (available < requirement.getCount()) return false;
     }
@@ -262,18 +270,28 @@ public class WaferDuplicatorBlockEntity extends BlockEntity
   }
 
   private void consumeMaterials(List<ItemStack> requirements) {
+    ItemStack[] keys = new ItemStack[MATERIAL_SLOTS];
     for (ItemStack requirement : requirements) {
+      ItemStack requiredKey = PrototypeWaferBlockEntity.componentKey(requirement);
       int remaining = requirement.getCount();
       for (int slot = MATERIAL_START;
           slot < MATERIAL_START + MATERIAL_SLOTS && remaining > 0;
           slot++) {
         ItemStack candidate = items.getStackInSlot(slot);
-        if (!PrototypeWaferBlockEntity.isSameComponent(requirement, candidate)) continue;
+        if (!matchesMaterial(requiredKey, keys, slot)) continue;
         int extracted = Math.min(remaining, candidate.getCount());
         items.extractItem(slot, extracted, false);
         remaining -= extracted;
       }
     }
+  }
+
+  private boolean matchesMaterial(ItemStack requiredKey, ItemStack[] keys, int slot) {
+    ItemStack candidate = items.getStackInSlot(slot);
+    if (!requiredKey.is(candidate.getItem())) return false;
+    int relative = slot - MATERIAL_START;
+    if (keys[relative] == null) keys[relative] = PrototypeWaferBlockEntity.componentKey(candidate);
+    return ItemStack.isSameItemSameTags(requiredKey, keys[relative]);
   }
 
   @Override
@@ -293,6 +311,7 @@ public class WaferDuplicatorBlockEntity extends BlockEntity
     items.deserializeNBT(itemData);
     energy.setStored(tag.getInt("Energy"));
     pendingResult = ItemStack.of(tag.getCompound("PendingResult"));
+    if (!pendingResult.isEmpty()) pendingResult.setCount(1);
   }
 
   @Override

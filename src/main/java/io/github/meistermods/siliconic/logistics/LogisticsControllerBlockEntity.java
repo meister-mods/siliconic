@@ -23,6 +23,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -63,6 +64,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
   private final Map<EndpointKey, EndpointConfig> configurations = new HashMap<>();
   private final Map<BlockPos, EndpointConfig> legacyConfigurations = new HashMap<>();
   private List<MachineEndpoint> endpoints = List.of();
+  private final Map<ChunkPos, Boolean> cachedPipeChunks = new HashMap<>();
   private boolean connectedToPipe;
   private ItemStack transferBuffer = ItemStack.EMPTY;
   @Nullable private BlockPos bufferSource;
@@ -79,6 +81,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     int scanInterval = SiliconicConfig.VALUES.logisticsScanInterval.get();
     long offset = Math.floorMod(pos.asLong(), scanInterval);
     if (controller.cachedTopologyRevision != LogisticsNetworkTopology.revision(level)
+        || LogisticsNetworkTopology.chunksChanged(level, controller.cachedPipeChunks)
         || Math.floorMod(level.getGameTime(), scanInterval) == offset) controller.refreshNetwork();
     int transferInterval = SiliconicConfig.VALUES.logisticsTransferInterval.get();
     if (Math.floorMod(level.getGameTime(), transferInterval)
@@ -96,6 +99,8 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     ArrayDeque<BlockPos> pending = new ArrayDeque<>();
     Set<BlockPos> visited = new HashSet<>();
     Set<EndpointKey> machineInterfaces = new HashSet<>();
+    cachedPipeChunks.clear();
+    LogisticsNetworkTopology.trackChunks(level, worldPosition, cachedPipeChunks);
 
     for (Direction direction : Direction.values()) {
       BlockPos neighbor = worldPosition.relative(direction);
@@ -110,6 +115,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
       BlockPos pipePos = pending.removeFirst();
       if (!visited.add(pipePos) || !level.isLoaded(pipePos)) continue;
       if (!(level.getBlockState(pipePos).getBlock() instanceof LogisticsPipeBlock)) continue;
+      LogisticsNetworkTopology.trackChunks(level, pipePos, cachedPipeChunks);
 
       for (Direction direction : Direction.values()) {
         BlockPos neighbor = pipePos.relative(direction);
@@ -467,6 +473,7 @@ public class LogisticsControllerBlockEntity extends BlockEntity implements MenuP
     destinationCursor = Math.max(0, tag.getInt("DestinationCursor"));
     connectedToPipe = false;
     endpoints = List.of();
+    cachedPipeChunks.clear();
     cachedTopologyRevision = Long.MIN_VALUE;
   }
 

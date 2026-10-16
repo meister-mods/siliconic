@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import io.github.meistermods.siliconic.Siliconic;
+import io.github.meistermods.siliconic.recipe.ProcessJson;
 import io.github.meistermods.siliconic.registry.ModItems;
 import io.github.meistermods.siliconic.registry.ModRecipes;
 import java.util.LinkedHashMap;
@@ -21,8 +22,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -42,7 +43,8 @@ public record ReprocessingProcess(
     implements Recipe<Container> {
   private static final Map<Level, TickCache> LEVEL_CACHE = new WeakHashMap<>();
 
-  private record TickCache(long gameTime, RecipeManager recipeManager, List<ReprocessingProcess> processes) {}
+  private record TickCache(
+      long gameTime, RecipeManager recipeManager, List<ReprocessingProcess> processes) {}
 
   public ReprocessingProcess {
     Objects.requireNonNull(id, "Reprocessing process ID must not be null");
@@ -84,6 +86,13 @@ public record ReprocessingProcess(
 
   public static List<ReprocessingProcess> all() {
     return Holder.PROCESSES;
+  }
+
+  /** Invalidates cached views after synchronized recipes replace this manager's contents. */
+  public static void invalidateCache(RecipeManager recipeManager) {
+    synchronized (LEVEL_CACHE) {
+      LEVEL_CACHE.values().removeIf(cached -> cached.recipeManager() == recipeManager);
+    }
   }
 
   public static List<ReprocessingProcess> all(@Nullable Level level) {
@@ -262,7 +271,7 @@ public record ReprocessingProcess(
     public ReprocessingProcess fromJson(ResourceLocation id, JsonObject json) {
       JsonObject inputJson = GsonHelper.getAsJsonObject(json, "input");
       Item input = readItem(GsonHelper.getAsString(inputJson, "item"));
-      int inputCount = GsonHelper.getAsInt(inputJson, "count", 1);
+      int inputCount = ProcessJson.getInt(inputJson, "count", 1);
       JsonArray outputArray = GsonHelper.getAsJsonArray(json, "outputs");
       List<ItemStack> outputs = new java.util.ArrayList<>();
       for (int index = 0; index < outputArray.size(); index++) {
@@ -270,15 +279,15 @@ public record ReprocessingProcess(
         outputs.add(
             new ItemStack(
                 readItem(GsonHelper.getAsString(output, "item")),
-                GsonHelper.getAsInt(output, "count", 1)));
+                ProcessJson.getInt(output, "count", 1)));
       }
       return new ReprocessingProcess(
           id,
           input,
           inputCount,
           outputs,
-          GsonHelper.getAsInt(json, "ticks"),
-          GsonHelper.getAsInt(json, "energy_per_tick"));
+          ProcessJson.getInt(json, "ticks"),
+          ProcessJson.getInt(json, "energy_per_tick"));
     }
 
     @Override

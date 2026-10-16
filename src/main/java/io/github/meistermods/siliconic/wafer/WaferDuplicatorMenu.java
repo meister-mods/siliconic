@@ -14,6 +14,7 @@ import net.minecraftforge.items.SlotItemHandler;
 @SuppressWarnings({"null"})
 public class WaferDuplicatorMenu extends AbstractContainerMenu {
   private static final int MACHINE_SLOTS = WaferDuplicatorBlockEntity.SLOT_COUNT;
+  private static final int MATERIAL_MENU_START = 2 + WaferDuplicatorBlockEntity.OUTPUT_SLOTS;
   private final WaferDuplicatorBlockEntity duplicator;
 
   public WaferDuplicatorMenu(int id, Inventory inventory, FriendlyByteBuf data) {
@@ -76,20 +77,31 @@ public class WaferDuplicatorMenu extends AbstractContainerMenu {
   @Override
   public ItemStack quickMoveStack(Player player, int index) {
     if (index < 0 || index >= slots.size()) return ItemStack.EMPTY;
+    if (duplicator.inputsLocked() && (index < 2 || index >= MATERIAL_MENU_START))
+      return ItemStack.EMPTY;
     Slot slot = slots.get(index);
     if (!slot.hasItem()) return ItemStack.EMPTY;
     ItemStack stack = slot.getItem(), copy = stack.copy();
     if (index < MACHINE_SLOTS) {
       if (!moveItemStackTo(stack, MACHINE_SLOTS, slots.size(), true)) return ItemStack.EMPTY;
-    } else if (!moveItemStackTo(stack, 0, MACHINE_SLOTS, false)) return ItemStack.EMPTY;
+    } else {
+      boolean moved = moveItemStackTo(stack, 0, 2, false);
+      if (!stack.isEmpty())
+        moved |= moveItemStackTo(stack, MATERIAL_MENU_START, MACHINE_SLOTS, false);
+      if (!moved) return ItemStack.EMPTY;
+    }
     if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
     else slot.setChanged();
+    duplicator.setChanged();
     return copy;
   }
 
   @Override
   public boolean stillValid(Player player) {
     return !duplicator.isRemoved()
-        && player.distanceToSqr(duplicator.getBlockPos().getCenter()) <= 64;
+        && duplicator.getLevel() == player.level()
+        && player.distanceToSqr(duplicator.getBlockPos().getCenter()) <= 64
+        && player.level().hasChunkAt(duplicator.getBlockPos())
+        && player.level().getBlockEntity(duplicator.getBlockPos()) == duplicator;
   }
 }

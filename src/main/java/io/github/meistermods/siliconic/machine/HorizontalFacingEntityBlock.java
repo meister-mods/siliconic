@@ -1,7 +1,10 @@
 package io.github.meistermods.siliconic.machine;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -19,6 +22,13 @@ public abstract class HorizontalFacingEntityBlock extends BaseEntityBlock {
   protected HorizontalFacingEntityBlock(Properties properties) {
     super(properties);
     registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+  }
+
+  @Nullable
+  @Override
+  public MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
+    // These menus require the opening data sent by NetworkHooks in each block's use method.
+    return null;
   }
 
   @Nullable

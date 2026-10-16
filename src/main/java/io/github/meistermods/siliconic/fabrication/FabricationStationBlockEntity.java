@@ -8,6 +8,7 @@ import io.github.meistermods.siliconic.network.MenuDataSync;
 import io.github.meistermods.siliconic.recipe.MachineKind;
 import io.github.meistermods.siliconic.recipe.MachineProcess;
 import io.github.meistermods.siliconic.recipe.ModMachineProcesses;
+import io.github.meistermods.siliconic.recipe.ProcessRecipeState;
 import io.github.meistermods.siliconic.registry.ModBlockEntities;
 import io.github.meistermods.siliconic.registry.ModBlocks;
 import java.util.ArrayList;
@@ -44,7 +45,9 @@ public class FabricationStationBlockEntity extends BlockEntity
   public static final int ENERGY_CAPACITY = 60_000;
 
   private int progress;
+  private final ProcessRecipeState recipeState = new ProcessRecipeState();
   private List<ItemStack> pendingResults = List.of();
+  @Nullable private CompoundTag pendingInputState;
   private boolean consumingPendingInputs;
   private final StationEnergyStorage energy = new StationEnergyStorage();
   private final ItemStackHandler items =
@@ -101,7 +104,7 @@ public class FabricationStationBlockEntity extends BlockEntity
         public int get(int index) {
           if (level != null && level.isClientSide)
             return index >= 0 && index < clientData.length ? clientData[index] : 0;
-          MachineProcess process = currentProcess();
+          MachineProcess process = index >= 4 && index <= 8 ? currentProcess() : null;
           return switch (index) {
             case 0 -> MenuDataSync.low(energy.getEnergyStored());
             case 1 -> MenuDataSync.high(energy.getEnergyStored());
@@ -144,6 +147,7 @@ public class FabricationStationBlockEntity extends BlockEntity
 
     @Override
     public int receiveEnergy(int amount, boolean simulate) {
+      if (amount <= 0) return 0;
       int accepted = super.receiveEnergy(amount, simulate);
       if (accepted > 0 && !simulate) FabricationStationBlockEntity.this.setChanged();
       return accepted;
@@ -171,6 +175,12 @@ public class FabricationStationBlockEntity extends BlockEntity
     return items;
   }
 
+  /** Applies the same progress and save notifications to in-place menu stack transfers. */
+  public void onMenuTransfer(boolean inputsChanged) {
+    if (inputsChanged) progress = 0;
+    setChanged();
+  }
+
   public ContainerData data() {
     return data;
   }
@@ -179,7 +189,7 @@ public class FabricationStationBlockEntity extends BlockEntity
     return slot >= INPUT_START && slot < INPUT_START + INPUT_SLOTS;
   }
 
-  private boolean canModifyInputs() {
+  public boolean canModifyInputs() {
     return pendingResults.isEmpty() || consumingPendingInputs;
   }
 
@@ -189,7 +199,7 @@ public class FabricationStationBlockEntity extends BlockEntity
 
   private int status(@Nullable MachineProcess process) {
     if (!CleanroomOccupancy.isMachineInside(level, worldPosition)) return 4;
-    if (process == null) return 0;
+    if (process == null && pendingInputState == null) return 0;
     if (pendingResults.isEmpty()) {
       if (!canFitPossibleOutputs(process)) return 1;
     } else if (simulateOutputs(pendingResults) == null) return 1;
@@ -202,13 +212,17 @@ public class FabricationStationBlockEntity extends BlockEntity
       Level level, BlockPos pos, BlockState state, FabricationStationBlockEntity station) {
     if (!CleanroomOccupancy.isMachineInside(level, pos)) return;
     MachineProcess process = station.currentProcess();
-    if (process == null) {
+    if (process == null && station.pendingInputState == null) {
       station.resetProgress();
       return;
     }
     if (!station.pendingResults.isEmpty()) {
       station.finishProcess(process, station.pendingResults);
       return;
+    }
+    if (!station.recipeState.select(process)) {
+      station.progress = 0;
+      station.setChanged();
     }
     if (!station.canFitPossibleOutputs(process)) {
       station.resetProgress();
@@ -219,7 +233,11 @@ public class FabricationStationBlockEntity extends BlockEntity
     if (station.progress >= process.ticks()) {
       ItemStack result = CleanroomContamination.processResult(level, pos, process.result());
       List<ItemStack> outputs = outputsFor(process, result);
-      if (!station.finishProcess(process, outputs)) station.pendingResults = outputs;
+      if (!station.finishProcess(process, outputs)) {
+        station.pendingInputState =
+            process.consumedInputState(station.items, INPUT_START, INPUT_SLOTS);
+        station.pendingResults = outputs;
+      }
     }
     station.setChanged();
   }
@@ -228,6 +246,7 @@ public class FabricationStationBlockEntity extends BlockEntity
     if (progress == 0 && pendingResults.isEmpty()) return;
     progress = 0;
     pendingResults = List.of();
+    pendingInputState = null;
     setChanged();
   }
 
@@ -263,12 +282,20 @@ public class FabricationStationBlockEntity extends BlockEntity
     return simulated;
   }
 
-  private boolean finishProcess(MachineProcess process, List<ItemStack> results) {
+  private boolean finishProcess(@Nullable MachineProcess process, List<ItemStack> results) {
     ItemStackHandler outputs = simulateOutputs(results);
     if (outputs == null) return false;
     consumingPendingInputs = true;
     try {
-      process.consume(items, INPUT_START, INPUT_SLOTS);
+      if (pendingInputState == null) {
+        if (process == null) return false;
+        process.consume(items, INPUT_START, INPUT_SLOTS);
+      } else {
+        ItemStackHandler consumed = new ItemStackHandler(INPUT_SLOTS);
+        consumed.deserializeNBT(pendingInputState);
+        for (int slot = 0; slot < INPUT_SLOTS; slot++)
+          items.setStackInSlot(INPUT_START + slot, consumed.getStackInSlot(slot).copy());
+      }
     } finally {
       consumingPendingInputs = false;
     }
@@ -276,6 +303,7 @@ public class FabricationStationBlockEntity extends BlockEntity
       items.setStackInSlot(OUTPUT_START + slot, outputs.getStackInSlot(slot));
     progress = 0;
     pendingResults = List.of();
+    pendingInputState = null;
     setChanged();
     return true;
   }
@@ -286,15 +314,18 @@ public class FabricationStationBlockEntity extends BlockEntity
     tag.put("Items", items.serializeNBT());
     tag.putInt("Energy", energy.getEnergyStored());
     tag.putInt("Progress", progress);
+    recipeState.save(tag, progress > 0 && pendingResults.isEmpty());
     ListTag pending = new ListTag();
     pendingResults.forEach(result -> pending.add(result.save(new CompoundTag())));
     tag.put("PendingResults", pending);
+    if (pendingInputState != null) tag.put("PendingInputState", pendingInputState.copy());
   }
 
   @Override
   public void load(CompoundTag tag) {
     super.load(tag);
     pendingResults = List.of();
+    pendingInputState = null;
     CompoundTag itemData = tag.getCompound("Items").copy();
     itemData.putInt("Size", SLOT_COUNT);
     items.deserializeNBT(itemData);
@@ -310,10 +341,15 @@ public class FabricationStationBlockEntity extends BlockEntity
       if (!legacyResult.isEmpty()) loadedResults.add(legacyResult);
     }
     pendingResults = List.copyOf(loadedResults);
+    CompoundTag inputState = tag.getCompound("PendingInputState");
+    if (!pendingResults.isEmpty()
+        && MachineProcess.isValidConsumedInputState(inputState, INPUT_SLOTS))
+      pendingInputState = inputState.copy();
     progress =
         pendingResults.isEmpty()
             ? Math.max(0, Math.min(Integer.MAX_VALUE - 1, tag.getInt("Progress")))
             : 0;
+    recipeState.load(tag);
   }
 
   @Override

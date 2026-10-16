@@ -270,6 +270,7 @@
   "direction.siliconic.west": "서쪽",
   "message.siliconic.generator_status": "발전기: %s / %s SE · 연소 %s틱 · 연료 %s개",
   "message.siliconic.energy_buffer.status": "에너지 버퍼: %s/%s SE · 비교기 신호 %s",
+  "message.siliconic.wafer.circuit_too_large": "회로가 너무 커서 이 웨이퍼를 내장할 수 없습니다. 더 작은 하위 회로로 나눠 주세요.",
   "message.siliconic.wafer_guard_status": "웨이퍼 가드: %s/%s SE · 소비 %s SE/t",
   "message.siliconic.creative_wafer_guard_status": "크리에이티브 웨이퍼 가드: 전력 필요 없음",
   "message.siliconic.wafer_inverter.success": "웨이퍼를 좌우 반전했습니다. (%s SE)",

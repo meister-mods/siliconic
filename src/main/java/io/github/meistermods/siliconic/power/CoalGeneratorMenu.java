@@ -71,12 +71,16 @@ public class CoalGeneratorMenu extends AbstractContainerMenu {
     }
     if (stack.isEmpty()) slot.set(ItemStack.EMPTY);
     else slot.setChanged();
+    generator.setChanged();
     return copy;
   }
 
   @Override
   public boolean stillValid(Player player) {
-    return !generator.isRemoved()
-        && player.distanceToSqr(generator.getBlockPos().getCenter()) <= 64;
+    return generator.getLevel() == player.level()
+        && !generator.isRemoved()
+        && player.distanceToSqr(generator.getBlockPos().getCenter()) <= 64
+        && player.level().isLoaded(generator.getBlockPos())
+        && player.level().getBlockEntity(generator.getBlockPos()) == generator;
   }
 }

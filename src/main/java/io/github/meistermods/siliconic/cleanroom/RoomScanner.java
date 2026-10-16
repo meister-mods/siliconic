@@ -190,9 +190,9 @@ public final class RoomScanner {
   }
 
   private static Status determineStatus(ScanFlags flags, boolean noInterior) {
-    if (noInterior) return Status.NO_INTERIOR;
     if (flags.worldOpen) return Status.WORLD_OPEN;
     if (flags.unloaded) return Status.UNLOADED;
+    if (noInterior) return Status.NO_INTERIOR;
     if (flags.limitReached) return Status.LIMIT_REACHED;
     // An open door inside the flood-filled boundary joins two sealed volumes. If it actually opens
     // outdoors, the expanded scan reaches one of the failure conditions above instead.

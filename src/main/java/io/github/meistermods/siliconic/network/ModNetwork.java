@@ -8,7 +8,7 @@ import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
 
 public final class ModNetwork {
-  private static final String VERSION = "1";
+  private static final String VERSION = "2";
   public static final SimpleChannel CHANNEL =
       NetworkRegistry.newSimpleChannel(
           ResourceLocation.fromNamespaceAndPath(Siliconic.MOD_ID, "main"),
@@ -37,6 +37,13 @@ public final class ModNetwork {
         CompleteWaferPacket::encode,
         CompleteWaferPacket::decode,
         CompleteWaferPacket::handle,
+        Optional.of(NetworkDirection.PLAY_TO_SERVER));
+    CHANNEL.registerMessage(
+        3,
+        LogisticsPagePacket.class,
+        LogisticsPagePacket::encode,
+        LogisticsPagePacket::decode,
+        LogisticsPagePacket::handle,
         Optional.of(NetworkDirection.PLAY_TO_SERVER));
   }
 

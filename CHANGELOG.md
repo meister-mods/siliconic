@@ -4,6 +4,12 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-16
+
+### Changed
+
+- Advanced the release version from 0.2.9 to 0.3.0.
+
 ## [0.2.9] - 2026-10-16
 
 ### Fixed

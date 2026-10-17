@@ -1,0 +1,30 @@
+{
+  "name": "Wafer Duplicator",
+  "category": "siliconic:wafer_duplicator",
+  "icon": "siliconic:wafer_duplicator",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Required materials",
+      "text": "The Wafer Duplicator needs a completed source, a fresh blank wafer of the same tier, and the circuit components. Install it in a sealed cleanroom and supply power.$(br2)Supply the source design's dust, nuggets, gates, and nested wafers. The source is retained."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Copying and output",
+      "text": "Each copy consumes one blank wafer and the required components. The cost is 10,000 SE multiplied by the source tier: 10,000 SE for SSI through 50,000 SE for ULSI.$(br2)Provide room in the nine output slots. Inputs lock while a result is pending. Poor cleanliness can contaminate the copy."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Automation",
+      "text": "Use hoppers or logistics to supply blank wafers and components and extract copies. Match each nested wafer's tier and circuit design to the component used in the source.$(br2)Check the screen to identify missing supplies, then replenish materials or power, or clear output space."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:wafer_duplicator"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_duplicator": 0
+  }
+}

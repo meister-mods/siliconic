@@ -1,0 +1,30 @@
+{
+  "name": "Logistics Controller",
+  "category": "siliconic:logistics_controller",
+  "icon": "siliconic:logistics_controller",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Port setup",
+      "text": "Connect the controller to a pipe network and right-click to open its port list. The controller does not need power.$(br2)Enable Output at the source and Input at the destination. Search by machine name or coordinates to jump to the page of the first matching port."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Filters and priority",
+      "text": "Place one actual item in a filter slot. Allow mode accepts that item type; exclude mode rejects it. An empty filter imposes no restriction. Names and circuit designs are not compared.$(br2)Priorities range from -2 to +2. Higher-priority ports are considered first."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Forced extraction",
+      "text": "Forced mode adds extraction access to the full inventory of supported machines. Insertion still follows the normal slot rules.$(br2)It can remove unfinished wafers from assemblers and guards. Industrial batch locks and pending-output input locks still apply. Use normal mode for routine operation."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:logistics_controller"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:logistics_controller": 0
+  }
+}

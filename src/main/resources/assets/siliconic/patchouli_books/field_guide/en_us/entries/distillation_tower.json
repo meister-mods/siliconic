@@ -1,0 +1,30 @@
+{
+  "name": "Distillation Tower",
+  "category": "siliconic:distillation_tower",
+  "icon": "siliconic:distillation_tower",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Feed and heat",
+      "text": "The Trichlorosilane Distillation Tower refines crude feed into purified trichlorosilane. Supply power and magma heat to maintain its target temperature of 300.$(br2)Continuous operation builds column stability and shortens runs in high-purity mode."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Operating mode",
+      "text": "High-purity mode favors yield, and column stability shortens its duration. In the built-in recipe, high-throughput mode turns four crude units into three purified units and one residue in half the base recipe duration.$(br2)Choose a mode before the batch starts and keep output space available."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Material loop",
+      "text": "Send purified trichlorosilane to the $(l:siliconic:siemens_reactor)Siemens reactor$(/l). Return distillation residue to the $(l:siliconic:chemical_recycler)chlorosilane recycler$(/l) to recover crude feed.$(br2)Maintain power, heat, feed, and output space for continuous operation. Idle or interrupted operation lowers stability."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:distillation_tower"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:distillation_tower": 0
+  }
+}

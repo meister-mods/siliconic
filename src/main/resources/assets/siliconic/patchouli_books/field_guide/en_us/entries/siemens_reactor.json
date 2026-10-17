@@ -1,0 +1,30 @@
+{
+  "name": "Siemens Reactor",
+  "category": "siliconic:siemens_reactor",
+  "icon": "siliconic:siemens_reactor",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Feed and filament",
+      "text": "The Siemens Deposition Reactor turns purified trichlorosilane into high-purity polysilicon. The standard process also needs a quartz deposition filament, which is retained.$(br2)Supply power and magma heat to reach a target temperature of 1,000."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Growth phases",
+      "text": "The batch passes through preheating, nucleation, rod growth, and controlled cooling. Inputs remain locked during the batch.$(br2)Maintain power and heat, then collect the polysilicon, silicon tetrachloride, and hydrogen. Send the chemical byproducts to the $(l:siliconic:chemical_recycler)recycler$(/l)."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Interrupted batches",
+      "text": "To stop an unfinished batch, clear output space and press \"Abort and recover rod\". The feed is consumed; the standard process retains its filament.$(br2)Process the resulting partial polysilicon rod with more purified trichlorosilane in the reactor's recovery recipe."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:siemens_reactor"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:siemens_reactor": 0
+  }
+}

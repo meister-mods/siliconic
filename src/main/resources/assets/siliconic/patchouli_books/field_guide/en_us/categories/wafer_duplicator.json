@@ -1,0 +1,6 @@
+{
+  "name": "Wafer Duplicator",
+  "description": "Copy a completed wafer using a blank substrate and components.",
+  "icon": "siliconic:wafer_duplicator",
+  "sortnum": 13
+}

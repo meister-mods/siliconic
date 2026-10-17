@@ -1,0 +1,6 @@
+{
+  "name": "물류 파이프",
+  "description": "제어기와 인벤토리를 연결해 아이템 운송 경로를 만듭니다.",
+  "icon": "siliconic:logistics_pipe",
+  "sortnum": 16
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Reprocessor",
+  "category": "siliconic:reprocessor",
+  "icon": "siliconic:reprocessor",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Feed and purpose",
+      "text": "The Reprocessor reclaims resources from silicon slag, contaminated products, logic gates, and wafers. Supply power; a cleanroom is not required.$(br2)Check JEI for the materials and quantities recovered from each input."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Recovery",
+      "text": "Insert the feed and provide space for every output. Return recovered materials to the manufacturing line.$(br2)Both unfinished and completed wafers can be reprocessed. Set aside any circuit designs you intend to keep before loading the machine."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:reprocessor"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:reprocessor": 0
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Redstone Clock",
+  "category": "siliconic:redstone_clock",
+  "icon": "siliconic:redstone_clock",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Operation",
+      "text": "The Redstone Clock starts pulsing when placed. It stays off for 18 ticks, then emits signal strength 15 for 2 ticks.$(br2)At the normal tick rate, that produces one pulse each second. It does not need a power cable."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Circuit connection",
+      "text": "Connect it to an input pin of a sequential circuit mounted in a $(l:siliconic:wafer_guard)wafer guard$(/l) to test latches and flip-flops.$(br2)Check that repeated pulses produce the intended result, and inspect wire attenuation and gate direction."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:redstone_clock"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:redstone_clock": 0
+  }
+}

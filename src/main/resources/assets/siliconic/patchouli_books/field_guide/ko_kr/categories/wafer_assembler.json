@@ -1,0 +1,6 @@
+{
+  "name": "웨이퍼 조립기",
+  "description": "9×9 격자에 배선과 게이트를 놓아 회로를 설계합니다.",
+  "icon": "siliconic:wafer_assembler",
+  "sortnum": 11
+}

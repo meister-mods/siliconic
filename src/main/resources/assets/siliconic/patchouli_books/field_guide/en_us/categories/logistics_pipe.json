@@ -1,0 +1,6 @@
+{
+  "name": "Logistics Pipe",
+  "description": "Connect the controller to inventories for item transport.",
+  "icon": "siliconic:logistics_pipe",
+  "sortnum": 16
+}

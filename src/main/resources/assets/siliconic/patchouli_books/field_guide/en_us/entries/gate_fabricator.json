@@ -1,0 +1,35 @@
+{
+  "name": "Gate Fabricator",
+  "category": "siliconic:gate_fabricator",
+  "icon": "siliconic:gate_fabricator",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Setup and purpose",
+      "text": "The Gate Fabricator makes NOT, AND, OR, XOR, Signal Buffer, Signal Drop, and Signal Switch gates. It needs power and a sealed cleanroom.$(br2)Look up the desired gate in JEI to check its materials and layout."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Using the result",
+      "text": "Load the 3×3 input area and collect the manufactured gate. Place it in a circuit cell with the $(l:siliconic:wafer_assembler)wafer assembler$(/l).$(br2)The arrow marks the output direction. Right-click to rotate a gate. Contaminated manufacturing results can be reclaimed in the $(l:siliconic:reprocessor)reprocessor$(/l)."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Logic gates",
+      "text": "Signals above zero count as on. NOT outputs 15 when its rear input is off. Signal Buffer outputs 15 when its rear input is on.$(br2)AND, OR, and XOR read their side inputs:$(br)AND: both on$(br)OR: at least one on$(br)XOR: exactly one on$(br)The output is 15 when the condition is met, otherwise 0."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Signal control",
+      "text": "Signal Drop subtracts its configured amount from the rear input, stopping at zero. Hold redstone and right-click the gate in the editor to cycle the drop amount.$(br2)Signal Switch passes its rear input when either side control is on. It preserves signal strength."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:gate_fabricator"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:gate_fabricator": 0
+  }
+}

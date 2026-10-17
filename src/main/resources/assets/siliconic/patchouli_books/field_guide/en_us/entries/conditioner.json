@@ -1,0 +1,35 @@
+{
+  "name": "Cleanroom Conditioner",
+  "category": "siliconic:conditioner",
+  "icon": "siliconic:conditioner",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Build a cleanroom",
+      "text": "Seal the walls, floor, and ceiling, then place the conditioner and precision machines inside. Supply power to the conditioner.$(br2)Its default draw is 40 SE per tick. Use Cable Coated Cleanroom Blocks for power connections through the walls."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Improve cleanliness",
+      "text": "Line interior surfaces with Coated Cleanroom Blocks and move generators, furnaces, and other pollution sources outside. Wear all four pieces of the cleanroom suit to prevent contamination from your character.$(br2)Pick up loose items. Additional conditioners improve purification and the cleanliness ceiling."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Power and recovery",
+      "text": "Cleanliness recovers in a sealed room when at least one linked conditioner has power. Without power, room monitoring continues but recovery stops.$(br2)One conditioner in an uncoated room gives a 75% cleanliness ceiling. Coating the surfaces raises it toward 100%."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Troubleshooting",
+      "text": "Read the screen for sealing, power, room size, and pollution. Close openings and ensure adequate power.$(br2)The default scan visits up to 4,096 positions within 32 blocks of the conditioner on each axis. Keep the room within loaded chunks. Server settings can change the limits."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:conditioner"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:conditioner": 0
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Energy Buffer",
+  "category": "siliconic:energy_buffer",
+  "icon": "siliconic:energy_buffer",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Purpose",
+      "text": "The Energy Buffer stores surplus energy for later use. Its default capacity is 200,000 SE, and it distributes up to 800 SE per tick through the cable network.$(br2)Server settings can change both values."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Monitoring",
+      "text": "Connect a power supply and consumers with cables. Right-click to read stored energy and capacity; a comparator reads the charge.$(br2)One buffer offers up to 200 SE per tick to each receiver by default. Use multiple powered sources for higher demand."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:energy_buffer"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:energy_buffer": 0
+  }
+}

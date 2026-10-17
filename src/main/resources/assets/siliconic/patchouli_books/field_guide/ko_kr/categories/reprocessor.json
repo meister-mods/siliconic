@@ -1,0 +1,6 @@
+{
+  "name": "재처리기",
+  "description": "슬래그와 불필요한 부품에서 유용한 재료를 회수합니다.",
+  "icon": "siliconic:reprocessor",
+  "sortnum": 15
+}

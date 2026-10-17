@@ -1,0 +1,35 @@
+{
+  "name": "염화 반응기",
+  "category": "siliconic:chlorination_reactor",
+  "icon": "siliconic:chlorination_reactor",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "원료와 열",
+      "text": "염화 반응기는 금속급 실리콘과 염화수소를 처리해 조 트리클로로실란을 만듭니다. 전력과 마그마 열을 공급해 목표 온도 450까지 예열합니다.$(br2)마그마 크림, 마그마 블록, 용암 양동이를 열원 슬롯에 넣을 수 있습니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "열원 보충",
+      "text": "마그마 크림은 열량 2,000, 마그마 블록은 8,000, 용암 양동이는 16,000을 공급합니다. 게임 내 단위이며 섭씨나 켈빈을 뜻하지 않습니다.$(br2)연료는 열원 슬롯에 넣습니다. 용암 사용 후 남은 빈 양동이는 꺼내고 다음 연료를 보충합니다. 저장한 열로 승온하고 운전 중 손실된 열을 보충합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "압력 관리",
+      "text": "작업 중 압력이 쌓입니다. 출력이 막혀도 배치는 계속 진행되므로 출력 슬롯을 비워 두고 자동 배출 경로를 준비합니다.$(br2)압력이 한계에 도달하면 비상 배출로 배치를 잃습니다. 막힌 출력을 먼저 해결합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "다음 공정",
+      "text": "조 트리클로로실란은 $(l:siliconic:distillation_tower)증류탑$(/l)에서 정제합니다. 염화수소는 소금·블레이즈 가루·유리병으로 제작하거나 화학 회수 공정에서 얻은 것을 다시 사용합니다.$(br2)선택한 공정의 투입 재료와 부산물은 JEI에서 확인합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:chlorination_reactor"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:chlorination_reactor": 0
+  }
+}

@@ -67,6 +67,13 @@ description='''${mod_description}'''
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="patchouli"
+    mandatory=true
+    versionRange="[1.20.1-85-FORGE,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="jei"
     mandatory=false
     versionRange="[15.20,)"

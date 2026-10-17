@@ -1,0 +1,30 @@
+{
+  "name": "물류 제어기",
+  "category": "siliconic:logistics_controller",
+  "icon": "siliconic:logistics_controller",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "포트 설정",
+      "text": "제어기를 파이프망에 연결하고 우클릭해 포트 목록을 엽니다. 제어기에는 전력을 공급하지 않아도 됩니다.$(br2)출발 포트는 배출, 도착 포트는 투입을 켭니다. 장비 이름이나 좌표를 검색하면 처음 찾은 포트가 있는 페이지로 이동합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "필터와 우선순위",
+      "text": "필터 칸에 실제 아이템 1개를 넣습니다. 허용 모드는 해당 아이템 종류를 통과시키고 제외 모드는 막습니다. 빈 필터는 제한이 없습니다. 이름이나 회로 설계는 비교하지 않습니다.$(br2)우선순위는 -2부터 +2까지이며 우선순위가 높은 포트부터 처리합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "강제 배출",
+      "text": "강제 모드는 지원 장비의 전체 인벤토리에서 아이템을 꺼낼 수 있게 합니다. 투입에는 일반 슬롯 규칙이 적용됩니다.$(br2)조립기와 가드에서는 미완성 웨이퍼도 꺼낼 수 있습니다. 고온 배치의 원료 잠금과 완성품 배출 대기 중 입력 잠금은 유지됩니다. 평소에는 일반 모드를 사용합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:logistics_controller"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:logistics_controller": 0
+  }
+}

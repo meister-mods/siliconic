@@ -1,0 +1,6 @@
+{
+  "name": "Wafer Inverter",
+  "description": "Mirror a completed circuit from left to right.",
+  "icon": "siliconic:wafer_inverter",
+  "sortnum": 14
+}

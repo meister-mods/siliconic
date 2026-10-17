@@ -1,0 +1,25 @@
+{
+  "name": "재처리기",
+  "category": "siliconic:reprocessor",
+  "icon": "siliconic:reprocessor",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "원료와 역할",
+      "text": "재처리기는 실리콘 슬래그, 오염된 제조 결과물, 논리 게이트와 웨이퍼에서 자원을 회수합니다. 전력을 공급해 사용하며 클린룸은 필요하지 않습니다.$(br2)입력 아이템별 회수 재료와 수량은 JEI에서 확인합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "회수와 재사용",
+      "text": "원료를 입력 슬롯에 넣고 모든 출력물을 담을 공간을 확보합니다. 회수한 재료는 제조 공정에 다시 사용할 수 있습니다.$(br2)편집 중이거나 완성한 웨이퍼도 재처리 대상입니다. 보관할 회로 설계는 투입 전에 분리합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:reprocessor"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:reprocessor": 0
+  }
+}

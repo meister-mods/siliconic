@@ -1,0 +1,25 @@
+{
+  "name": "레드스톤 클럭기",
+  "category": "siliconic:redstone_clock",
+  "icon": "siliconic:redstone_clock",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "동작",
+      "text": "레드스톤 클럭기는 놓으면 주기적으로 신호를 출력합니다. 18틱 동안 꺼졌다가 2틱 동안 신호 세기 15를 내보냅니다.$(br2)정상적인 틱 속도에서는 1초에 한 번 펄스가 발생합니다. 전력 케이블 연결은 필요하지 않습니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "회로 연결",
+      "text": "$(l:siliconic:wafer_guard)웨이퍼 가드$(/l)에 장착한 순차회로의 입력 핀에 연결해 래치·플립플롭 동작을 시험할 수 있습니다.$(br2)같은 신호가 여러 번 들어가도 의도대로 동작하는지 확인하고, 배선 감쇠와 게이트 방향을 함께 점검합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:redstone_clock"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:redstone_clock": 0
+  }
+}

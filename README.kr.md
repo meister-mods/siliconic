@@ -2,7 +2,7 @@
 
 [English](README.md) | 한국어
 
-> 실리콘을 정제하고 클린룸을 설계해, 프로그래밍 가능한 웨이퍼 안에 실제로 동작하는 레드스톤 회로를 만드세요.
+> 실리콘을 정제하고 클린룸을 설계해 프로그래밍 가능한 웨이퍼 안에 실제로 동작하는 레드스톤 회로를 만듭니다.
 
 Siliconic은 반도체 제조, 클린룸 설계, 공장 자동화와 프로그래밍 가능한 웨이퍼 회로를 중심으로 하는 Minecraft Forge 1.20.1 기술 모드입니다.
 
@@ -15,25 +15,32 @@ Siliconic은 다음 네 가지 시스템이 연결된 기술 발전 과정을 �
 - 구조, 내부 장비와 오염원이 정밀 제조에 영향을 주는 클린룸
 - 발전, 에너지 분배, 물류 제어와 재료 회수
 
-상세한 진행 과정과 장비 동작은 [게임플레이 가이드](docs/GAMEPLAY.kr.md)에서 확인할 수 있으며, [영문판](docs/GAMEPLAY.md)도 제공됩니다. 정확한 조합법은 게임 내 JEI 사용을 권장합니다.
+상세한 진행 과정과 장비 동작은 [게임플레이 가이드](docs/GAMEPLAY.kr.md)에서 확인할 수 있으며, [영문판](docs/GAMEPLAY.md)도 제공됩니다. JEI를 설치하면 게임 내에서 정확한 조합법을 확인할 수 있습니다.
 
 ## 실행 환경
 
 | 항목 | 버전 |
 | --- | --- |
 | Minecraft | 1.20.1 |
-| Minecraft Forge | 47.x (47.4.10 기준 개발) |
+| Minecraft Forge | 47.3.19 이상 (47.4.10 기준 개발) |
 | Java | 17 |
-| Just Enough Items | 15.20 이상, 선택 사항 |
+| Patchouli | Forge 1.20.1용 1.20.1-85-FORGE 이상, 필수 |
+| Just Enough Items | Forge 1.20.1용 15.20 이상, 선택 사항 |
 
 ## 설치
 
 1. Minecraft 1.20.1용 Forge를 설치합니다.
-2. 실행용 Siliconic JAR 파일을 Minecraft의 `mods` 폴더에 넣습니다.
+2. 실행용 Siliconic JAR 파일과 호환되는 [Patchouli](https://www.curseforge.com/minecraft/mc-mods/patchouli) JAR 파일을 Minecraft의 `mods` 폴더에 넣습니다.
 3. 게임 내 조합법과 공정 안내가 필요하다면 호환되는 JEI를 선택적으로 설치합니다.
 4. Forge 프로필로 Minecraft를 실행합니다.
 
-멀티플레이에서는 서버와 모든 접속자가 같은 Siliconic 버전을 사용해야 합니다. JEI는 해당 인터페이스를 사용할 클라이언트에만 필요합니다.
+멀티플레이에서는 서버와 모든 접속자가 같은 Siliconic 버전을 사용하고 Patchouli를 설치해야 합니다. JEI는 해당 인터페이스를 사용할 클라이언트에만 필요합니다.
+
+## 게임 내 기계 안내서
+
+Siliconic 기계 안내서는 일반 기계와 배선·물류 장치를 기기별 19개 챕터로 설명하며, 한국어·영어 본문과 제작법을 제공합니다. 해당 월드에서 안내서를 아직 받지 않은 플레이어가 이 버전을 설치한 뒤 서바이벌로 플레이하면 한 번 지급됩니다. 기존 월드에도 같은 규칙이 적용됩니다. 다른 게임 모드에서는 지급 기회를 소모하지 않으므로 나중에 서바이벌로 전환해도 받을 수 있습니다.
+
+재접속하거나 사망 후 부활해도 다시 지급하지 않습니다. 인벤토리가 가득 차 있으면 플레이어 위치에 떨어뜨립니다. 안내서를 잃어버리면 책과 구리 조각으로 다시 제작할 수 있습니다.
 
 ## 문서
 
@@ -43,7 +50,13 @@ Siliconic은 다음 네 가지 시스템이 연결된 기술 발전 과정을 �
 
 ## 개발
 
-JDK 17 환경에서 다음 명령으로 모드를 빌드합니다.
+JDK 17 환경에서 모드를 빌드합니다. Linux와 macOS에서는 다음 명령을 사용합니다.
+
+```sh
+bash gradlew build
+```
+
+Windows의 PowerShell에서는 다음 명령을 사용합니다.
 
 ```powershell
 .\gradlew.bat build
@@ -51,23 +64,27 @@ JDK 17 환경에서 다음 명령으로 모드를 빌드합니다.
 
 실행용 모드 파일은 `build/libs/siliconic-1.20.1-*.jar`에 생성됩니다. 파일명이 `-sources.jar`로 끝나는 결과물은 개발용이므로 `mods` 폴더에 설치하지 않습니다.
 
-주요 개발 명령은 다음과 같습니다.
+같은 래퍼 명령에 다음 작업 이름을 지정해 개발 도구를 실행합니다.
 
-| 명령 | 용도 |
+| 작업 | 용도 |
 | --- | --- |
-| `.\gradlew.bat runClient` | 개발용 클라이언트를 실행합니다. |
-| `.\gradlew.bat runServer` | 로컬 개발 서버를 실행합니다. |
-| `.\gradlew.bat runGameTestServer` | Forge 자동 회귀 테스트를 실행합니다. |
-| `.\gradlew.bat runData` | 설정된 데이터 리소스를 생성합니다. |
+| `runClient` | 개발용 클라이언트를 실행합니다. |
+| `runServer` | 로컬 개발 서버를 실행합니다. |
+| `runGameTestServer` | Forge 자동 회귀 테스트를 실행합니다. |
+| `runData` | 설정된 데이터 리소스를 생성합니다. |
 
-소스 코드는 `src/main/java`, 기본 에셋과 데이터팩은 `src/main/resources`, 생성 리소스는 `src/generated/resources`에 있습니다. 장비 조합법은 데이터팩으로 추가하거나 덮어쓸 수 있으며, 자세한 형식은 위의 장비 공정 문서를 참고해 주세요.
+소스 코드는 `src/main/java`, 기본 에셋과 데이터팩은 `src/main/resources`, 생성 리소스는 `src/generated/resources`에 있습니다. 장비 공정은 데이터팩으로 추가하거나 덮어쓸 수 있습니다. 자세한 형식은 위의 장비 공정 문서에서 확인할 수 있습니다.
+
+[안내서 리소스](src/main/resources/assets/siliconic/patchouli_books/field_guide)에는 한국어·영어 범주와 본문 파일이 있습니다. 기계와 장치의 챕터마다 범주 하나와 본문 항목 하나를 유지하고 두 언어의 내용을 맞춥니다. 책 정의, 일회성 지급 발전 과제, 전리품 보상과 재제작 조합법은 `src/main/resources/data/siliconic`에 있습니다.
+
+책 ID와 지급 발전 과제 ID는 모두 `siliconic:field_guide`입니다. 업데이트 시 이 ID를 유지해 기존 안내서 아이템과 플레이어별 지급 완료 기록을 보존합니다.
 
 ## 개발 상태와 기여
 
-Siliconic은 현재 1.0 이전 개발 단계입니다. 버전 사이에 월드 데이터 형식, 조합법, 밸런스와 장비 동작이 변경될 수 있으므로 중요한 월드는 업데이트 전에 백업해 주세요.
+Siliconic은 현재 1.0 이전 개발 단계입니다. 버전에 따라 월드 데이터 형식, 조합법, 밸런스와 장비 동작이 바뀔 수 있으므로 중요한 월드는 업데이트 전에 백업합니다.
 
-문제 제보와 제안은 [GitHub Issues](https://github.com/meister-mods/siliconic/issues)를 이용해 주세요. 기여 코드에는 변경된 게임 동작을 문서화하고 가능한 경우 회귀 테스트를 포함하며, `build`와 `runGameTestServer`를 모두 통과하는 것을 권장합니다.
+문제 제보와 제안은 [GitHub Issues](https://github.com/meister-mods/siliconic/issues)를 이용합니다. 기여할 때는 변경한 게임 동작을 문서화하고 필요한 회귀 테스트를 추가합니다. 제출 전에는 `build`와 `runGameTestServer`가 모두 통과하는지 확인합니다.
 
 ## 라이선스
 
-이 프로젝트의 이용 조건은 [LICENSE](LICENSE)를 참고해 주세요.
+이 프로젝트의 이용 조건은 [LICENSE](LICENSE)에서 확인할 수 있습니다.

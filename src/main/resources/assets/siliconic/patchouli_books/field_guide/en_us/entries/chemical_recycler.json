@@ -1,0 +1,30 @@
+{
+  "name": "Chlorosilane Recycler",
+  "category": "siliconic:chemical_recycler",
+  "icon": "siliconic:chemical_recycler",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Feed and heat",
+      "text": "The Chlorosilane Recycler recovers crude trichlorosilane from silicon tetrachloride with hydrogen, or from distillation residue.$(br2)Supply power and magma heat to maintain its target temperature of 600. Check JEI for each feed combination."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Output groups",
+      "text": "Blue output slots accept crude trichlorosilane, yellow slots accept hydrogen chloride, and purple slots accept other byproducts.$(br2)Provide extraction routes and free space for each group, then return recovered chemicals to the production line."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Monitoring",
+      "text": "Check the screen for missing power, heat, feed, or output space. While waiting for feed, comparator signal 10 can indicate missing hydrogen; blocked output gives signal 15.$(br2)During operation, the comparator also shows progress. Read it alongside the machine state."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:chemical_recycler"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:chemical_recycler": 0
+  }
+}

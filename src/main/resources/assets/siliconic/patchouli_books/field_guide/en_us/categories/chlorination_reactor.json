@@ -1,0 +1,6 @@
+{
+  "name": "Chlorination Reactor",
+  "description": "Chlorinate metallurgical-grade silicon into crude trichlorosilane.",
+  "icon": "siliconic:chlorination_reactor",
+  "sortnum": 4
+}

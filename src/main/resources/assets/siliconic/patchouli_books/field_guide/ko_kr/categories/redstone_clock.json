@@ -1,0 +1,6 @@
+{
+  "name": "레드스톤 클럭기",
+  "description": "주기적인 레드스톤 신호를 회로에 공급합니다.",
+  "icon": "siliconic:redstone_clock",
+  "sortnum": 18
+}

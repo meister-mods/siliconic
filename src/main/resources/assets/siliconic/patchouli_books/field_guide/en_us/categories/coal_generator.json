@@ -1,0 +1,6 @@
+{
+  "name": "Coal Generator",
+  "description": "Supply the factory with power from furnace fuels.",
+  "icon": "siliconic:coal_generator",
+  "sortnum": 0
+}

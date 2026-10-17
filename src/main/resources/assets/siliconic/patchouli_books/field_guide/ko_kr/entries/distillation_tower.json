@@ -1,0 +1,30 @@
+{
+  "name": "트리클로로실란 증류탑",
+  "category": "siliconic:distillation_tower",
+  "icon": "siliconic:distillation_tower",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "원료와 열",
+      "text": "트리클로로실란 증류탑은 조 트리클로로실란을 고순도 트리클로로실란으로 정제합니다. 전력과 마그마 열을 공급해 목표 온도 300을 유지합니다.$(br2)연속 운전하면 안정도가 올라 고순도 모드의 처리 시간이 단축됩니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "운전 모드",
+      "text": "고순도 모드는 수율을 우선하며 안정도가 높아지면 처리 시간이 줄어듭니다. 기본 조합법의 고처리량 모드는 원료 4단위를 고순도 생산물 3단위와 잔류물 1단위로 분리하며 기본 처리 시간의 절반이 걸립니다.$(br2)배치 시작 전에 모드 버튼으로 선택하고 출력 공간을 확보합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "순환 생산",
+      "text": "고순도 트리클로로실란은 $(l:siliconic:siemens_reactor)지멘스 반응기$(/l)로 보냅니다. 증류 잔류물은 $(l:siliconic:chemical_recycler)클로로실란 재순환기$(/l)에 넣어 조 트리클로로실란으로 회수합니다.$(br2)전력·열·원료·출력 공간을 확보해 연속 가동합니다. 대기하거나 가동이 중단되면 안정도가 내려갑니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:distillation_tower"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:distillation_tower": 0
+  }
+}

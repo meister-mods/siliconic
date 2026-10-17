@@ -1,0 +1,6 @@
+{
+  "name": "전력 케이블",
+  "description": "블록 표면을 따라 발전기와 장비를 연결합니다.",
+  "icon": "siliconic:power_cable",
+  "sortnum": 1
+}

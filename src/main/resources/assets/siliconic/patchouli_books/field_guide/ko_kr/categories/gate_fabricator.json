@@ -1,0 +1,6 @@
+{
+  "name": "게이트 제조기",
+  "description": "웨이퍼 회로에 장착할 논리 게이트를 제조합니다.",
+  "icon": "siliconic:gate_fabricator",
+  "sortnum": 10
+}

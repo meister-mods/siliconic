@@ -1,0 +1,35 @@
+{
+  "name": "게이트 제조기",
+  "category": "siliconic:gate_fabricator",
+  "icon": "siliconic:gate_fabricator",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "설치와 역할",
+      "text": "게이트 제조기는 NOT, AND, OR, XOR 게이트와 신호 버퍼, 강하 게이트, 스위치 게이트를 만듭니다. 전력과 밀폐 클린룸이 필요합니다.$(br2)필요한 게이트를 JEI에서 찾아 입력 재료와 배치를 확인합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "제조 후 사용",
+      "text": "3×3 입력 영역에 재료를 넣고 완성한 게이트를 회수합니다. 게이트는 $(l:siliconic:wafer_assembler)웨이퍼 조립기$(/l)의 회로 셀에 장착합니다.$(br2)화살표는 출력 방향을 나타내며 우클릭으로 회전합니다. 제조 중 오염된 결과물은 $(l:siliconic:reprocessor)재처리기$(/l)에서 재료로 회수할 수 있습니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "논리 게이트",
+      "text": "0보다 큰 신호는 켜짐으로 판단합니다. NOT 게이트는 뒤쪽 입력이 꺼졌을 때, 신호 버퍼는 뒤쪽 입력이 켜졌을 때 15를 출력합니다.$(br2)AND·OR·XOR는 양옆의 입력을 읽습니다.$(br)AND: 둘 다 켜짐$(br)OR: 하나 이상 켜짐$(br)XOR: 정확히 하나만 켜짐$(br)조건을 만족하면 15, 나머지는 0입니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "신호 제어",
+      "text": "강하 게이트는 뒤쪽 입력에서 설정한 강하량을 뺍니다. 최솟값은 0입니다. 편집기에서 레드스톤을 들고 게이트를 우클릭하면 강하량이 바뀝니다.$(br2)스위치 게이트는 양옆 제어 신호 중 하나라도 켜지면 뒤쪽 입력을 통과시킵니다. 신호 세기는 유지됩니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:gate_fabricator"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:gate_fabricator": 0
+  }
+}

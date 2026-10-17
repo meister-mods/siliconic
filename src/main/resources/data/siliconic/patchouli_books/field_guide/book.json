@@ -1,0 +1,10 @@
+{
+  "name": "book.siliconic.field_guide.name",
+  "landing_text": "book.siliconic.field_guide.landing",
+  "subtitle": "book.siliconic.field_guide.subtitle",
+  "model": "siliconic:field_guide",
+  "book_texture": "patchouli:textures/gui/book_cyan.png",
+  "use_resource_pack": true,
+  "show_progress": false,
+  "text_overflow_mode": "resize"
+}

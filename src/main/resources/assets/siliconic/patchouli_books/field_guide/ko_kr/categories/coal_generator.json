@@ -1,0 +1,6 @@
+{
+  "name": "석탄 발전기",
+  "description": "화로 연료를 태워 공장에 전력을 공급합니다.",
+  "icon": "siliconic:coal_generator",
+  "sortnum": 0
+}

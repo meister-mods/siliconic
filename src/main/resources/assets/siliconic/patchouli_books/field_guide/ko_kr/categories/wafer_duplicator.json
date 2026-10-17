@@ -1,0 +1,6 @@
+{
+  "name": "웨이퍼 복제기",
+  "description": "원본 설계와 재료를 사용해 동일한 웨이퍼를 복제합니다.",
+  "icon": "siliconic:wafer_duplicator",
+  "sortnum": 13
+}

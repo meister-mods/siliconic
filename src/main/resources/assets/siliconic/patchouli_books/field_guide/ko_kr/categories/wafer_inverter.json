@@ -1,0 +1,6 @@
+{
+  "name": "웨이퍼 반전기",
+  "description": "완성한 회로를 좌우로 반전합니다.",
+  "icon": "siliconic:wafer_inverter",
+  "sortnum": 14
+}

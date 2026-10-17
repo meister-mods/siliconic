@@ -1,0 +1,30 @@
+{
+  "name": "지멘스 증착 반응기",
+  "category": "siliconic:siemens_reactor",
+  "icon": "siliconic:siemens_reactor",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "원료와 필라멘트",
+      "text": "지멘스 증착 반응기는 고순도 트리클로로실란을 고순도 다결정 실리콘으로 만듭니다. 기본 공정에는 석영 증착 필라멘트도 필요하며, 필라멘트는 소모되지 않습니다.$(br2)전력과 마그마 열을 공급해 목표 온도 1,000까지 예열합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "성장 단계",
+      "text": "예열, 핵생성, 봉 성장, 제어 냉각 순서로 진행합니다. 배치 처리 중에는 원료 슬롯이 잠깁니다.$(br2)전력과 열 공급을 유지하고 다결정 실리콘, 사염화규소, 수소를 회수합니다. 화학 부산물은 $(l:siliconic:chemical_recycler)재순환기$(/l)로 보냅니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "중단과 회수",
+      "text": "진행 중인 배치를 중단하려면 출력 공간을 비우고 \"중단 후 성장 봉 회수\" 버튼을 누릅니다. 원료는 소모되며 기본 공정의 필라멘트는 남습니다.$(br2)얻은 부분 성장 폴리실리콘 봉을 고순도 트리클로로실란과 함께 반응기의 복구 공정에 사용합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:siemens_reactor"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:siemens_reactor": 0
+  }
+}

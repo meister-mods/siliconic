@@ -1,0 +1,30 @@
+{
+  "name": "실리콘 전기로",
+  "category": "siliconic:silicon_arc_furnace",
+  "icon": "siliconic:silicon_arc_furnace",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "원료와 역할",
+      "text": "실리콘 전기로는 네더 석영과 목탄으로 금속급 실리콘을 만듭니다. 내구도가 남아 있는 탄소 전극도 필요합니다.$(br2)정확한 투입 위치와 수량은 JEI의 전기로 공정에서 확인합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "배치 운전",
+      "text": "한 번의 원료 처리를 배치라고 합니다. 전력을 연결하고 원료와 전극을 넣으면 장입, 최대 출력 아크, 환원 용융, 출탕 순서로 작업합니다.$(br2)단계에 따라 전력 소비량이 달라집니다. 배치 중에는 원료 슬롯이 잠깁니다. 전극의 남은 내구도를 확인하고 실리콘과 슬래그를 회수합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "생산 라인",
+      "text": "금속급 실리콘은 $(l:siliconic:chlorination_reactor)염화 반응기$(/l)로 보내고, 슬래그는 $(l:siliconic:reprocessor)재처리기$(/l)에서 회수합니다. 전극이 심하게 마모되면 슬래그가 더 발생할 수 있습니다.$(br2)비교기 출력으로 배치 진행도를 감시할 수 있습니다. 전기로는 클린룸과 떨어진 곳에 배치합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:silicon_arc_furnace"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:silicon_arc_furnace": 0
+  }
+}

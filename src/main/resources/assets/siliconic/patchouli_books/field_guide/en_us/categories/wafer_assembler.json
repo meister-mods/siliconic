@@ -1,0 +1,6 @@
+{
+  "name": "Wafer Assembler",
+  "description": "Design circuits from wires and gates on a 9×9 grid.",
+  "icon": "siliconic:wafer_assembler",
+  "sortnum": 11
+}

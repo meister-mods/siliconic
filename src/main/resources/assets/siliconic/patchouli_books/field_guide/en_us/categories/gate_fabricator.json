@@ -1,0 +1,6 @@
+{
+  "name": "Gate Fabricator",
+  "description": "Manufacture logic gates for wafer circuits.",
+  "icon": "siliconic:gate_fabricator",
+  "sortnum": 10
+}

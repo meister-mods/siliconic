@@ -1,0 +1,30 @@
+{
+  "name": "석탄 발전기",
+  "category": "siliconic:coal_generator",
+  "icon": "siliconic:coal_generator",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "역할",
+      "text": "석탄 발전기는 석탄·목탄 같은 화로 연료를 태워 전력을 생산합니다. 기본 발전량은 틱당 40 SE이며 서버 설정에 따라 달라집니다. 정상적인 틱 속도에서는 20틱이 1초입니다.$(br2)정밀 제조를 시작하기 전에 발전 설비를 먼저 준비합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "연결과 운전",
+      "text": "발전기를 놓고 전력 케이블로 소비 장비를 연결합니다. 우클릭으로 연료 슬롯과 충전 상태를 확인합니다. 연료는 호퍼나 물류 장치로 공급할 수 있습니다.$(br2)전력이 계속 부족하면 발전기를 추가합니다. 에너지 버퍼는 일시적인 수요 증가를 보완합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "클린룸 배치",
+      "text": "발전기는 클린룸을 오염시키는 설비입니다. 클린룸 밖에 배치하고, 벽을 통과하는 전력선에는 케이블 클린룸 코팅 블록을 사용해 밀폐 상태를 유지합니다.$(br2)컨디셔너와 제조 장비가 함께 사용할 전력 여유를 확보합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:coal_generator"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:coal_generator": 0
+  }
+}

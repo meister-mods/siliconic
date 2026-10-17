@@ -1,0 +1,6 @@
+{
+  "name": "Power Cable",
+  "description": "Connect generators, buffers, and machines along block surfaces.",
+  "icon": "siliconic:power_cable",
+  "sortnum": 1
+}

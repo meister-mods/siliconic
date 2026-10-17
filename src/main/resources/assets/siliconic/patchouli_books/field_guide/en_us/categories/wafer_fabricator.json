@@ -1,0 +1,6 @@
+{
+  "name": "Wafer Fabricator",
+  "description": "Manufacture tiered wafers from high-purity silicon.",
+  "icon": "siliconic:wafer_fabricator",
+  "sortnum": 9
+}

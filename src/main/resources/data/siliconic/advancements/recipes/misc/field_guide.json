@@ -1,0 +1,28 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_materials": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": ["minecraft:book"]
+          },
+          {
+            "tag": "forge:nuggets/copper"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "siliconic:field_guide"
+      }
+    }
+  },
+  "requirements": [["has_materials", "has_the_recipe"]],
+  "rewards": {
+    "recipes": ["siliconic:field_guide"]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "에너지 버퍼",
+  "description": "전력을 저장하고 수요가 생길 때 재분배합니다.",
+  "icon": "siliconic:energy_buffer",
+  "sortnum": 2
+}

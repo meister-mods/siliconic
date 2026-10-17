@@ -1,0 +1,30 @@
+{
+  "name": "클로로실란 재순환기",
+  "category": "siliconic:chemical_recycler",
+  "icon": "siliconic:chemical_recycler",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "원료와 열",
+      "text": "클로로실란 재순환기는 사염화규소와 수소를 함께 처리하거나 증류 잔류물만 처리해 조 트리클로로실란을 회수합니다.$(br2)전력과 마그마 열을 공급해 목표 온도 600을 유지합니다. 필요한 원료의 조합은 JEI에서 확인합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "출력 구분",
+      "text": "청색 출력 슬롯에는 조 트리클로로실란, 황색 슬롯에는 염화수소, 보라색 슬롯에는 기타 부산물이 들어갑니다.$(br2)종류별 배출 경로를 마련하고 출력 공간을 확보합니다. 회수한 화학 물질은 염화·증류 라인으로 돌려보냅니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "상태 확인",
+      "text": "화면에서 전력·열·원료 부족과 출력 대기를 확인합니다. 작업 대기 중 비교기 신호 10은 수소 부족을 나타낼 수 있으며, 출력 대기는 신호 15로 표시됩니다.$(br2)운전 중 비교기 출력은 진행도도 나타내므로 화면 상태와 함께 판단합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:chemical_recycler"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:chemical_recycler": 0
+  }
+}

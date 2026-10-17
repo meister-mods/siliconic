@@ -1,0 +1,25 @@
+{
+  "name": "물류 파이프",
+  "category": "siliconic:logistics_pipe",
+  "icon": "siliconic:logistics_pipe",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "연결 방법",
+      "text": "물류 파이프로 $(l:siliconic:logistics_controller)물류 제어기$(/l)와 상자·장비의 인벤토리를 연결합니다. 제어기는 연결된 장비의 접근 가능한 면을 포트로 표시합니다.$(br2)전력 케이블로 에너지를 보내고 물류 파이프로 아이템을 옮깁니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "경로 확인",
+      "text": "아이템을 옮기려면 같은 파이프망의 제어기에서 출발·도착 포트를 설정합니다. 경로의 모든 청크가 로드된 상태여야 아이템이 전달됩니다.$(br2)새 장비를 연결한 뒤에는 제어기의 포트 목록과 장비 면별 접근 조건을 확인합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:logistics_pipe"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:logistics_pipe": 0
+  }
+}

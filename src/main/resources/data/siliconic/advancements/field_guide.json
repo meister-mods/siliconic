@@ -1,0 +1,20 @@
+{
+  "criteria": {
+    "first_survival_tick": {
+      "trigger": "minecraft:tick",
+      "conditions": {
+        "player": {
+          "type_specific": {
+            "type": "player",
+            "gamemode": "survival"
+          }
+        }
+      }
+    }
+  },
+  "rewards": {
+    "loot": [
+      "siliconic:field_guide"
+    ]
+  }
+}

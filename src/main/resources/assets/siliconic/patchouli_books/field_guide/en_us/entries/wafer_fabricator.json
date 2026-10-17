@@ -1,0 +1,30 @@
+{
+  "name": "Wafer Fabricator",
+  "category": "siliconic:wafer_fabricator",
+  "icon": "siliconic:wafer_fabricator",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Setup and feed",
+      "text": "The Wafer Fabricator turns high-purity polysilicon into substrates for circuit design. Install it in a sealed cleanroom and supply power.$(br2)The five tiers are SSI, MSI, LSI, VLSI, and ULSI. Higher-tier recipes consume a wafer of the previous tier. Check JEI before preparing inputs."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Manufacturing",
+      "text": "Load the 3×3 input area. Shaped processes require specific positions; shapeless processes allow any arrangement. Extract both results and byproducts.$(br2)Changing inputs resets progress. Inputs lock while a completed batch awaits output space. Poor cleanliness can contaminate the result."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Upgrading tiers",
+      "text": "Prepare a blank wafer of the previous tier for an upgrade recipe. The recipe consumes it and creates a new blank wafer; it does not transfer a saved circuit.$(br2)Keep completed designs separately and reuse them by embedding them in higher-tier wafers at the $(l:siliconic:wafer_assembler)assembler$(/l). Every tier uses a 9×9 grid."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:wafer_fabricator"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_fabricator": 0
+  }
+}

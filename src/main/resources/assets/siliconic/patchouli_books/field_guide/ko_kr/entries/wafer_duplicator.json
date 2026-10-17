@@ -1,0 +1,30 @@
+{
+  "name": "웨이퍼 복제기",
+  "category": "siliconic:wafer_duplicator",
+  "icon": "siliconic:wafer_duplicator",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "필요한 재료",
+      "text": "웨이퍼 복제기는 완성한 원본 웨이퍼, 같은 등급의 새 빈 웨이퍼와 회로 부품을 사용합니다. 밀폐 클린룸 안에 설치하고 전력을 공급합니다.$(br2)재료 영역에는 원본에 사용한 가루·금속 조각·게이트·하위 웨이퍼를 넣습니다. 원본은 소모하지 않습니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "복제와 출력",
+      "text": "복제 한 번에 빈 웨이퍼 1개와 필요한 부품을 소모합니다. 에너지 소모량은 등급 번호에 10,000 SE를 곱한 값으로, SSI는 10,000 SE, ULSI는 50,000 SE입니다.$(br2)출력 슬롯 9칸에 공간을 확보합니다. 출력 대기 중에는 원료가 잠기며, 청정도가 낮으면 복제품이 오염될 수 있습니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "자동화",
+      "text": "호퍼나 물류로 빈 웨이퍼와 부품을 공급하고 복제품을 회수합니다. 하위 웨이퍼는 원본에 들어 있는 부품과 등급 및 설계가 일치해야 합니다.$(br2)화면 상태를 확인해 재료와 전력을 보충하거나 출력 칸을 비웁니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:wafer_duplicator"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_duplicator": 0
+  }
+}

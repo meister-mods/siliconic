@@ -1,0 +1,30 @@
+{
+  "name": "웨이퍼 제조기",
+  "category": "siliconic:wafer_fabricator",
+  "icon": "siliconic:wafer_fabricator",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "설치와 원료",
+      "text": "웨이퍼 제조기는 고순도 다결정 실리콘으로 회로 설계용 웨이퍼를 만듭니다. 밀폐 클린룸 안에 설치하고 전력을 공급합니다.$(br2)등급은 SSI, MSI, LSI, VLSI, ULSI 순서입니다. 상위 등급 조합법은 바로 아래 등급의 웨이퍼를 소모합니다. 필요한 재료는 JEI에서 확인합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "제조와 자동화",
+      "text": "3×3 입력 영역에 재료를 넣습니다. 정형 공정은 슬롯 위치를 맞추고, 비정형 공정은 위치와 관계없이 요구 재료를 넣습니다. 결과와 부산물을 모두 배출합니다.$(br2)입력을 바꾸면 진행도가 초기화됩니다. 완성품 배출 대기 중에는 원료가 잠깁니다. 청정도가 낮으면 결과물이 오염될 수 있습니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "등급 올리기",
+      "text": "등급을 올리는 조합에는 바로 아래 등급의 빈 웨이퍼를 준비합니다. 기존 웨이퍼를 소모해 새 빈 웨이퍼를 만들며 저장된 회로는 옮겨지지 않습니다.$(br2)완성한 설계는 별도로 보관하고 $(l:siliconic:wafer_assembler)조립기$(/l)에서 상위 등급 웨이퍼에 내장해 재사용합니다. 모든 등급은 9×9 격자를 사용합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:wafer_fabricator"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_fabricator": 0
+  }
+}

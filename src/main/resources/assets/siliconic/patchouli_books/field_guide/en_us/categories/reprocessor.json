@@ -1,0 +1,6 @@
+{
+  "name": "Reprocessor",
+  "description": "Recover useful resources from slag and unwanted components.",
+  "icon": "siliconic:reprocessor",
+  "sortnum": 15
+}

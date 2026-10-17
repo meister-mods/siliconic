@@ -1,0 +1,25 @@
+{
+  "name": "전력 케이블",
+  "category": "siliconic:power_cable",
+  "icon": "siliconic:power_cable",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "연결 방법",
+      "text": "전력 케이블은 블록 표면에 부착합니다. 발전기에서 케이블을 이어 에너지 버퍼와 소비 장비에 연결합니다.$(br2)케이블의 부착면과 연결 방향을 확인하고, 모서리를 돌 때는 지지 블록을 마련합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "전력망 관리",
+      "text": "전력은 연결된 장비의 수요에 따라 분배됩니다. 장비 소비량을 합산해 충분한 발전량을 확보합니다.$(br2)경로의 모든 청크가 로드된 상태여야 전력이 전달됩니다. 멀리 떨어진 설비가 멈추면 전력 공급과 경로의 상태를 함께 확인합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:power_cable"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:power_cable": 0
+  }
+}

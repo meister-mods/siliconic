@@ -1,0 +1,35 @@
+{
+  "name": "Chlorination Reactor",
+  "category": "siliconic:chlorination_reactor",
+  "icon": "siliconic:chlorination_reactor",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Feed and heat",
+      "text": "The Chlorination Reactor converts metallurgical silicon and hydrogen chloride into crude trichlorosilane. Supply power and magma heat to reach its target temperature of 450.$(br2)Magma cream, magma blocks, and lava buckets can supply heat."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Heat supply",
+      "text": "Magma cream supplies 2,000 heat, a magma block 8,000, and a lava bucket 16,000. These are game units.$(br2)Put fuel in the heat slot. Remove the empty bucket left by lava before supplying the next fuel. Stored heat warms the reactor and replaces heat lost during operation."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Pressure",
+      "text": "Pressure builds during operation. A blocked output does not stop the batch, so keep output slots clear and provide an extraction route.$(br2)At the pressure limit, emergency venting destroys the batch. Resolve output blockages promptly."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Next stage",
+      "text": "Refine crude trichlorosilane in the $(l:siliconic:distillation_tower)distillation tower$(/l). Craft hydrogen chloride from salt, blaze powder, and a glass bottle, or reuse it from chemical recovery.$(br2)Check JEI for the inputs and byproducts of the selected process."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:chlorination_reactor"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:chlorination_reactor": 0
+  }
+}

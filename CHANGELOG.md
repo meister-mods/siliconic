@@ -4,6 +4,24 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-10-17
+
+### Added
+
+- Added a bilingual Patchouli field guide with one chapter for each survival machine and utility device, crafting pages, and links to related chapters.
+- Granted the guide once per player when first playing in survival, with a crafting recipe for replacement copies.
+- Required Patchouli for in-game documentation.
+
+### Fixed
+
+- Set the minimum Forge version to 47.3.19, which provides the resource-location factory methods used during startup.
+- Restricted the declared Minecraft compatibility range to the supported 1.20.1 release.
+
+### Documentation
+
+- Revised the English and Korean guides, README files, JEI descriptions, and machine status messages for consistent terminology, grammar, and machine behavior.
+- Expanded guidance on cleanrooms, circuit editing, material recovery, logistics, and data-pack process validation.
+
 ## [0.3.0] - 2026-10-16
 
 ### Changed
@@ -142,7 +160,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - Validated data-pack machine input slots and machine or reprocessing output stacks during recipe loading.
-- Correctly matched and consumed overlapping shapeless ingredients without counting one stack twice.
+- Correctly matched and consumed overlapping shapeless ingredients without counting an item more than once.
 - Treated damage-input counts as durability damage instead of required item counts.
 - Displayed shaped fabrication recipes in their actual JEI grid slots.
 - Checked every connected energy face while deduplicating shared receiver capabilities.

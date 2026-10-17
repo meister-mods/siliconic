@@ -1,0 +1,50 @@
+{
+  "name": "Wafer Assembler",
+  "category": "siliconic:wafer_assembler",
+  "icon": "siliconic:wafer_assembler",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Setup and mounting",
+      "text": "The Wafer Assembler designs and completes circuits. Install it in a sealed cleanroom and supply power for circuit operation.$(br2)Right-click the block while holding a wafer to mount it, then right-click again to open the editor. Check cleanliness before editing."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Placing and reclaiming",
+      "text": "Pick up material from the inventory and left-click an empty cell to place a wire, gate, or completed lower-tier wafer. Left-click an occupied cell with an empty cursor to return its material to the inventory.$(br2)Poor cleanliness can contaminate cells during editing. Contaminated cells cannot be edited."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Settings and history",
+      "text": "Right-click a gate to rotate it or a wire to cycle connection modes. Hold redstone and right-click a Signal Drop gate to adjust its drop amount.$(br2)Undo and redo restore settings such as rotations and pin modes. Placing or reclaiming components clears this history."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Pins and signals",
+      "text": "Click the edge pins to cycle input, output, and disabled modes. North and west default to inputs; east and south default to outputs. These directions refer to the world compass.$(br2)Wire materials attenuate signals differently. Hover over cells to inspect their signals and settings."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Trace materials",
+      "text": "Along a continuous trace of one material, signal strength drops by 1 at these intervals:$(br)Redstone dust: 1 cell$(br)Copper nugget: 2 cells$(br)Lead nugget: 3 cells$(br)Silver nugget: 4 cells$(br)Gold nugget: 6 cells$(br2)A direct connection between different trace materials halves the signal strength, rounding down."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Trace shapes",
+      "text": "Right-click a trace to cycle its shape. A + junction joins all four directions. An insulated crossover keeps the horizontal and vertical signals separate.$(br2)Use straight and corner shapes to limit connections to the intended directions. Hover over a trace to check its shape and signals."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Completion and nesting",
+      "text": "Optionally enter a name, then press Finish. Further edits mark the wafer unfinished again. Sneak-right-click the block with an empty hand to retrieve it.$(br2)Embed completed lower-tier wafers in higher-tier designs to reuse them. An insertion that exceeds the complexity limit leaves the material untouched."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:wafer_assembler"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_assembler": 0
+  }
+}

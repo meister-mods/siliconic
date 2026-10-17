@@ -1,0 +1,25 @@
+{
+  "name": "Wafer Guard",
+  "category": "siliconic:wafer_guard",
+  "icon": "siliconic:wafer_guard",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Mounting and power",
+      "text": "The Wafer Guard connects a completed circuit to redstone inputs and outputs in the world. It can operate outside a cleanroom but still needs power.$(br2)Right-click with a wafer to mount it. Right-click with an empty hand to read stored energy and the mounted wafer's per-tick cost."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Signal connections",
+      "text": "Connect input signals and output wiring in the directions configured in the circuit. Output pins drive adjacent redstone devices.$(br2)Use a $(l:siliconic:redstone_clock)redstone clock$(/l) as an input when needed. Sneak-right-click with an empty hand to retrieve the wafer."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:wafer_guard"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_guard": 0
+  }
+}

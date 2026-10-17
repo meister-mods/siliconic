@@ -1,0 +1,30 @@
+{
+  "name": "Silicon Arc Furnace",
+  "category": "siliconic:silicon_arc_furnace",
+  "icon": "siliconic:silicon_arc_furnace",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Feed and purpose",
+      "text": "The Silicon Arc Furnace uses Nether quartz and charcoal to produce metallurgical-grade silicon. It also needs a carbon electrode with durability remaining.$(br2)Check the arc-furnace process in JEI for input positions and quantities."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Batch operation",
+      "text": "One batch processes one set of inputs. Connect power and load the feed and electrode. The furnace charges, runs its high-power arc, melts the batch, and taps the result.$(br2)Power demand varies by phase. Inputs lock during a batch; check electrode durability and collect both silicon and slag."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Production line",
+      "text": "Send metallurgical silicon to the $(l:siliconic:chlorination_reactor)chlorination reactor$(/l) and slag to the $(l:siliconic:reprocessor)reprocessor$(/l). A worn electrode can produce extra slag.$(br2)Comparator output tracks batch progress. Keep the furnace away from precision manufacturing rooms."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:silicon_arc_furnace"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:silicon_arc_furnace": 0
+  }
+}

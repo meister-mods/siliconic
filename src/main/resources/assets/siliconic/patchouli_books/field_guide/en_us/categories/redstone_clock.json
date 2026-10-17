@@ -1,0 +1,6 @@
+{
+  "name": "Redstone Clock",
+  "description": "Supply periodic redstone pulses to circuits.",
+  "icon": "siliconic:redstone_clock",
+  "sortnum": 18
+}

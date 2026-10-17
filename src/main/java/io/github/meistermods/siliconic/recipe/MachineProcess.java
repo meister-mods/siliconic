@@ -242,7 +242,7 @@ public record MachineProcess(
 
   /**
    * Assigns available item counts to shapeless inputs as a small maximum-flow problem. This avoids
-   * letting one stack satisfy two overlapping ingredients at the same time.
+   * counting the same item twice when ingredient requirements overlap.
    */
   private ShapelessMatch findShapelessMatch(
       ItemStackHandler inventory, int inputStart, int inputSlots) {

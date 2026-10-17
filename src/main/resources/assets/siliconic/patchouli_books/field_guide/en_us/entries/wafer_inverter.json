@@ -1,0 +1,25 @@
+{
+  "name": "Wafer Inverter",
+  "category": "siliconic:wafer_inverter",
+  "icon": "siliconic:wafer_inverter",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Setup and purpose",
+      "text": "The Wafer Inverter mirrors a completed wafer from left to right. Install it in a sealed, powered cleanroom and place the wafer in its input slot.$(br2)It transforms the input wafer itself, so no blank substrate or extra components are required."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Processing",
+      "text": "Processing takes 100 ticks, or 5 seconds at the normal tick rate. Each tick costs 20 SE multiplied by the wafer tier: 20 SE for SSI through 100 SE for ULSI.$(br2)Leave the output slot free. Nested circuits and east-west pin settings are mirrored too. Poor cleanliness can contaminate the result."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:wafer_inverter"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_inverter": 0
+  }
+}

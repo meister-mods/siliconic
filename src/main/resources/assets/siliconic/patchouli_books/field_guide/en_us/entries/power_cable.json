@@ -1,0 +1,25 @@
+{
+  "name": "Power Cable",
+  "category": "siliconic:power_cable",
+  "icon": "siliconic:power_cable",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Connection",
+      "text": "Power cables attach to block surfaces. Run a cable from a generator to buffers and energy consumers.$(br2)Check the mounted surface and connection direction, and provide supporting blocks when routing around corners."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Network operation",
+      "text": "Available power is shared among connected consumers. Generate enough power to meet their combined demand.$(br2)Every chunk along a route must be loaded for transfer. If distant equipment stops, check both the power supply and the route."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:power_cable"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:power_cable": 0
+  }
+}

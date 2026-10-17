@@ -1,0 +1,25 @@
+{
+  "name": "웨이퍼 반전기",
+  "category": "siliconic:wafer_inverter",
+  "icon": "siliconic:wafer_inverter",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "설치와 역할",
+      "text": "웨이퍼 반전기는 완성한 웨이퍼를 좌우로 뒤집습니다. 전력이 공급되는 밀폐 클린룸 안에 설치하고 입력 슬롯에 웨이퍼를 넣습니다.$(br2)입력 웨이퍼 자체를 가공하므로 빈 웨이퍼나 추가 회로 부품은 필요하지 않습니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "가공과 회수",
+      "text": "가공에는 100틱이 걸리며 정상적인 틱 속도에서는 5초입니다. 틱당 소비량은 등급 번호에 20 SE를 곱한 값으로, SSI는 20 SE, ULSI는 100 SE입니다.$(br2)출력 슬롯을 비워 둡니다. 중첩 회로와 동서쪽 핀 설정도 함께 반전됩니다. 청정도가 낮으면 결과물이 오염될 수 있습니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:wafer_inverter"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_inverter": 0
+  }
+}

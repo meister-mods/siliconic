@@ -1,0 +1,6 @@
+{
+  "name": "Energy Buffer",
+  "description": "Store power and distribute it when consumers need it.",
+  "icon": "siliconic:energy_buffer",
+  "sortnum": 2
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Distillation Tower",
+  "description": "Refine crude trichlorosilane for silicon deposition.",
+  "icon": "siliconic:distillation_tower",
+  "sortnum": 5
+}

@@ -1,0 +1,25 @@
+{
+  "name": "웨이퍼 가드",
+  "category": "siliconic:wafer_guard",
+  "icon": "siliconic:wafer_guard",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "장착과 전력",
+      "text": "웨이퍼 가드는 완성한 회로를 월드의 레드스톤 입출력과 연결합니다. 클린룸 밖에서도 운용할 수 있으며 전력을 공급해야 합니다.$(br2)웨이퍼를 들고 가드를 우클릭해 장착합니다. 빈손으로 우클릭하면 저장 에너지와 장착한 웨이퍼의 틱당 소비량을 확인합니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "신호 연결",
+      "text": "회로에서 설정한 방향에 맞춰 입력 신호와 출력 배선을 연결합니다. 출력 핀의 신호는 인접한 레드스톤 장치로 전달됩니다.$(br2)필요하면 $(l:siliconic:redstone_clock)레드스톤 클럭기$(/l)를 입력에 연결합니다. 웨이퍼는 빈손으로 웅크린 채 가드를 우클릭해 회수합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:wafer_guard"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:wafer_guard": 0
+  }
+}

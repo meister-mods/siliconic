@@ -1,0 +1,25 @@
+{
+  "name": "에너지 버퍼",
+  "category": "siliconic:energy_buffer",
+  "icon": "siliconic:energy_buffer",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "역할",
+      "text": "에너지 버퍼는 남는 에너지를 저장해 필요할 때 공급합니다. 기본 저장 용량은 200,000 SE이며, 케이블망으로 틱당 최대 800 SE를 분배합니다.$(br2)용량과 출력 상한은 서버 설정에 따라 달라집니다."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "상태 확인",
+      "text": "케이블로 전원과 소비 장비를 연결합니다. 우클릭으로 저장 에너지와 용량을 확인하고 비교기로 충전량을 감시합니다.$(br2)버퍼 한 대가 수신 장비 하나에 보내는 상한은 기본 틱당 200 SE입니다. 더 많이 쓰는 장비에는 여러 전원을 연결합니다."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "제작법",
+      "recipe": "siliconic:energy_buffer"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:energy_buffer": 0
+  }
+}

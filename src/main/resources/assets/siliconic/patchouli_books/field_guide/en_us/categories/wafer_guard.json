@@ -1,0 +1,6 @@
+{
+  "name": "Wafer Guard",
+  "description": "Run a completed wafer as a redstone device in the world.",
+  "icon": "siliconic:wafer_guard",
+  "sortnum": 12
+}

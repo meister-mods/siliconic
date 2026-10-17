@@ -1,0 +1,25 @@
+{
+  "name": "Logistics Pipe",
+  "category": "siliconic:logistics_pipe",
+  "icon": "siliconic:logistics_pipe",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Connection",
+      "text": "Join a $(l:siliconic:logistics_controller)logistics controller$(/l) to chests and machine inventories with logistics pipes. The controller lists accessible inventory faces as ports.$(br2)Power cables carry energy; logistics pipes provide routes for items."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Route checks",
+      "text": "Configure source and destination ports in the controller on the same pipe network. Every chunk on the route must be loaded.$(br2)After connecting equipment, check the port list and any access rules on the machine face."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:logistics_pipe"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:logistics_pipe": 0
+  }
+}

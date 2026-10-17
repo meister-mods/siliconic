@@ -1,0 +1,6 @@
+{
+  "name": "물류 제어기",
+  "description": "포트별 입출력·필터·우선순위를 설정합니다.",
+  "icon": "siliconic:logistics_controller",
+  "sortnum": 17
+}

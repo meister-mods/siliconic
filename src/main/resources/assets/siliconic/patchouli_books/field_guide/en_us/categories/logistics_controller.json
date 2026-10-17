@@ -1,0 +1,6 @@
+{
+  "name": "Logistics Controller",
+  "description": "Configure item ports, filters, and priorities.",
+  "icon": "siliconic:logistics_controller",
+  "sortnum": 17
+}

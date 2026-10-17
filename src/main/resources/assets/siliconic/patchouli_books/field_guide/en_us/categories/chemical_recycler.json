@@ -1,0 +1,6 @@
+{
+  "name": "Chlorosilane Recycler",
+  "description": "Return chemical byproducts to the production line.",
+  "icon": "siliconic:chemical_recycler",
+  "sortnum": 7
+}

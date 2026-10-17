@@ -1,0 +1,30 @@
+{
+  "name": "Coal Generator",
+  "category": "siliconic:coal_generator",
+  "icon": "siliconic:coal_generator",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "title": "Purpose",
+      "text": "The Coal Generator burns furnace fuels such as coal and charcoal to produce power. It generates 40 SE per tick by default; server settings may change this. At the normal tick rate, 20 ticks equal one second.$(br2)Build a power supply before starting precision manufacturing."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Connection",
+      "text": "Place the generator and connect consumers with power cables. Right-click to check its fuel slot and stored energy. Hoppers and logistics can supply fuel.$(br2)Add generators for sustained demand, or use a buffer to cover short bursts."
+    },
+    {
+      "type": "patchouli:text",
+      "title": "Cleanroom placement",
+      "text": "Generators pollute cleanrooms. Keep them outside and carry power through the wall with a Cable Coated Cleanroom Block to preserve the seal.$(br2)Provide enough power for both the conditioner and the machines inside."
+    },
+    {
+      "type": "patchouli:crafting",
+      "title": "Crafting",
+      "recipe": "siliconic:coal_generator"
+    }
+  ],
+  "extra_recipe_mappings": {
+    "siliconic:coal_generator": 0
+  }
+}

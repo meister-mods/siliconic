@@ -96,7 +96,9 @@ public class ReprocessorMenu extends AbstractContainerMenu {
     return !reprocessor.isRemoved()
         && reprocessor.getLevel() == player.level()
         && player.distanceToSqr(reprocessor.getBlockPos().getCenter()) <= 64
-        && player.level().hasChunkAt(reprocessor.getBlockPos())
+        && player
+            .level()
+            .hasChunk(reprocessor.getBlockPos().getX() >> 4, reprocessor.getBlockPos().getZ() >> 4)
         && player.level().getBlockEntity(reprocessor.getBlockPos()) == reprocessor;
   }
 }

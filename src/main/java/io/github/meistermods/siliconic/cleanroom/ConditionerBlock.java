@@ -54,6 +54,7 @@ public class ConditionerBlock extends BaseEntityBlock {
   }
 
   @Override
+  @SuppressWarnings("deprecation") // Minecraft 1.20.1 requires this Block implementation hook.
   public InteractionResult use(
       BlockState state,
       Level level,

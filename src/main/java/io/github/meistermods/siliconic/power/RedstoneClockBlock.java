@@ -13,7 +13,8 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-@SuppressWarnings({"null"})
+// Minecraft 1.20.1 deprecates Block hooks for callers; implementations still override them.
+@SuppressWarnings({"null", "deprecation"})
 public class RedstoneClockBlock extends Block {
   public static final BooleanProperty POWERED = BooleanProperty.create("powered");
   private static final int ON_TICKS = 2;

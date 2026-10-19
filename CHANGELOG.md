@@ -4,6 +4,15 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-10-19
+
+### Changed
+
+- Replaced legacy JEI scroll-grid factories with per-recipe widgets while preserving scrollable input and output lists.
+- Registered common configuration through the injected Forge loading context.
+- Replaced deprecated chunk-presence and item-registry access while preserving menu validity guards and tag-reload regression coverage.
+- Enabled Java deprecation and removal diagnostics, documented required Minecraft 1.20.1 block hooks, and removed an invalid warning-suppression token.
+
 ## [0.3.1] - 2026-10-17
 
 ### Added

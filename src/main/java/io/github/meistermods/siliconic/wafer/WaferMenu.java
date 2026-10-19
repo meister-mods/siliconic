@@ -191,7 +191,7 @@ public class WaferMenu extends AbstractContainerMenu {
     return !wafer.isRemoved()
         && wafer.getLevel() == player.level()
         && player.distanceToSqr(wafer.getBlockPos().getCenter()) <= 64
-        && player.level().hasChunkAt(wafer.getBlockPos())
+        && player.level().hasChunk(wafer.getBlockPos().getX() >> 4, wafer.getBlockPos().getZ() >> 4)
         && player.level().getBlockEntity(wafer.getBlockPos()) == wafer;
   }
 }

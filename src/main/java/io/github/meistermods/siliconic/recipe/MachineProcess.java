@@ -31,7 +31,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ForgeRegistries;
 
-@SuppressWarnings({"null", "deprecated"})
+@SuppressWarnings({"null"})
 public record MachineProcess(
     ResourceLocation id,
     MachineKind machine,

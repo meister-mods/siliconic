@@ -101,7 +101,9 @@ public class WaferDuplicatorMenu extends AbstractContainerMenu {
     return !duplicator.isRemoved()
         && duplicator.getLevel() == player.level()
         && player.distanceToSqr(duplicator.getBlockPos().getCenter()) <= 64
-        && player.level().hasChunkAt(duplicator.getBlockPos())
+        && player
+            .level()
+            .hasChunk(duplicator.getBlockPos().getX() >> 4, duplicator.getBlockPos().getZ() >> 4)
         && player.level().getBlockEntity(duplicator.getBlockPos()) == duplicator;
   }
 }

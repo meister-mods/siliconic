@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.widgets.IScrollGridWidgetFactory;
+import mezz.jei.api.gui.widgets.IRecipeExtrasBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
@@ -25,7 +25,6 @@ public final class ReprocessingProcessCategory extends AbstractRecipeCategory<Re
   private static final int OUTPUT_CENTER_X = 126;
   private static final int OUTPUT_SPACING = 28;
   private final IDrawable arrow;
-  private final IScrollGridWidgetFactory<?> outputGrid;
 
   public ReprocessingProcessCategory(
       RecipeType<ReprocessingProcess> recipeType, IGuiHelper guiHelper) {
@@ -36,8 +35,6 @@ public final class ReprocessingProcessCategory extends AbstractRecipeCategory<Re
         WIDTH,
         HEIGHT);
     this.arrow = guiHelper.getRecipeArrow();
-    this.outputGrid = guiHelper.createScrollGridFactory(2, 2);
-    this.outputGrid.setPosition(112, 8);
   }
 
   @Override
@@ -52,16 +49,23 @@ public final class ReprocessingProcessCategory extends AbstractRecipeCategory<Re
     int firstOutputX = OUTPUT_CENTER_X - (outputs.size() - 1) * OUTPUT_SPACING / 2;
     for (int index = 0; index < outputs.size(); index++) {
       if (outputs.size() > 3) {
-        builder
-            .addSlotToWidget(RecipeIngredientRole.OUTPUT, outputGrid)
-            .setStandardSlotBackground()
-            .addItemStack(outputs.get(index));
+        builder.addOutputSlot().setStandardSlotBackground().addItemStack(outputs.get(index));
         continue;
       }
       builder
           .addOutputSlot(firstOutputX + index * OUTPUT_SPACING, 24)
           .setOutputSlotBackground()
           .addItemStack(outputs.get(index));
+    }
+  }
+
+  @Override
+  public void createRecipeExtras(
+      IRecipeExtrasBuilder builder, ReprocessingProcess process, IFocusGroup focuses) {
+    if (process.outputCopies().size() > 3) {
+      builder
+          .addScrollGridWidget(builder.getRecipeSlots().getSlots(RecipeIngredientRole.OUTPUT), 2, 2)
+          .setPosition(112, 8);
     }
   }
 

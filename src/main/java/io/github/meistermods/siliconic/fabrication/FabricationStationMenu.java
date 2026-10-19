@@ -100,7 +100,9 @@ public class FabricationStationMenu extends AbstractContainerMenu {
     return !station.isRemoved()
         && station.getLevel() == player.level()
         && player.distanceToSqr(station.getBlockPos().getCenter()) <= 64
-        && player.level().hasChunkAt(station.getBlockPos())
+        && player
+            .level()
+            .hasChunk(station.getBlockPos().getX() >> 4, station.getBlockPos().getZ() >> 4)
         && player.level().getBlockEntity(station.getBlockPos()) == station;
   }
 }

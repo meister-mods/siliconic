@@ -18,7 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import net.minecraft.core.Holder;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -171,7 +171,7 @@ public final class RecipeSyncGameTests {
       template = "empty",
       batch = "process_tag_matching")
   public static void refreshesActualFallbackIngredientsAfterTagReload(GameTestHelper helper) {
-    Map<TagKey<Item>, List<Holder<Item>>> original = bindings();
+    Map<TagKey<Item>, List<Holder<Item>>> original = bindings(helper);
     helper.assertTrue(
         original.containsKey(COPPER) && !original.get(COPPER).isEmpty(),
         "The shipped copper tag must exist");
@@ -185,7 +185,7 @@ public final class RecipeSyncGameTests {
           ModMachineProcesses.all(helper.getLevel()).stream().anyMatch(recipe -> recipe == before),
           "The level cache must contain the actual fallback before tags change");
       Map<TagKey<Item>, List<Holder<Item>>> changed = new LinkedHashMap<>(original);
-      changed.put(COPPER, List.of(BuiltInRegistries.ITEM.wrapAsHolder(Items.BEDROCK)));
+      changed.put(COPPER, List.of(itemRegistry(helper).wrapAsHolder(Items.BEDROCK)));
       bindAndNotify(helper, changed);
       MachineProcess after = fallback();
       ItemStackHandler newInputs = new ItemStackHandler(9);
@@ -219,7 +219,7 @@ public final class RecipeSyncGameTests {
       template = "empty",
       batch = "process_tag_signatures")
   public static void savesCurrentFallbackSignaturesAfterTagReload(GameTestHelper helper) {
-    Map<TagKey<Item>, List<Holder<Item>>> original = bindings();
+    Map<TagKey<Item>, List<Holder<Item>>> original = bindings(helper);
     helper.assertTrue(original.containsKey(COPPER), "The shipped copper tag must exist");
     try {
       MachineProcess before = fallback();
@@ -232,7 +232,7 @@ public final class RecipeSyncGameTests {
           initial.select(fallback()),
           "Rebinding identical tags must preserve unfinished work on the live machine");
       List<Holder<Item>> expanded = new ArrayList<>(original.get(COPPER));
-      expanded.add(BuiltInRegistries.ITEM.wrapAsHolder(Items.BEDROCK));
+      expanded.add(itemRegistry(helper).wrapAsHolder(Items.BEDROCK));
       Map<TagKey<Item>, List<Holder<Item>>> changed = new LinkedHashMap<>(original);
       changed.put(COPPER, expanded);
       bindAndNotify(helper, changed);
@@ -270,9 +270,13 @@ public final class RecipeSyncGameTests {
     }
   }
 
-  private static Map<TagKey<Item>, List<Holder<Item>>> bindings() {
+  private static Registry<Item> itemRegistry(GameTestHelper helper) {
+    return helper.getLevel().registryAccess().registryOrThrow(Registries.ITEM);
+  }
+
+  private static Map<TagKey<Item>, List<Holder<Item>>> bindings(GameTestHelper helper) {
     Map<TagKey<Item>, List<Holder<Item>>> snapshot = new LinkedHashMap<>();
-    BuiltInRegistries.ITEM
+    itemRegistry(helper)
         .getTags()
         .forEach(pair -> snapshot.put(pair.getFirst(), pair.getSecond().stream().toList()));
     return snapshot;
@@ -280,7 +284,7 @@ public final class RecipeSyncGameTests {
 
   private static void bindAndNotify(
       GameTestHelper helper, Map<TagKey<Item>, List<Holder<Item>>> tags) {
-    BuiltInRegistries.ITEM.bindTags(tags);
+    itemRegistry(helper).bindTags(tags);
     // Mirrors ReloadableServerResources.updateRegistryTags for the affected item registry.
     // Ingredient.invalidateAll is not part of that vanilla/Forge tag-update method.
     MinecraftForge.EVENT_BUS.post(

@@ -5,7 +5,7 @@ import io.github.meistermods.siliconic.recipe.MachineProcess;
 import java.util.Locale;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
-import mezz.jei.api.gui.widgets.IScrollGridWidgetFactory;
+import mezz.jei.api.gui.widgets.IRecipeExtrasBuilder;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
@@ -26,8 +26,6 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
   private static final int OUTPUT_SPACING = 28;
   private final MachineKind machine;
   private final IDrawable arrow;
-  private final IScrollGridWidgetFactory<?> inputGrid;
-  private final IScrollGridWidgetFactory<?> outputGrid;
 
   public MachineProcessCategory(
       RecipeType<MachineProcess> recipeType,
@@ -38,10 +36,6 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
     super(recipeType, title, guiHelper.createDrawableItemLike(iconItem), WIDTH, HEIGHT);
     this.machine = machine;
     this.arrow = guiHelper.getRecipeArrow();
-    this.inputGrid = guiHelper.createScrollGridFactory(3, isGridMachine() ? 3 : 1);
-    this.inputGrid.setPosition(isGridMachine() ? 8 : 12, isGridMachine() ? 6 : 24);
-    this.outputGrid = guiHelper.createScrollGridFactory(2, 2);
-    this.outputGrid.setPosition(124, OUTPUT_GRID_Y);
   }
 
   @Override
@@ -49,10 +43,7 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
     if (!process.shaped() && process.inputs().size() > machine.inputSlots()) {
       builder.setShapeless(86, 6);
       for (var input : process.inputs())
-        builder
-            .addSlotToWidget(RecipeIngredientRole.INPUT, inputGrid)
-            .setStandardSlotBackground()
-            .addItemStacks(input.stacks());
+        builder.addInputSlot().setStandardSlotBackground().addItemStacks(input.stacks());
     } else if (isGridMachine()) {
       if (process.shaped()) {
         for (int slot = 0; slot < 9; slot++) {
@@ -89,15 +80,29 @@ public class MachineProcessCategory extends AbstractRecipeCategory<MachineProces
     var outputs = process.outputCopies();
     for (int index = 0; index < outputs.size(); index++) {
       if (outputs.size() > 4) {
-        builder
-            .addSlotToWidget(RecipeIngredientRole.OUTPUT, outputGrid)
-            .setStandardSlotBackground()
-            .addItemStack(outputs.get(index));
+        builder.addOutputSlot().setStandardSlotBackground().addItemStack(outputs.get(index));
         continue;
       }
       int x = outputs.size() == 1 ? SINGLE_OUTPUT_X : OUTPUT_GRID_X + index % 2 * OUTPUT_SPACING;
       int y = outputs.size() == 1 ? 24 : OUTPUT_GRID_Y + index / 2 * OUTPUT_SPACING;
       builder.addOutputSlot(x, y).setOutputSlotBackground().addItemStack(outputs.get(index));
+    }
+  }
+
+  @Override
+  public void createRecipeExtras(
+      IRecipeExtrasBuilder builder, MachineProcess process, IFocusGroup focuses) {
+    var slots = builder.getRecipeSlots();
+    if (!process.shaped() && process.inputs().size() > machine.inputSlots()) {
+      builder
+          .addScrollGridWidget(
+              slots.getSlots(RecipeIngredientRole.INPUT), 3, isGridMachine() ? 3 : 1)
+          .setPosition(isGridMachine() ? 8 : 12, isGridMachine() ? 6 : 24);
+    }
+    if (process.outputCopies().size() > 4) {
+      builder
+          .addScrollGridWidget(slots.getSlots(RecipeIngredientRole.OUTPUT), 2, 2)
+          .setPosition(124, OUTPUT_GRID_Y);
     }
   }
 

@@ -185,7 +185,9 @@ public class SiliconProcessorMenu extends AbstractContainerMenu {
         && hasCurrentInputLayout()
         && processor.getLevel() == player.level()
         && player.distanceToSqr(processor.getBlockPos().getCenter()) <= 64
-        && player.level().hasChunkAt(processor.getBlockPos())
+        && player
+            .level()
+            .hasChunk(processor.getBlockPos().getX() >> 4, processor.getBlockPos().getZ() >> 4)
         && player.level().getBlockEntity(processor.getBlockPos()) == processor;
   }
 

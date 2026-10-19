@@ -80,7 +80,9 @@ public class WaferInverterMenu extends AbstractContainerMenu {
     return !inverter.isRemoved()
         && inverter.getLevel() == player.level()
         && player.distanceToSqr(inverter.getBlockPos().getCenter()) <= 64
-        && player.level().hasChunkAt(inverter.getBlockPos())
+        && player
+            .level()
+            .hasChunk(inverter.getBlockPos().getX() >> 4, inverter.getBlockPos().getZ() >> 4)
         && player.level().getBlockEntity(inverter.getBlockPos()) == inverter;
   }
 }
